@@ -6,13 +6,16 @@ authors = [
     "Ivan Domrachev, <domrachev10@gmail.com>, Simeon Nedelchev <simkaned@gmail.com>", "Lev Kozlov <kozlov.l.a10@gmail.com>"
 ]   
 readme = "README.md"
+packages = [
+  { include = "mjinx"},
+]
 
 [tool.poetry.dependencies]
 python = "^3.10"
 mujoco = "3.1.6"
 mujoco_mjx = "3.1.6"
-jaxlib = "0.4.30"
-jax = "0.4.30"
+jaxlib = "*"
+jax = "*"
 
 [tool.poetry.group.dev.dependencies]
 pre-commit = "^3.6.0"
@@ -22,6 +25,7 @@ pytest = "^7.4.4"
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
+
 
 [tool.pytest]
 filterwarnings = "ignore:.*U.*mode is deprecated:DeprecationWarning"
