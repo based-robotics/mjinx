@@ -1,5 +1,6 @@
 import abc
 
+import jax
 import jax.numpy as jnp
 import jax_dataclasses as jdc
 import mujoco.mjx as mjx
@@ -7,7 +8,6 @@ import mujoco.mjx as mjx
 
 @jdc.pytree_dataclass
 class Task(abc.ABC):
-    # Default values and optional arguments
     cost: jnp.ndarray
     gain: float
     lm_damping: float
@@ -16,19 +16,28 @@ class Task(abc.ABC):
     def compute_error(self, model: mjx.Model, data: mjx.Data) -> jnp.ndarray:
         r"""..."""
 
-    @abc.abstractmethod
     def compute_jacobian(self, model: mjx.Model, data: mjx.Data) -> jnp.ndarray:
-        r"""..."""
+        return jax.jacrev(
+            lambda q, model, data: self.compute_error(
+                model,
+                data.replace(qpos=q),
+            ),
+            argnums=0,
+        )(data.qpos, model, data)
 
-    def compute_qp_objective(self, model: mjx.Model, data: mjx.Data) -> tuple[jnp.ndarray, jnp.ndarray]:
+    def compute_qp_objective(
+        self,
+        model: mjx.Model,
+        data: mjx.Data,
+    ) -> tuple[jnp.ndarray, jnp.ndarray]:
         r"""..."""
         jacobian = self.compute_jacobian(model, data)
         minus_gain_error = -self.gain * self.compute_error(model, data)
 
         weighted_jacobian = self.cost @ jacobian  # [cost]
         weighted_error = self.cost @ minus_gain_error  # [cost]
-        # mu = self.lm_damping * weighted_error @ weighted_error  # [cost]^2
 
+        # mu = self.lm_damping * weighted_error @ weighted_error  # [cost]^2
         # TODO: handle Levenberg-Marquardt damping
         # eye_tg = configuration.tangent.eye
         # Our Levenberg-Marquardt damping `mu * eye_tg` is isotropic in the

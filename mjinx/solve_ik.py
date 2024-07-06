@@ -1,12 +1,13 @@
 """Build and solve the inverse kinematics problem."""
 
-from typing import Iterable
+from typing import Iterable, Type
 
 import jax.numpy as jnp
 import mujoco.mjx as mjx
 import qpax
 
 from .barriers import Barrier
+from .configuration import get_configuration_limit, update
 from .tasks import Task
 
 
@@ -41,15 +42,13 @@ def __compute_qp_inequalities(
     dt: float,
 ) -> tuple[jnp.ndarray, jnp.ndarray]:
     r"""..."""
-
+    # TODO: add velocity limits
     G_list = []
     h_list = []
-    # TODO: add velocity limits
-    # for limit in (configuration_limit, velocity_limit):
-    #     matvec = limit.compute_qp_inequalities(q, dt)
-    #     if matvec is not None:
-    #         G_list.append(matvec[0])
-    #         h_list.append(matvec[1])
+
+    G_v_limit, h_v_limit = get_configuration_limit(model, 5 * jnp.ones(model.nv))
+    G_list.append(G_v_limit)
+    h_list.append(h_v_limit)
     for barrier in barriers:
         G_barrier, h_barrier = barrier.compute_qp_inequality(model, data, dt)
         G_list.append(G_barrier)
@@ -67,10 +66,9 @@ def assemble_ik(
     damping: float = 1e-12,
 ) -> tuple[jnp.ndarray, jnp.ndarray, jnp.ndarray, jnp.ndarray, jnp.ndarray, jnp.ndarray]:
     r"""..."""
-
     P, q = __compute_qp_objective(model, data, tasks, barriers, damping)
     G, h = __compute_qp_inequalities(model, data, barriers, dt)
-    return P, q, jnp.array(), jnp.array(), G, h
+    return P, q, jnp.array([]).reshape(0, 7).reshape(0, model.nv), jnp.array([]), G, h
 
 
 def solve_ik(
@@ -79,10 +77,20 @@ def solve_ik(
     tasks: Iterable[Task],
     barriers: Iterable[Barrier],
     dt: float,
-    solver: str,
     damping: float = 1e-12,
-    **kwargs,
 ) -> jnp.ndarray:
     r"""..."""
 
-    return qpax.solve_qp(assemble_ik(model, data, tasks, barriers, dt, damping))[0] / dt
+    return (
+        qpax.solve_qp(
+            *assemble_ik(
+                model,
+                data,
+                tasks,
+                barriers,
+                dt,
+                damping,
+            )
+        )[0]
+        / dt
+    )
