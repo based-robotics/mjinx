@@ -23,15 +23,14 @@ v_rand_np = np.vstack(
 q_jnp = jnp.array(q_rand_np)
 v_jnp = jnp.array(v_rand_np)
 
-update_jit = jax.jit(jax.vmap(configuration.update, in_axes=(None, 0)))
-get_frame_jacobian_jit = jax.jit(
-    jax.vmap(configuration.get_transform_frame_to_world, in_axes=(None, 0, None)), static_argnums=(2,)
-)
-integrate_inplace_jit = jax.jit(
-    jax.vmap(configuration.integrate_inplace, in_axes=(None, 0, 0, None)), static_argnums=(3,)
-)
+
+def get_jacobian(model: mjx.Model, q: jnp.ndarray, body_id: int) -> jnp.ndarray:
+    return configuration.get_frame_jacobian(model, configuration.update(model, q), body_id)
 
 
-mj_data_batch = update_jit(mjx_model, q_rand_np)
-mj_jacobian_batch = get_frame_jacobian_jit(mjx_model, mj_data_batch, 2)
-mj_data_batch = integrate_inplace_jit(mjx_model, mj_data_batch, v_jnp, 1e-3)
+update_batched = jax.jit(jax.vmap(configuration.update, in_axes=(None, 0)))
+get_jacobian_batched = jax.jit(jax.vmap(get_jacobian, in_axes=(None, 0, None)))
+
+jac_batched = get_jacobian_batched(mjx_model, q_jnp, 8)
+
+print(jac_batched[0])

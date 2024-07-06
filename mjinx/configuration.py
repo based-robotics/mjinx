@@ -4,15 +4,15 @@
 
 import jax
 import jax.numpy as jnp
-import numpy as np
+from jaxlie import SE3, SO3
 from mujoco import mjx
 
 
 def update(model: mjx.Model, q: jnp.ndarray) -> mjx.Data:
     """..."""
     data = mjx.make_data(model)
-    data.replace(qpos=q)
-    data = mjx.kinematics(model, data)
+    data = data.replace(qpos=q)
+    data = mjx.fwd_position(model, data)
     data = mjx.com_pos(model, data)
 
     return data
@@ -46,24 +46,17 @@ def get_frame_jacobian(model: mjx.Model, data: mjx.Data, body_id: int) -> jnp.ar
     return jac
 
 
-def get_transform_frame_to_world(model: mjx.Model, data: mjx.Data, frame_id: int) -> jnp.array:
+def get_transform_frame_to_world(model: mjx.Model, data: mjx.Data, frame_id: int) -> SE3:
     """..."""
-    return jnp.concatenate((data.xpos[frame_id], data.xquat[frame_id, [3, 0, 1, 2]]))
-
-
-def get_transform(model: mjx.Model, data: mjx.Data, source_id: int, dest_id: int) -> jnp.array:
-    """..."""
-    t1 = get_transform_frame_to_world(data, source_id)
-    t2 = get_transform_frame_to_world(data, dest_id)
-    s1, v1 = t1[-1], t1[3:6]
-    s2, v2 = t2[-1], t2[3:6]
-    delta_q = np.concatenate(
-        (
-            s1 * s2 + jnp.dot(v1, v2),
-            s1 * v2 - s2 * v1 - jnp.cross(v1, v2),
-        )
+    return SE3.from_rotation_and_translation(
+        SO3.from_quaternion_xyzw(data.xquat[frame_id, [1, 2, 3, 0]]),
+        data.xpos[frame_id],
     )
-    return jnp.concatenate((t2[:3] - t1[:3], delta_q))
+
+
+def get_transform(model: mjx.Model, data: mjx.Data, source_id: int, dest_id: int) -> SE3:
+    """..."""
+    return get_transform_frame_to_world(data, dest_id) @ get_transform_frame_to_world(data, source_id)
 
 
 def integrate(model: mjx.Model, data: mjx.Data, velocity: jnp.ndarray, dt: jnp.ndarray) -> jnp.array:
