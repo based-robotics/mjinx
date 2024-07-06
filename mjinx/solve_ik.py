@@ -73,14 +73,14 @@ def assemble_ik(
 
 def solve_ik(
     model: mjx.Model,
-    data: mjx.Data,
+    q: jnp.ndarray,
     tasks: Iterable[Task],
     barriers: Iterable[Barrier],
     dt: float,
     damping: float = 1e-12,
 ) -> jnp.ndarray:
     r"""..."""
-
+    data = update(model, q)
     return (
         qpax.solve_qp(
             *assemble_ik(
