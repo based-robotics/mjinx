@@ -6,13 +6,14 @@
 
 """Frame task implementation."""
 
+import jax
 import jax.numpy as jnp
 import jax_dataclasses as jdc
 import mujoco.mjx as mjx
 from jaxlie import SE3
 from typing_extensions import override
 
-from ..configuration import get_transform_frame_to_world
+from ..configuration import get_frame_jacobian_local, get_transform_frame_to_world
 from .base import Task
 
 
@@ -28,18 +29,30 @@ class FrameTask(Task):
         r""""""
         return jnp.array(
             (
-                self.target_frame.inverse()
-                @ get_transform_frame_to_world(
+                get_transform_frame_to_world(
                     model,
                     data,
                     self.frame_id,
-                )
+                ).inverse()
+                @ self.target_frame
             ).log()
         )
 
     @override
     def compute_jacobian(self, model: mjx.Model, data: mjx.Data) -> jnp.ndarray:
-        raise NotImplementedError("Jlog6 is to be implemented.")
+        T_bt = self.target_frame.inverse() @ get_transform_frame_to_world(
+            model,
+            data,
+            self.frame_id,
+        )
+
+        def transform_log(tau):
+            return (T_bt.multiply(SE3.exp(tau))).log()
+
+        frame_jac = get_frame_jacobian_local(model, data, self.frame_id)
+        jlog = jax.jacobian(transform_log)(jnp.zeros(SE3.tangent_dim))
+
+        return -jlog @ frame_jac.T
 
     def __repr__(self):
         """Human-readable representation of the task."""

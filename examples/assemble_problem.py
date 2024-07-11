@@ -5,10 +5,11 @@ import jax.numpy as jnp
 import mujoco as mj
 import mujoco.mjx as mjx
 import numpy as np
+from jaxlie import SE3
 from time import perf_counter
 
 from mjinx import solve_ik
-from mjinx.tasks import ComTask, PositionTask
+from mjinx.tasks import ComTask, PositionTask, FrameTask
 
 model_path = os.path.abspath(os.path.dirname(__file__)) + "/robot_descriptions/kuka_iiwa_14/iiwa14.xml"
 mj_model = mj.MjModel.from_xml_path(model_path)
@@ -21,7 +22,7 @@ q = jnp.array(
     )
 )
 
-N_batch = 1000
+N_batch = 200
 q_batched = jnp.vstack(
     [
         jnp.array(
@@ -38,6 +39,7 @@ q_batched = jnp.vstack(
 tasks = (
     ComTask(cost=jnp.eye(3), gain=jnp.ones(3), lm_damping=jnp.ones(3), target_com=jnp.zeros(3)),
     PositionTask(cost=jnp.eye(3), gain=jnp.ones(3), lm_damping=jnp.ones(3), frame_id=8, target_pos=jnp.zeros(3)),
+    FrameTask(cost=jnp.eye(6), gain=jnp.ones(6), lm_damping=jnp.ones(6), frame_id=8, target_frame=SE3.identity()),
 )
 
 solve_ik_batched = jax.jit(

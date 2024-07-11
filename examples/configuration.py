@@ -25,7 +25,7 @@ v_jnp = jnp.array(v_rand_np)
 
 
 def get_jacobian(model: mjx.Model, q: jnp.ndarray, body_id: int) -> jnp.ndarray:
-    return configuration.get_frame_jacobian(model, configuration.update(model, q), body_id)
+    return configuration.get_frame_jacobian_world_aligned(model, configuration.update(model, q), body_id)
 
 
 update_batched = jax.jit(jax.vmap(configuration.update, in_axes=(None, 0)))
