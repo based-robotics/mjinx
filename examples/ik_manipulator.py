@@ -43,9 +43,8 @@ print(ee_id)
 
 tasks = (
     FrameTask(
-        cost=jnp.eye(6),
-        gain=jnp.ones(6),
-        lm_damping=jnp.ones(6),
+        cost=1 * jnp.eye(6),
+        gain=1 * jnp.ones(6),
         frame_id=ee_id,
         target_frame=SE3.from_rotation_and_translation(SO3.identity(), np.array([0.2, 0.2, 0.2])),
     ),
@@ -66,8 +65,8 @@ mj.mjv_initGeom(
 try:
     # Warm-up JIT
     for _ in ts:
-        vel = solve_ik(mjx_model, cur_q, tasks, (), 1e-3, 1e-12)
-        cur_q += vel * 1e-3
+        vel = solve_ik(mjx_model, cur_q, tasks, (), damping=1e-12)
+        cur_q += vel * 5 * 1e-1
         mj_data.qpos = cur_q
         mj_data.qvel = vel
 
@@ -76,5 +75,6 @@ try:
         mj.mj_forward(mj_model, mj_data)
         print(cur_q)
         mj_viewer.sync()
-except Exception:
+except Exception as e:
+    print(e)
     mj_viewer.close()

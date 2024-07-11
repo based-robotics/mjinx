@@ -6,6 +6,8 @@
 
 """Center of mass task implementation."""
 
+from dataclasses import field
+
 import jax.numpy as jnp
 import jax_dataclasses as jdc
 import mujoco.mjx as mjx
@@ -16,7 +18,9 @@ from .base import Task
 
 @jdc.pytree_dataclass
 class ComTask(Task):
-    target_com: jnp.ndarray
+    dim = 3
+
+    target_com: jnp.ndarray = field(default_factory=lambda: jnp.zeros(3))
 
     def __repr__(self):
         """Human-readable representation of the task."""

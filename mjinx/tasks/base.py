@@ -1,16 +1,22 @@
 import abc
 
+from dataclasses import field, InitVar
 import jax
 import jax.numpy as jnp
 import jax_dataclasses as jdc
+from jax_dataclasses._copy_and_mutate import _Mutability as Mutability
 import mujoco.mjx as mjx
 
+from typing import ClassVar
 
-@jdc.pytree_dataclass
+
+@jdc.pytree_dataclass(kw_only=True)
 class Task(abc.ABC):
+    dim: ClassVar[int]
+
     cost: jnp.ndarray
-    gain: float
-    lm_damping: float
+    gain: jnp.ndarray
+    lm_damping: float = 0.0
 
     @abc.abstractmethod
     def compute_error(self, model: mjx.Model, data: mjx.Data) -> jnp.ndarray:
@@ -18,12 +24,12 @@ class Task(abc.ABC):
 
     def compute_jacobian(self, model: mjx.Model, data: mjx.Data) -> jnp.ndarray:
         return jax.jacrev(
-            lambda q, model, data: self.compute_error(
+            lambda q, model=model, data=data: self.compute_error(
                 model,
                 data.replace(qpos=q),
             ),
             argnums=0,
-        )(data.qpos, model, data)
+        )(data.qpos)
 
     def compute_qp_objective(
         self,
@@ -37,13 +43,13 @@ class Task(abc.ABC):
         weighted_jacobian = self.cost @ jacobian  # [cost]
         weighted_error = self.cost @ minus_gain_error  # [cost]
 
-        # mu = self.lm_damping * weighted_error @ weighted_error  # [cost]^2
-        # TODO: handle Levenberg-Marquardt damping
-        # eye_tg = configuration.tangent.eye
+        mu = self.lm_damping * weighted_error @ weighted_error  # [cost]^2
+        # TODO: nv is a dimension of the tangent space, right?..
+        eye_tg = jnp.eye(model.nv)
         # Our Levenberg-Marquardt damping `mu * eye_tg` is isotropic in the
         # robot's tangent space. If it helps we can add a tangent-space scaling
         # to damp the floating base differently from joint angular velocities.
-        H = weighted_jacobian.T @ weighted_jacobian  # + mu * eye_tg
+        H = weighted_jacobian.T @ weighted_jacobian + mu * eye_tg
         c = -weighted_error.T @ weighted_jacobian
         return (H, c)
 

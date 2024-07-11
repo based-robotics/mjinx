@@ -21,12 +21,17 @@ from .base import Task
 class FrameTask(Task):
     r""""""
 
+    dim = SE3.tangent_dim
+
     frame_id: int
     target_frame: SE3
 
     @override
     def compute_error(self, model: mjx.Model, data: mjx.Data) -> jnp.ndarray:
         r""""""
+        if self.frame_id < 0:
+            raise ValueError("Invalid frame_id")
+
         return jnp.array(
             (
                 get_transform_frame_to_world(
@@ -40,6 +45,9 @@ class FrameTask(Task):
 
     @override
     def compute_jacobian(self, model: mjx.Model, data: mjx.Data) -> jnp.ndarray:
+        if self.frame_id < 0:
+            raise ValueError("Invalid frame_id")
+
         T_bt = self.target_frame.inverse() @ get_transform_frame_to_world(
             model,
             data,
@@ -50,7 +58,7 @@ class FrameTask(Task):
             return (T_bt.multiply(SE3.exp(tau))).log()
 
         frame_jac = get_frame_jacobian_local(model, data, self.frame_id)
-        jlog = jax.jacobian(transform_log)(jnp.zeros(SE3.tangent_dim))
+        jlog = jax.jacobian(transform_log)(jnp.zeros(self.dim))
 
         return -jlog @ frame_jac.T
 

@@ -39,18 +39,17 @@ def __compute_qp_inequalities(
     model: mjx.Model,
     data: mjx.Data,
     barriers: Iterable[Barrier],
-    dt: float,
 ) -> tuple[jnp.ndarray, jnp.ndarray]:
     r"""..."""
     # TODO: add velocity limits
     G_list = []
     h_list = []
 
-    G_v_limit, h_v_limit = get_configuration_limit(model, 5 * jnp.ones(model.nv))
+    G_v_limit, h_v_limit = get_configuration_limit(model, jnp.pi * jnp.ones(model.nv))
     G_list.append(G_v_limit)
     h_list.append(h_v_limit)
     for barrier in barriers:
-        G_barrier, h_barrier = barrier.compute_qp_inequality(model, data, dt)
+        G_barrier, h_barrier = barrier.compute_qp_inequality(model, data)
         G_list.append(G_barrier)
         h_list.append(h_barrier)
 
@@ -62,13 +61,12 @@ def assemble_ik(
     data: mjx.Data,
     tasks: Iterable[Task],
     barriers: Iterable[Barrier],
-    dt: float,
     damping: float = 1e-12,
 ) -> tuple[jnp.ndarray, jnp.ndarray, jnp.ndarray, jnp.ndarray, jnp.ndarray, jnp.ndarray]:
     r"""..."""
     P, q = __compute_qp_objective(model, data, tasks, barriers, damping)
-    G, h = __compute_qp_inequalities(model, data, barriers, dt)
-    return P, q, jnp.array([]).reshape(0, 7).reshape(0, model.nv), jnp.array([]), G, h
+    G, h = __compute_qp_inequalities(model, data, barriers)
+    return P, q, jnp.array([]).reshape(0, model.nv).reshape(0, model.nv), jnp.array([]), G, h
 
 
 def solve_ik(
@@ -76,21 +74,16 @@ def solve_ik(
     q: jnp.ndarray,
     tasks: Iterable[Task],
     barriers: Iterable[Barrier],
-    dt: float,
     damping: float = 1e-12,
 ) -> jnp.ndarray:
     r"""..."""
     data = update(model, q)
-    return (
-        qpax.solve_qp(
-            *assemble_ik(
-                model,
-                data,
-                tasks,
-                barriers,
-                dt,
-                damping,
-            )
-        )[0]
-        / dt
-    )
+    return qpax.solve_qp(
+        *assemble_ik(
+            model,
+            data,
+            tasks,
+            barriers,
+            damping,
+        )
+    )[0]

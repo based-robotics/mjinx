@@ -6,6 +6,8 @@
 
 """Frame task implementation."""
 
+from dataclasses import field
+
 import jax.numpy as jnp
 import jax_dataclasses as jdc
 import mujoco.mjx as mjx
@@ -34,12 +36,14 @@ class PositionTask(Task):
         objective function is a (normalized) energy.
     """
 
-    frame_id: int
-    target_pos: jnp.ndarray
+    frame_id: int = -1
+    target_pos: jnp.ndarray = field(default_factory=lambda: jnp.zeros(3))
 
     @override
     def compute_error(self, model: mjx.Model, data: mjx.Data) -> jnp.ndarray:
         r""""""
+        if self.frame_id < 0:
+            raise ValueError("Invalid frame_id")
         return data.xpos[self.frame_id] - self.target_pos
 
     def __repr__(self):

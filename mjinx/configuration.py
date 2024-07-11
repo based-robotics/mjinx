@@ -95,21 +95,12 @@ def integrate_inplace(model: mjx.Model, data: mjx.Data, velocity: jnp.ndarray, d
     return data.replace(qpos=integrate(model, data, velocity, dt))
 
 
-def get_configuration_limit(model: mjx.Model, limit: jnp.ndarray) -> tuple[jnp.ndarray, jnp.ndarray]:
+def get_configuration_limit(model: mjx.Model, limit: jnp.ndarray | float) -> tuple[jnp.ndarray, jnp.ndarray]:
     """..."""
     # -limit <= v <- limit
+    limit_array = jnp.ones(model.nv) * limit if isinstance(limit, float) else limit
 
     return (
-        jnp.vstack(
-            (
-                -1 * jnp.eye(model.nv),
-                jnp.eye(model.nv),
-            )
-        ),
-        jnp.hstack(
-            (
-                limit,
-                limit,
-            )
-        ),
+        jnp.vstack((-1 * jnp.eye(model.nv), jnp.eye(model.nv))),
+        jnp.hstack((limit_array, limit_array)),
     )
