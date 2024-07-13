@@ -29,9 +29,6 @@ class FrameTask(Task):
     @override
     def compute_error(self, model: mjx.Model, data: mjx.Data) -> jnp.ndarray:
         r""""""
-        if self.frame_id < 0:
-            raise ValueError("Invalid frame_id")
-
         return jnp.array(
             (
                 get_transform_frame_to_world(
@@ -45,9 +42,6 @@ class FrameTask(Task):
 
     @override
     def compute_jacobian(self, model: mjx.Model, data: mjx.Data) -> jnp.ndarray:
-        if self.frame_id < 0:
-            raise ValueError("Invalid frame_id")
-
         T_bt = self.target_frame.inverse() @ get_transform_frame_to_world(
             model,
             data,

@@ -90,3 +90,21 @@ def solve_ik(
             damping,
         )
     )[0]
+
+
+@partial(jax.jit, static_argnames=("dt", "N_iters"))
+def integrate_system(
+    model: mjx.Model,
+    q0: jnp.ndarray,
+    tasks: tuple[dict[str, Task]],
+    barriers: tuple[dict[str, Barrier]],
+    N_iters: int,
+    dt: float = 1e-3,
+    damping: float = 1e-12,
+) -> jnp.ndarray:
+    qs = [q0]
+    for i in range(N_iters):
+        v = solve_ik(model, qs[-1], tasks[i], barriers[i], damping)
+        qs.append(qs[-1] + v * dt)
+
+    return jnp.stack(qs)
