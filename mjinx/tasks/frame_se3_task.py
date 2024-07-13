@@ -23,7 +23,7 @@ class FrameTask(Task):
 
     dim = SE3.tangent_dim
 
-    frame_id: int
+    frame_id: jdc.Static[int]
     target_frame: SE3
 
     @override

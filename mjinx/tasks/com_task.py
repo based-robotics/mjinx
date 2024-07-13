@@ -20,7 +20,7 @@ from .base import Task
 class ComTask(Task):
     dim = 3
 
-    target_com: jnp.ndarray = field(default_factory=lambda: jnp.zeros(3))
+    target_com: jnp.ndarray
 
     def __repr__(self):
         """Human-readable representation of the task."""

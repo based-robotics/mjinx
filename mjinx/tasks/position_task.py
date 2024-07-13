@@ -36,7 +36,7 @@ class PositionTask(Task):
         objective function is a (normalized) energy.
     """
 
-    frame_id: int
+    frame_id: jdc.Static[int]
     target_pos: jnp.ndarray
 
     @override

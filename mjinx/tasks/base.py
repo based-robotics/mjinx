@@ -16,7 +16,7 @@ class Task(abc.ABC):
 
     cost: jnp.ndarray
     gain: jnp.ndarray
-    lm_damping: float = 0.0
+    lm_damping: jdc.Static[float] = 0.0
 
     def copy_and_set(self, **kwargs) -> Self:
         r"""..."""
