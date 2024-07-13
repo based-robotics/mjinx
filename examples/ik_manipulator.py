@@ -1,17 +1,13 @@
 import os
-from time import perf_counter
 
-import jax
 import jax.numpy as jnp
 import mujoco as mj
 import mujoco.mjx as mjx
 import numpy as np
 from jaxlie import SE3, SO3
-from mujoco import viewer
 
 from mjinx import solve_ik
-from mjinx.tasks import ComTask, FrameTask, PositionTask
-from mjinx import configuration
+from mjinx.tasks import FrameTask
 
 model_path = os.path.abspath(os.path.dirname(__file__)) + "/robot_descriptions/kuka_iiwa_14/iiwa14.xml"
 mj_model = mj.MjModel.from_xml_path(model_path)
@@ -50,7 +46,7 @@ tasks = {
     ),
 }
 
-dt = 1e-3
+dt = 1e-2
 ts = np.arange(0, 20, dt)
 
 mj.mjv_initGeom(
@@ -61,7 +57,6 @@ mj.mjv_initGeom(
     np.eye(3).flatten(),
     np.array([0.565, 0.933, 0.565, 0.4]),
 )
-# solve_ik_jitted = jax.jit(solve_ik, static_argnums=[4, 5])
 
 try:
     # Warm-up JIT
@@ -71,8 +66,8 @@ try:
                 SO3.identity(),
                 np.array(
                     [
-                        0.2 + 0.1 * jnp.cos(t),
-                        0.2 + 0.1 * jnp.sin(t),
+                        0.3 + 0.1 * jnp.cos(t),
+                        0.3 + 0.1 * jnp.sin(t),
                         0.2,
                     ]
                 ),
@@ -86,7 +81,7 @@ try:
             mj_viewer.user_scn.geoms[0],
             mj.mjtGeom.mjGEOM_SPHERE,
             0.1 * np.ones(3),
-            np.array(tasks[0].target_frame.translation(), dtype=np.float64),
+            np.array(tasks["ee_task"].target_frame.translation(), dtype=np.float64),
             np.eye(3).flatten(),
             np.array([0.565, 0.933, 0.565, 0.4]),
         )
@@ -94,7 +89,6 @@ try:
         # Run the forward dynamics to reflec
         # the updated state in the data
         mj.mj_forward(mj_model, mj_data)
-        print(cur_q)
         mj_viewer.sync()
 except Exception as e:
     print(e.with_traceback(None))

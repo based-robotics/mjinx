@@ -1,18 +1,14 @@
 import os
-from time import perf_counter
 
-import jax
 import jax.numpy as jnp
 import mujoco as mj
 import mujoco.mjx as mjx
 import numpy as np
 import pink
 import pinocchio as pin
-import qpsolvers
-from jaxlie import SE3, SO3
+from jaxlie import SE3
 from robot_descriptions.loaders.pinocchio import load_robot_description
 
-from mjinx import solve_ik
 from mjinx.configuration import update
 from mjinx.tasks import FrameTask
 

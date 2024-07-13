@@ -1,4 +1,5 @@
 import os
+from time import perf_counter
 
 import jax
 import jax.numpy as jnp
@@ -6,10 +7,9 @@ import mujoco as mj
 import mujoco.mjx as mjx
 import numpy as np
 from jaxlie import SE3
-from time import perf_counter
 
 from mjinx import solve_ik
-from mjinx.tasks import ComTask, PositionTask, FrameTask
+from mjinx.tasks import ComTask, FrameTask, PositionTask
 
 model_path = os.path.abspath(os.path.dirname(__file__)) + "/robot_descriptions/kuka_iiwa_14/iiwa14.xml"
 mj_model = mj.MjModel.from_xml_path(model_path)
