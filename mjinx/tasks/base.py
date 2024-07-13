@@ -7,7 +7,7 @@ import jax_dataclasses as jdc
 from jax_dataclasses._copy_and_mutate import _Mutability as Mutability
 import mujoco.mjx as mjx
 
-from typing import ClassVar
+from typing import ClassVar, Self
 
 
 @jdc.pytree_dataclass(kw_only=True)
@@ -17,6 +17,11 @@ class Task(abc.ABC):
     cost: jnp.ndarray
     gain: jnp.ndarray
     lm_damping: float = 0.0
+
+    def copy_and_set(self, **kwargs) -> Self:
+        r"""..."""
+        new_args = self.__dict__ | kwargs
+        return self.__class__(**new_args)
 
     @abc.abstractmethod
     def compute_error(self, model: mjx.Model, data: mjx.Data) -> jnp.ndarray:

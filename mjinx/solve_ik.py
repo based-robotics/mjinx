@@ -1,33 +1,35 @@
 """Build and solve the inverse kinematics problem."""
 
+from functools import partial
 from typing import Iterable, Type
 
+import jax
 import jax.numpy as jnp
 import mujoco.mjx as mjx
 import qpax
 
 from .barriers import Barrier
-from .configuration import get_configuration_limit, update
+from .configuration import get_configuration_limit, integrate_inplace, update
 from .tasks import Task
 
 
 def __compute_qp_objective(
     model: mjx.Model,
     data: mjx.Model,
-    tasks: Iterable[Task],
-    barriers: Iterable[Barrier],
+    tasks: dict[str, Task],
+    barriers: dict[str, Barrier],
     damping: float,
 ) -> tuple[jnp.ndarray, jnp.ndarray]:
     r"""..."""
 
     H = jnp.zeros((model.nv, model.nv))
     c = jnp.zeros(model.nv)
-    for task in tasks:
+    for task in tasks.values():
         H_task, c_task = task.compute_qp_objective(model, data)
         H += H_task
         c += c_task
 
-    for barrier in barriers:
+    for barrier in barriers.values():
         H_cbf, c_cbf = barrier.compute_qp_objective(model, data)
         H += H_cbf
         c += c_cbf
@@ -38,7 +40,7 @@ def __compute_qp_objective(
 def __compute_qp_inequalities(
     model: mjx.Model,
     data: mjx.Data,
-    barriers: Iterable[Barrier],
+    barriers: dict[str, Barrier],
 ) -> tuple[jnp.ndarray, jnp.ndarray]:
     r"""..."""
     # TODO: add velocity limits
@@ -48,7 +50,7 @@ def __compute_qp_inequalities(
     G_v_limit, h_v_limit = get_configuration_limit(model, jnp.pi * jnp.ones(model.nv))
     G_list.append(G_v_limit)
     h_list.append(h_v_limit)
-    for barrier in barriers:
+    for barrier in barriers.values():
         G_barrier, h_barrier = barrier.compute_qp_inequality(model, data)
         G_list.append(G_barrier)
         h_list.append(h_barrier)
@@ -59,8 +61,8 @@ def __compute_qp_inequalities(
 def assemble_ik(
     model: mjx.Model,
     data: mjx.Data,
-    tasks: Iterable[Task],
-    barriers: Iterable[Barrier],
+    tasks: dict[str, Task],
+    barriers: dict[str, Barrier],
     damping: float = 1e-12,
 ) -> tuple[jnp.ndarray, jnp.ndarray, jnp.ndarray, jnp.ndarray, jnp.ndarray, jnp.ndarray]:
     r"""..."""
@@ -69,11 +71,12 @@ def assemble_ik(
     return P, q, jnp.array([]).reshape(0, model.nv).reshape(0, model.nv), jnp.array([]), G, h
 
 
+@jax.jit
 def solve_ik(
     model: mjx.Model,
     q: jnp.ndarray,
-    tasks: Iterable[Task],
-    barriers: Iterable[Barrier],
+    tasks: dict[str, Task],
+    barriers: dict[str, Barrier],
     damping: float = 1e-12,
 ) -> jnp.ndarray:
     r"""..."""
