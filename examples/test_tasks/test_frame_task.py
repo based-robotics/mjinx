@@ -15,7 +15,7 @@ from mjinx.tasks import FrameTask
 np.printoptions(precision=3, linewidth=1000, suppress=True)
 
 # Load the model
-model_path = os.path.abspath(os.path.dirname(__file__)) + "/robot_descriptions/kuka_iiwa_14/iiwa14.xml"
+model_path = os.path.abspath(os.path.dirname(__file__)) + "/../robot_descriptions/kuka_iiwa_14/iiwa14.xml"
 mj_model = mj.MjModel.from_xml_path(model_path)
 mjx_model = mjx.put_model(mj_model)
 q = jnp.array(
@@ -42,6 +42,7 @@ frame_task_pink = pink.FrameTask(
 )
 frame_task_pink.set_target(pin.XYZQUATToSE3([0, 0, 0, 0, 0, 0, 1]))
 frame_task_mjinx = FrameTask(
+    model=mjx_model,
     frame_id=8,
     gain=jnp.ones(6),
     cost=jnp.eye(6),
@@ -53,18 +54,13 @@ print("Task error:")
 print("Pink:")
 print(frame_task_pink.compute_error(configuration))
 print("Mjinx:")
-print(frame_task_mjinx.compute_error(mjx_model, mjx_data))
+print(frame_task_mjinx.compute_error(mjx_data))
 print("Task Jacobian:")
 
-jlog6_pink, frame_jac_pink = frame_task_pink.compute_jacobian(configuration)
-jlog6_mjinx, frame_jac_mjinx = frame_task_mjinx.compute_jacobian(mj_model, mjx_data)
-print("=== Frame jac ===")
+jac_pink = frame_task_pink.compute_jacobian(configuration)
+jac_mjinx = frame_task_mjinx.compute_jacobian(mjx_data)
+print("=== Jacobian ===")
 print("Pink:")
-print(frame_jac_pink)
+print(jac_pink)
 print("Mjinx:")
-print(frame_jac_mjinx)
-print("=== Jacobian log ===")
-print("Pink:")
-print(jlog6_pink)
-print("Mjinx:")
-print(jlog6_mjinx)
+print(jac_mjinx)

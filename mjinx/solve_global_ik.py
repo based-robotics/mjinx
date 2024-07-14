@@ -19,7 +19,7 @@ def loss_fn(model: mjx.Model, tasks: dict[str, Task], q: jnp.ndarray) -> float:
 
     loss = 0.0
     for task in tasks.values():
-        err = task.compute_error(model, data)
+        err = task.compute_error(data)
         loss = loss + task.gain * err.T @ err
 
     return loss

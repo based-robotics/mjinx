@@ -22,13 +22,8 @@ class ComTask(Task):
 
     target_com: jnp.ndarray
 
-    def __repr__(self):
-        """Human-readable representation of the task."""
-        cost = self.cost if isinstance(self.cost, float) else self.cost[0:3]
-        return "ComTask(" f"gain={self.gain}, " f"cost={cost}, " f"target_com={self.target_com})"
-
     @override
-    def compute_error(self, model: mjx.Model, data: mjx.Data) -> jnp.ndarray:
+    def compute_error(self, data: mjx.Data) -> jnp.ndarray:
         r"""..."""
-        error = data.subtree_com[model.body_rootid[0]] - self.target_com
+        error = data.subtree_com[self.model.body_rootid[0]] - self.target_com
         return error

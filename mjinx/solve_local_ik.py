@@ -25,12 +25,12 @@ def __compute_qp_objective(
     H = jnp.zeros((model.nv, model.nv))
     c = jnp.zeros(model.nv)
     for task in tasks.values():
-        H_task, c_task = task.compute_qp_objective(model, data)
+        H_task, c_task = task.compute_qp_objective(data)
         H += H_task
         c += c_task
 
     for barrier in barriers.values():
-        H_cbf, c_cbf = barrier.compute_qp_objective(model, data)
+        H_cbf, c_cbf = barrier.compute_qp_objective(data)
         H += H_cbf
         c += c_cbf
 

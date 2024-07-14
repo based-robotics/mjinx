@@ -1,12 +1,4 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-#
-# SPDX-License-Identifier: Apache-2.0
-# Copyright 2022 Stéphane Caron
-
 """Frame task implementation."""
-
-from dataclasses import field
 
 import jax.numpy as jnp
 import jax_dataclasses as jdc
@@ -36,20 +28,12 @@ class PositionTask(Task):
         objective function is a (normalized) energy.
     """
 
+    dim = 3
+
     frame_id: jdc.Static[int]
     target_pos: jnp.ndarray
 
     @override
-    def compute_error(self, model: mjx.Model, data: mjx.Data) -> jnp.ndarray:
+    def compute_error(self, data: mjx.Data) -> jnp.ndarray:
         r""""""
         return data.xpos[self.frame_id] - self.target_pos
-
-    def __repr__(self):
-        """Human-readable representation of the task."""
-        return (
-            "FrameTask("
-            f"frame_id={self.frame_id}, "
-            f"gain={self.gain}, "
-            f"cost={self.cost}, "
-            f"target_pos={self.target_pos}, "
-        )

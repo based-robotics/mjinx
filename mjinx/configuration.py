@@ -4,6 +4,8 @@
 
 import jax
 import jax.numpy as jnp
+import mujoco as mj
+import jaxlie
 from jaxlie import SE3, SO3
 from mujoco import mjx
 
@@ -104,3 +106,57 @@ def get_configuration_limit(model: mjx.Model, limit: jnp.ndarray | float) -> tup
         jnp.vstack((-1 * jnp.eye(model.nv), jnp.eye(model.nv))),
         jnp.hstack((limit_array, limit_array)),
     )
+
+
+def get_joint_zero(model: mjx.Model) -> jnp.ndarray:
+    """..."""
+    jnts = []
+
+    for jnt_id in range(model.njnt):
+        jnt_type = model.jnt_type[jnt_id]
+        match jnt_type:
+            case mj.mjtJoint.mjJNT_FREE:
+                jnts.append(jnp.array([0, 0, 0, 1, 0, 0, 0]))
+            case mj.mjtJoint.mjJNT_BALL:
+                jnts.append(jnp.array([0, 0, 0, 1]))
+            case mj.mjtJoint.mjJNT_HINGE | mj.jntType.mjJNT_SLIDE:
+                jnts.append(jnp.zeros(1))
+
+    return jnp.concatenate(jnts)
+
+
+def joint_difference(model: mjx.Model, q1: jnp.ndarray, q2: jnp.ndarray) -> jnp.ndarray:
+    jnt_diff = []
+    idx = 0
+    for jnt_id in range(model.njnt):
+        jnt_type = model.jnt_type[jnt_id]
+        match jnt_type:
+            case mj.mjtJoint.mjJNT_FREE:
+                q1_pos, q1_quat = q1[idx : idx + 3], q1[idx + 3 : idx + 7]
+                q2_pos, q2_quat = q2[idx : idx + 3], q2[idx + 3 : idx + 7]
+
+                frame1 = SE3.from_rotation_and_translation(
+                    SO3.from_quaternion_xyzw(q1_quat[[1, 2, 3, 0]]),
+                    q1_pos,
+                )
+                frame2 = SE3.from_rotation_and_translation(
+                    SO3.from_quaternion_xyzw(q2_quat[[1, 2, 3, 0]]),
+                    q2_pos,
+                )
+
+                jnt_diff.append(jaxlie.manifold.rminus(frame1, frame2))
+                idx += 7
+            case mj.mjtJoint.mjJNT_BALL:
+                q1_quat = q1[idx : idx + 4]
+                q2_quat = q2[idx : idx + 4]
+
+                frame1 = SO3.from_quaternion_xyzw(q1_quat[[1, 2, 3, 0]])
+                frame2 = SO3.from_quaternion_xyzw(q2_quat[[1, 2, 3, 0]])
+
+                jnt_diff.append(jaxlie.manifold.rminus(frame1, frame2))
+                idx += 4
+            case mj.mjtJoint.mjJNT_HINGE | mj.mjtJoint.mjJNT_SLIDE:
+                jnt_diff.append(q1[idx : idx + 1] - q2[idx : idx + 1])
+                idx += 1
+
+    return jnp.concatenate(jnt_diff)

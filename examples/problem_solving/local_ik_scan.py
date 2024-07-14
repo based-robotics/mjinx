@@ -10,7 +10,7 @@ from jaxlie import SE3, SO3
 from mjinx import integrate_local_ik
 from mjinx.tasks import FrameTask
 
-model_path = os.path.abspath(os.path.dirname(__file__)) + "/robot_descriptions/kuka_iiwa_14/iiwa14.xml"
+model_path = os.path.abspath(os.path.dirname(__file__)) + "/../robot_descriptions/kuka_iiwa_14/iiwa14.xml"
 mj_model = mj.MjModel.from_xml_path(model_path)
 mjx_model = mjx.put_model(mj_model)
 q = jnp.array(
@@ -32,6 +32,7 @@ print(ts[-1])
 tasks = tuple(
     {
         "ee_task": FrameTask(
+            model=mjx_model,
             cost=1 * jnp.eye(6),
             gain=1 * jnp.ones(6),
             frame_id=ee_id,

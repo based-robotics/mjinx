@@ -39,7 +39,14 @@ q_batched = jnp.vstack(
 tasks = (
     ComTask(cost=jnp.eye(3), gain=jnp.ones(3), lm_damping=jnp.ones(3), target_com=jnp.zeros(3)),
     PositionTask(cost=jnp.eye(3), gain=jnp.ones(3), lm_damping=jnp.ones(3), frame_id=8, target_pos=jnp.zeros(3)),
-    FrameTask(cost=jnp.eye(6), gain=jnp.ones(6), lm_damping=jnp.ones(6), frame_id=8, target_frame=SE3.identity()),
+    FrameTask(
+        model=mjx_model,
+        cost=jnp.eye(6),
+        gain=jnp.ones(6),
+        lm_damping=jnp.ones(6),
+        frame_id=8,
+        target_frame=SE3.identity(),
+    ),
 )
 
 solve_ik_batched = jax.jit(

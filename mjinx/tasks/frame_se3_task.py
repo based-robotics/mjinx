@@ -27,12 +27,12 @@ class FrameTask(Task):
     target_frame: SE3
 
     @override
-    def compute_error(self, model: mjx.Model, data: mjx.Data) -> jnp.ndarray:
+    def compute_error(self, data: mjx.Data) -> jnp.ndarray:
         r""""""
         return jnp.array(
             (
                 get_transform_frame_to_world(
-                    model,
+                    self.model,
                     data,
                     self.frame_id,
                 ).inverse()
@@ -41,9 +41,9 @@ class FrameTask(Task):
         )
 
     @override
-    def compute_jacobian(self, model: mjx.Model, data: mjx.Data) -> jnp.ndarray:
+    def compute_jacobian(self, data: mjx.Data) -> jnp.ndarray:
         T_bt = self.target_frame.inverse() @ get_transform_frame_to_world(
-            model,
+            self.model,
             data,
             self.frame_id,
         )
@@ -51,18 +51,7 @@ class FrameTask(Task):
         def transform_log(tau):
             return (T_bt.multiply(SE3.exp(tau))).log()
 
-        frame_jac = get_frame_jacobian_local(model, data, self.frame_id)
+        frame_jac = get_frame_jacobian_local(self.model, data, self.frame_id)
         jlog = jax.jacobian(transform_log)(jnp.zeros(self.dim))
 
         return -jlog @ frame_jac.T
-
-    def __repr__(self):
-        """Human-readable representation of the task."""
-        return (
-            "FrameTask("
-            f"frame_id={self.frame_id}, "
-            f"gain={self.gain}, "
-            f"orientation_cost={self.cost[:3]}, "
-            f"position_cost={self.cost[3:]}, "
-            f"target_frame={self.target_frame}, "
-        )

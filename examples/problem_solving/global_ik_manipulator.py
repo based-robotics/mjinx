@@ -1,9 +1,6 @@
 import os
-from functools import partial
 from time import perf_counter
-from typing import Callable
 
-import jax
 import jax.numpy as jnp
 import mujoco as mj
 import mujoco.mjx as mjx
@@ -12,10 +9,10 @@ import optax
 from jaxlie import SE3, SO3
 from mujoco import viewer
 
-from mjinx import configuration, global_ik_step, loss_grad
-from mjinx.tasks import FrameTask, Task
+from mjinx import global_ik_step, loss_grad
+from mjinx.tasks import FrameTask
 
-model_path = os.path.abspath(os.path.dirname(__file__)) + "/robot_descriptions/kuka_iiwa_14/iiwa14.xml"
+model_path = os.path.abspath(os.path.dirname(__file__)) + "/../robot_descriptions/kuka_iiwa_14/iiwa14.xml"
 mj_model = mj.MjModel.from_xml_path(model_path)
 mjx_model = mjx.put_model(mj_model)
 q = jnp.array(
@@ -28,7 +25,7 @@ q = jnp.array(
 
 mj_data = mj.MjData(mj_model)
 renderer = mj.Renderer(mj_model)
-mj_viewer = mj.viewer.launch_passive(
+mj_viewer = viewer.launch_passive(
     mj_model,
     mj_data,
     show_left_ui=False,
@@ -51,6 +48,7 @@ print(ee_id)
 
 tasks = {
     "ee_task": FrameTask(
+        model=mjx_model,
         cost=1 * jnp.eye(6),
         gain=1 * jnp.ones(6),
         frame_id=ee_id,
