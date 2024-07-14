@@ -12,7 +12,7 @@ import optax
 from jaxlie import SE3, SO3
 from mujoco import viewer
 
-from mjinx import configuration
+from mjinx import configuration, global_ik_step, loss_grad
 from mjinx.tasks import FrameTask, Task
 
 model_path = os.path.abspath(os.path.dirname(__file__)) + "/robot_descriptions/kuka_iiwa_14/iiwa14.xml"
@@ -58,45 +58,15 @@ tasks = {
     ),
 }
 
-
-@jax.jit
-def loss_fn(model: mjx.Model, tasks: dict[str, Task], q: jnp.ndarray) -> float:
-    data = configuration.update(model, q)
-
-    loss = 0.0
-    for task in tasks.values():
-        err = task.compute_error(model, data)
-        loss = loss + task.gain * err.T @ err
-
-    return loss
-
-
-loss_grad = jax.jit(jax.grad(loss_fn, argnums=2))
-
-
-@partial(jax.jit, static_argnames=("loss_grad", "optimizer"))
-def step(
-    model: mjx.Model,
-    tasks: dict[str, Task],
-    q: jnp.ndarray,
-    optimizer,
-    state: optax.OptState,
-    loss_grad: Callable[[mjx.Model, dict[str, Task], jnp.ndarray], jnp.ndarray],
-) -> tuple[jnp.ndarray, optax.OptState]:
-    grad = loss_grad(model, tasks, q)
-    updates, opt_state = optimizer.update(grad, state)
-    q = optax.apply_updates(q, updates)
-
-    return q, opt_state
-
-
 opt = optax.sgd(learning_rate=0.01, momentum=0.9)
 opt_state = opt.init(q)
 
 
 print("Compiling")
 t0 = perf_counter()
-updates, opt_state = step(model=mjx_model, tasks=tasks, q=cur_q, optimizer=opt, state=opt_state, loss_grad=loss_grad)
+updates, opt_state = global_ik_step(
+    model=mjx_model, tasks=tasks, q=cur_q, optimizer=opt, state=opt_state, loss_grad=loss_grad
+)
 print(f"Compilation time: {(perf_counter() - t0) * 1000:.3f}ms")
 
 N_epoch = 5000
@@ -117,7 +87,14 @@ try:
             )
 
         t0 = perf_counter()
-        cur_q, opt_state = step(mjx_model, tasks, cur_q, opt, opt_state, loss_grad=loss_grad)
+        cur_q, opt_state = global_ik_step(
+            mjx_model,
+            tasks,
+            cur_q,
+            opt_state,
+            loss_grad=loss_grad,
+            optimizer=opt,
+        )
         print(f"Computation time: {(perf_counter() - t0) * 1000:.3f}ms")
         print(cur_q)
         mj_data.qpos = cur_q
