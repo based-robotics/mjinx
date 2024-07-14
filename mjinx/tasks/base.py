@@ -6,7 +6,8 @@ import jax
 import jax.numpy as jnp
 import jax_dataclasses as jdc
 import mujoco.mjx as mjx
-from jax_dataclasses._copy_and_mutate import _Mutability as Mutability
+
+from ..configuration import update
 
 
 @jdc.pytree_dataclass(kw_only=True)
@@ -29,9 +30,8 @@ class Task(abc.ABC):
 
     def compute_jacobian(self, data: mjx.Data) -> jnp.ndarray:
         return jax.jacrev(
-            lambda q, model=self.model, data=data: self.compute_error(
-                model,
-                data.replace(qpos=q),
+            lambda q, model=self.model: self.compute_error(
+                update(model, qpos=q),
             ),
             argnums=0,
         )(data.qpos)

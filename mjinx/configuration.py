@@ -104,7 +104,7 @@ def get_configuration_limit(model: mjx.Model, limit: jnp.ndarray | float) -> tup
 
     return (
         jnp.vstack((-1 * jnp.eye(model.nv), jnp.eye(model.nv))),
-        jnp.hstack((limit_array, limit_array)),
+        jnp.concatenate((limit_array, limit_array)),
     )
 
 

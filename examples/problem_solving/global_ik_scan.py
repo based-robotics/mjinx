@@ -84,7 +84,7 @@ res1 = integrate_global_ik(
     loss_grad=loss_grad,
     dt=dt,
 )
-print(f"Time taken: {perf_counter() - t0:.2f} seconds")
+print(f"Time taken: {perf_counter() - t0:.3f} seconds")
 
 t0 = perf_counter()
 print("Solving inverse kinematics...")
@@ -97,7 +97,7 @@ res2 = integrate_global_ik(
     loss_grad=loss_grad,
     dt=dt,
 )
-print(f"Time taken: {perf_counter() - t0:.2f} seconds")
+print(f"Time taken: {perf_counter() - t0:.3f} seconds")
 
 print("Results comparison (if different, value is not cached, and function was compiled):")
 print(res1[4, :10])

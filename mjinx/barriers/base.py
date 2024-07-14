@@ -1,4 +1,5 @@
 import abc
+from dataclasses import field
 from typing import Callable, ClassVar
 
 import jax
@@ -6,26 +7,27 @@ import jax.numpy as jnp
 import jax_dataclasses as jdc
 import mujoco.mjx as mjx
 
+from ..configuration import update
 
-@jdc.pytree_dataclass
+
+@jdc.pytree_dataclass(kw_only=True)
 class Barrier(abc.ABC):
     r"""..."""
 
-    dim: jdc.Static[int] = -1
+    dim: ClassVar[int]
 
     model: mjx.Model
     gain: jnp.ndarray
-    gain_function: jdc.Static[Callable[[float], float]]
-    safe_displacement_gain: float
+    gain_function: jdc.Static[Callable[[float], float]] = field(default_factory=lambda: (lambda x: x))
+    safe_displacement_gain: float = 0.0
 
     @abc.abstractmethod
     def compute_barrier(self, data: mjx.Data) -> jnp.ndarray: ...  # h(q) > 0!
 
     def compute_jacobian(self, data: mjx.Data) -> jnp.ndarray:
         return jax.jacrev(
-            lambda q, model=self.model, data=data: self.compute_barrier(
-                model,
-                data.replace(qpos=q),
+            lambda q, model=self.model: self.compute_barrier(
+                update(model, q=q),
             ),
             argnums=0,
         )(data.qpos)
@@ -46,10 +48,10 @@ class Barrier(abc.ABC):
     def compute_qp_inequality(
         self,
         data: mjx.Data,
-        dt: float = 1e-3,
     ) -> tuple[jnp.ndarray, jnp.ndarray]:
         r""""""
+        barrier = self.compute_barrier(data)
         return (
-            -self.compute_jacobian(data) / dt,
-            jnp.array([self.gain[i] * self.gain_function(self.compute_barrier(data)[i]) for i in range(self.dim)]),
+            -self.compute_jacobian(data),
+            self.gain * jax.lax.map(self.gain_function, barrier),
         )

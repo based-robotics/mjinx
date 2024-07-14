@@ -1,4 +1,5 @@
 import os
+from time import perf_counter
 
 import jax.numpy as jnp
 import mujoco as mj
@@ -75,7 +76,10 @@ try:
                 ),
             )
         )
+        t0 = perf_counter()
         vel = solve_local_ik(mjx_model, cur_q, tasks, {}, damping=1e-12)
+        print(f"Computation time: {(perf_counter() - t0) * 1000:.3f}ms")
+
         cur_q += vel * dt
         mj_data.qpos = cur_q
         mj_data.qvel = vel

@@ -94,7 +94,7 @@ try:
             optimizer=opt,
         )
         print(f"Computation time: {(perf_counter() - t0) * 1000:.3f}ms")
-        print(cur_q)
+
         mj_data.qpos = cur_q
         mj.mjv_initGeom(
             mj_viewer.user_scn.geoms[0],

@@ -18,9 +18,14 @@ class PositionBarrier(Barrier):
     frame_id: int
     p_min: jnp.ndarray
     p_max: jnp.ndarray
+    gain: jnp.ndarray = field(init=False)
+    position_gain: jnp.ndarray
+
+    def __post_init__(self):
+        object.__setattr__(self, "gain", jnp.concatenate([self.position_gain, self.position_gain]))
 
     def compute_barrier(self, data: mjx.Data) -> jnp.ndarray:
-        return jnp.vstack(
+        return jnp.concatenate(
             [
                 data.xpos[self.frame_id] - self.p_min,
                 self.p_max - data.xpos[self.frame_id],
@@ -45,7 +50,7 @@ class PositionLowerBarrier(Barrier):
 class PositionUpperBarrier(Barrier):
     r"""..."""
 
-    dim = 3
+    dim = 1
 
     frame_id: int
     p_max: jnp.ndarray

@@ -1,3 +1,5 @@
+from dataclasses import field
+
 import jax
 import jax.numpy as jnp
 import jax_dataclasses as jdc
@@ -13,16 +15,30 @@ class JointBarrier(Barrier):
 
     qmin: jnp.ndarray
     qmax: jnp.ndarray
+    gain: jnp.ndarray = field(init=False)
+    joints_gain: jnp.ndarray
+
+    def __post_init__(self):
+        object.__setattr__(self, "dim", self.model.nv)
+        object.__setattr__(self, "gain", jnp.concatenate([self.joints_gain, self.joints_gain]))
 
     def compute_barrier(self, data: mjx.Data) -> jnp.ndarray:
         # TODO: what the constraint for SO3/SE3 groups is?
-        return jnp.vstack(
+        return jnp.concatenate(
             [
-                joint_difference(self.model, data.qpos, -self.qmin),
+                joint_difference(self.model, data.qpos, self.qmin),
                 joint_difference(self.model, self.qmax, data.qpos),
             ]
         )
 
-    def compute_jacobian(self, data: mjx.Data) -> jax.Array:
-        # TODO: handle SO3/SE3 groups
-        return super().compute_jacobian(data)
+
+@jdc.pytree_dataclass
+class ModelJointBarrier(JointBarrier):
+    qmin: jnp.ndarray = field(init=False)
+    qmax: jnp.ndarray = field(init=False)
+
+    def __post_init__(self):
+        object.__setattr__(self, "qmin", self.model.jnt_range[:, 0])
+        object.__setattr__(self, "qmax", self.model.jnt_range[:, 1])
+
+        super().__post_init__()

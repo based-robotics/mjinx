@@ -78,12 +78,12 @@ res1 = integrate_local_ik(
     barriers,
     dt=dt,
 )
-print(f"Time taken: {perf_counter() - t0:.2f} seconds")
+print(f"Time taken: {perf_counter() - t0:.3f} seconds")
 
 t0 = perf_counter()
 print("Solving inverse kinematics...")
 res2 = integrate_local_ik(mjx_model, cur_q, tasks_updated, barriers, dt=dt)
-print(f"Time taken: {perf_counter() - t0:.2f} seconds")
+print(f"Time taken: {perf_counter() - t0:.3f} seconds")
 
 print("Results comparison (if different, value is not cached, and function was compiled):")
 print(res1[4, :10])

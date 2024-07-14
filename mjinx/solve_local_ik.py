@@ -47,15 +47,15 @@ def __compute_qp_inequalities(
     G_list = []
     h_list = []
 
-    G_v_limit, h_v_limit = get_configuration_limit(model, jnp.pi * jnp.ones(model.nv))
+    G_v_limit, h_v_limit = get_configuration_limit(model, 100 * jnp.ones(model.nv))
     G_list.append(G_v_limit)
     h_list.append(h_v_limit)
     for barrier in barriers.values():
-        G_barrier, h_barrier = barrier.compute_qp_inequality(model, data)
+        G_barrier, h_barrier = barrier.compute_qp_inequality(data)
         G_list.append(G_barrier)
         h_list.append(h_barrier)
 
-    return jnp.vstack(G_list), jnp.hstack(h_list)
+    return jnp.vstack(G_list), jnp.concatenate(h_list)
 
 
 def assemble_local_ik(
