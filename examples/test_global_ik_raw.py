@@ -1,5 +1,7 @@
 import os
+from functools import partial
 from time import perf_counter
+from typing import Callable
 
 import jax
 import jax.numpy as jnp
@@ -8,6 +10,7 @@ import mujoco.mjx as mjx
 import numpy as np
 import optax
 from jaxlie import SE3, SO3
+from mujoco import viewer
 
 from mjinx import configuration
 from mjinx.tasks import FrameTask, Task
@@ -71,12 +74,14 @@ def loss_fn(model: mjx.Model, tasks: dict[str, Task], q: jnp.ndarray) -> float:
 loss_grad = jax.jit(jax.grad(loss_fn, argnums=2))
 
 
+@partial(jax.jit, static_argnames=("loss_grad", "optimizer"))
 def step(
     model: mjx.Model,
     tasks: dict[str, Task],
     q: jnp.ndarray,
     optimizer,
     state: optax.OptState,
+    loss_grad: Callable[[mjx.Model, dict[str, Task], jnp.ndarray], jnp.ndarray],
 ) -> tuple[jnp.ndarray, optax.OptState]:
     grad = loss_grad(model, tasks, q)
     updates, opt_state = optimizer.update(grad, state)
@@ -91,7 +96,7 @@ opt_state = opt.init(q)
 
 print("Compiling")
 t0 = perf_counter()
-updates, opt_state = step(model=mjx_model, tasks=tasks, q=cur_q, optimizer=opt, state=opt_state)
+updates, opt_state = step(model=mjx_model, tasks=tasks, q=cur_q, optimizer=opt, state=opt_state, loss_grad=loss_grad)
 print(f"Compilation time: {(perf_counter() - t0) * 1000:.3f}ms")
 
 N_epoch = 5000
@@ -112,7 +117,7 @@ try:
             )
 
         t0 = perf_counter()
-        cur_q, opt_state = step(mjx_model, tasks, cur_q, opt, opt_state)
+        cur_q, opt_state = step(mjx_model, tasks, cur_q, opt, opt_state, loss_grad=loss_grad)
         print(f"Computation time: {(perf_counter() - t0) * 1000:.3f}ms")
         print(cur_q)
         mj_data.qpos = cur_q

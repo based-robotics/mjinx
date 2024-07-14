@@ -70,27 +70,18 @@ barriers = tuple({} for _ in ts)
 
 print("Compiling inverse kinematics...")
 t0 = perf_counter()
-# integrate_system_jit(
-#     mjx_model,
-#     jnp.zeros(mj_model.nq),
-#     tasks=tasks,
-#     barriers=tuple({} for _ in ts),
-#     N_iters=N_iters,
-#     dt=dt,
-# )
 res1 = integrate_local_ik(
     mjx_model,
     jnp.array(np.random.uniform(-1, 1, mj_model.nq)),
     tasks,
     barriers,
-    N_iters=N_iters,
     dt=dt,
 )
 print(f"Time taken: {perf_counter() - t0:.2f} seconds")
 
 t0 = perf_counter()
 print("Solving inverse kinematics...")
-res2 = integrate_local_ik(mjx_model, cur_q, tasks_updated, barriers, N_iters=N_iters, dt=dt)
+res2 = integrate_local_ik(mjx_model, cur_q, tasks_updated, barriers, dt=dt)
 print(f"Time taken: {perf_counter() - t0:.2f} seconds")
 
 print("Results comparison (if different, value is not cached, and function was compiled):")
