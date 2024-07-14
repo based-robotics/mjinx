@@ -58,7 +58,7 @@ def __compute_qp_inequalities(
     return jnp.vstack(G_list), jnp.hstack(h_list)
 
 
-def assemble_ik(
+def assemble_local_ik(
     model: mjx.Model,
     data: mjx.Data,
     tasks: dict[str, Task],
@@ -72,7 +72,7 @@ def assemble_ik(
 
 
 @jax.jit
-def solve_ik(
+def solve_local_ik(
     model: mjx.Model,
     q: jnp.ndarray,
     tasks: dict[str, Task],
@@ -82,7 +82,7 @@ def solve_ik(
     r"""..."""
     data = update(model, q)
     return qpax.solve_qp(
-        *assemble_ik(
+        *assemble_local_ik(
             model,
             data,
             tasks,
@@ -93,7 +93,7 @@ def solve_ik(
 
 
 @partial(jax.jit, static_argnames=("dt", "N_iters"))
-def integrate_system(
+def integrate_local_ik(
     model: mjx.Model,
     q0: jnp.ndarray,
     tasks: tuple[dict[str, Task]],
@@ -104,7 +104,7 @@ def integrate_system(
 ) -> jnp.ndarray:
     qs = [q0]
     for i in range(N_iters):
-        v = solve_ik(model, qs[-1], tasks[i], barriers[i], damping)
+        v = solve_local_ik(model, qs[-1], tasks[i], barriers[i], damping)
         qs.append(qs[-1] + v * dt)
 
     return jnp.stack(qs)

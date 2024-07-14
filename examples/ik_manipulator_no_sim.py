@@ -7,7 +7,7 @@ import mujoco.mjx as mjx
 import numpy as np
 from jaxlie import SE3, SO3
 
-from mjinx import solve_ik
+from mjinx import solve_local_ik
 from mjinx.tasks import FrameTask
 
 model_path = os.path.abspath(os.path.dirname(__file__)) + "/robot_descriptions/kuka_iiwa_14/iiwa14.xml"
@@ -53,6 +53,6 @@ for t in ts:
             ),
         )
     )
-    vel = solve_ik(mjx_model, cur_q, tasks, {}, damping=1e-12)
+    vel = solve_local_ik(mjx_model, cur_q, tasks, {}, damping=1e-12)
     cur_q += vel * dt
     print(f"Time: {(perf_counter() - t0) * 1000 :.3f}ms")

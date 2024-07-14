@@ -7,7 +7,7 @@ import mujoco.mjx as mjx
 import numpy as np
 from jaxlie import SE3, SO3
 
-from mjinx import integrate_system
+from mjinx import integrate_local_ik
 from mjinx.tasks import FrameTask
 
 model_path = os.path.abspath(os.path.dirname(__file__)) + "/robot_descriptions/kuka_iiwa_14/iiwa14.xml"
@@ -78,7 +78,7 @@ t0 = perf_counter()
 #     N_iters=N_iters,
 #     dt=dt,
 # )
-res1 = integrate_system(
+res1 = integrate_local_ik(
     mjx_model,
     jnp.array(np.random.uniform(-1, 1, mj_model.nq)),
     tasks,
@@ -90,7 +90,7 @@ print(f"Time taken: {perf_counter() - t0:.2f} seconds")
 
 t0 = perf_counter()
 print("Solving inverse kinematics...")
-res2 = integrate_system(mjx_model, cur_q, tasks_updated, barriers, N_iters=N_iters, dt=dt)
+res2 = integrate_local_ik(mjx_model, cur_q, tasks_updated, barriers, N_iters=N_iters, dt=dt)
 print(f"Time taken: {perf_counter() - t0:.2f} seconds")
 
 print("Results comparison (if different, value is not cached, and function was compiled):")

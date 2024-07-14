@@ -8,7 +8,7 @@ import mujoco.mjx as mjx
 import numpy as np
 from jaxlie import SE3
 
-from mjinx import solve_ik
+from mjinx import solve_local_ik
 from mjinx.tasks import ComTask, FrameTask, PositionTask
 
 model_path = os.path.abspath(os.path.dirname(__file__)) + "/robot_descriptions/kuka_iiwa_14/iiwa14.xml"
@@ -44,7 +44,7 @@ tasks = (
 
 solve_ik_batched = jax.jit(
     jax.vmap(
-        solve_ik,
+        solve_local_ik,
         in_axes=(
             None,
             0,
