@@ -92,16 +92,17 @@ def solve_local_ik(
     )[0]
 
 
-@partial(jax.jit, static_argnames=("dt", "N_iters"))
+@partial(jax.jit, static_argnames=("dt"))
 def integrate_local_ik(
     model: mjx.Model,
     q0: jnp.ndarray,
     tasks: tuple[dict[str, Task]],
     barriers: tuple[dict[str, Barrier]],
-    N_iters: int,
     dt: float = 1e-3,
     damping: float = 1e-12,
 ) -> jnp.ndarray:
+    r"""..."""
+    N_iters = len(tasks)
     qs = [q0]
     for i in range(N_iters):
         v = solve_local_ik(model, qs[-1], tasks[i], barriers[i], damping)
