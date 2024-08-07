@@ -16,7 +16,7 @@ model_path = os.path.abspath(os.path.dirname(__file__)) + "/../../robot_descript
 mj_model = mj.MjModel.from_xml_path(model_path)
 mjx_model = mjx.put_model(mj_model)
 
-N_batch = 100
+N_batch = 2000
 cur_q = jnp.array(
     [
         np.random.uniform(
@@ -63,7 +63,9 @@ mj.mjv_initGeom(
     np.array([0.565, 0.933, 0.565, 0.4]),
 )
 
-solve_local_ik_vmap = jax.jit(jax.vmap(solve_local_ik, in_axes=(None, 0, None, None)), static_argnames=("damping",))
+solve_local_ik_vmap = jax.jit(
+    jax.vmap(solve_local_ik, in_axes=(None, 0, None, None, None, None)), static_argnames=("damping", "solver")
+)
 
 # try:
 # Warm-up JIT
@@ -81,9 +83,9 @@ for t in ts:
         )
     )
     t0 = perf_counter()
-    vel = solve_local_ik_vmap(mjx_model, cur_q, tasks, {})
+    vel = solve_local_ik_vmap(mjx_model, cur_q, tasks, {}, 1e-12, "osqp")
     print(f"Computation time: {(perf_counter() - t0) * 1000:.3f}ms")
-
+    print(f"Number of diverged problems: {jnp.isnan(vel).any(axis=1).sum()}")
     cur_q += vel * dt
     mj_data.qpos = cur_q[0]
     mj_data.qvel = vel[0]

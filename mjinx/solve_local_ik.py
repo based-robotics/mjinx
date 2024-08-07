@@ -7,9 +7,10 @@ import jax
 import jax.numpy as jnp
 import mujoco.mjx as mjx
 import qpax
+from jaxopt import OSQP
 
 from .barriers import Barrier
-from .configuration import get_configuration_limit, integrate_inplace, update
+from .configuration import get_configuration_limit, update
 from .tasks import Task
 
 
@@ -68,28 +69,39 @@ def assemble_local_ik(
     r"""..."""
     P, q = __compute_qp_objective(model, data, tasks, barriers, damping)
     G, h = __compute_qp_inequalities(model, data, barriers)
-    return P, q, jnp.array([]).reshape(0, model.nv).reshape(0, model.nv), jnp.array([]), G, h
+    return P, q, jnp.array([]).reshape(0, model.nv), jnp.array([]), G, h
 
 
-@jax.jit
+@partial(jax.jit, static_argnames=("solver"))
 def solve_local_ik(
     model: mjx.Model,
     q: jnp.ndarray,
     tasks: dict[str, Task],
     barriers: dict[str, Barrier],
     damping: float = 1e-12,
+    solver: str = "qpax",
 ) -> jnp.ndarray:
     r"""..."""
     data = update(model, q)
-    return qpax.solve_qp(
-        *assemble_local_ik(
+    if solver.lower() == "osqp":
+        P, с, A, b, G, h = assemble_local_ik(
             model,
             data,
             tasks,
             barriers,
             damping,
         )
-    )[0]
+        return OSQP().run(params_obj=(P, с), params_ineq=(G, h)).params.primal
+    elif solver.lower() == "qpax":
+        return qpax.solve_qp(
+            *assemble_local_ik(
+                model,
+                data,
+                tasks,
+                barriers,
+                damping,
+            )
+        )[0]
 
 
 @partial(jax.jit, static_argnames=("dt"))
