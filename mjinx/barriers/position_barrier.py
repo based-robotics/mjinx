@@ -50,10 +50,19 @@ class PositionLowerBarrier(Barrier):
 class PositionUpperBarrier(Barrier):
     r"""..."""
 
-    dim = 1
-
     frame_id: int
     p_max: jnp.ndarray
+    axes: jdc.Static[str] = field(default=lambda: "xyz")
+    _p_idx: jdc.Static[tuple[int, ...]] = field(init=False)
+
+    def __post_init__(self):
+        _p = [i for i in range(3) if "xyz"[i] in self.axes]
+        object.__setattr__(
+            self,
+            "_p_idx",
+            _p,
+        )
+        object.__setattr__(self, "dim", len(self._p_idx))
 
     def compute_barrier(self, data: mjx.Data) -> jnp.ndarray:
-        return self.p_max - data.xpos[self.frame_id]
+        return self.p_max - data.xpos[self.frame_id, self._p_idx]

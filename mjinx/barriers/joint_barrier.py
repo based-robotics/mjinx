@@ -20,7 +20,9 @@ class JointBarrier(Barrier):
 
     def __post_init__(self):
         object.__setattr__(self, "dim", self.model.nv)
-        object.__setattr__(self, "gain", jnp.concatenate([self.joints_gain, self.joints_gain]))
+        object.__setattr__(self, "gain", self.joints_gain)
+        # FIXME: why self.gain is object type, when vmap is applied
+        # object.__setattr__(self, "gain", jnp.tile(self.gain, 2))
 
     def compute_barrier(self, data: mjx.Data) -> jnp.ndarray:
         # TODO: what the constraint for SO3/SE3 groups is?
@@ -38,6 +40,7 @@ class ModelJointBarrier(JointBarrier):
     qmax: jnp.ndarray = field(init=False)
 
     def __post_init__(self):
+        # FIXME: why self.model.jnt_range is object type, when vmap is applied?
         object.__setattr__(self, "qmin", self.model.jnt_range[:, 0])
         object.__setattr__(self, "qmax", self.model.jnt_range[:, 1])
 

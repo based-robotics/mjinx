@@ -45,13 +45,12 @@ cur_q = jnp.array(
 )
 
 ee_id = 8
-print(ee_id)
 
 tasks = {
     "ee_task": FrameTask(
         model=mjx_model,
         cost=1 * jnp.eye(6),
-        gain=10 * jnp.ones(6),
+        gain=20 * jnp.ones(6),
         frame_id=ee_id,
         target_frame=SE3.from_rotation_and_translation(SO3.identity(), np.array([0.2, 0.2, 0.2])),
     ),
@@ -59,7 +58,7 @@ tasks = {
 barriers = {
     "joint_barrier": ModelJointBarrier(
         model=mjx_model,
-        joints_gain=10 * jnp.ones(mj_model.nv),
+        joints_gain=jnp.concat([10 * jnp.ones(mj_model.nv), 10 * jnp.ones(mj_model.nv)]),
     ),
     "position_barrier": PositionUpperBarrier(
         model=mjx_model,
@@ -100,7 +99,7 @@ try:
             )
         )
         t0 = time.perf_counter()
-        vel = solve_local_ik(mjx_model, cur_q, tasks, barriers, damping=1e-12)
+        vel = solve_local_ik(mjx_model, cur_q, tasks, barriers, damping=1e-12, maxiter=20)
         print(f"Time: {(time.perf_counter() - t0)*1e3 :.3f} ms")
         if vel is None:
             raise ValueError("No solution found for IK")
@@ -109,7 +108,7 @@ try:
         mj_data.qpos = cur_q
         mj_data.qvel = vel
         mj.mj_forward(mj_model, mj_data)
-        print(mj_data.xpos[ee_id][0])
+        print(f"Position barrier: {mj_data.xpos[ee_id][0]} <= 0.3")
         mj.mjv_initGeom(
             mj_viewer.user_scn.geoms[0],
             mj.mjtGeom.mjGEOM_SPHERE,
@@ -128,6 +127,7 @@ try:
 
 except Exception as e:
     print(e.with_traceback(None))
+finally:
     mj_viewer.close()
 
     jnts = np.array(jnts)

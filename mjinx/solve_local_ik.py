@@ -72,36 +72,36 @@ def assemble_local_ik(
     return P, q, jnp.array([]).reshape(0, model.nv), jnp.array([]), G, h
 
 
-@partial(jax.jit, static_argnames=("solver"))
+@partial(jax.jit, static_argnames=("maxiter"))
 def solve_local_ik(
     model: mjx.Model,
     q: jnp.ndarray,
     tasks: dict[str, Task],
     barriers: dict[str, Barrier],
     damping: float = 1e-12,
-    solver: str = "qpax",
+    maxiter: int = 4000,
 ) -> jnp.ndarray:
     r"""..."""
     data = update(model, q)
-    if solver.lower() == "osqp":
-        P, с, A, b, G, h = assemble_local_ik(
-            model,
-            data,
-            tasks,
-            barriers,
-            damping,
-        )
-        return OSQP().run(params_obj=(P, с), params_ineq=(G, h)).params.primal
-    elif solver.lower() == "qpax":
-        return qpax.solve_qp(
-            *assemble_local_ik(
-                model,
-                data,
-                tasks,
-                barriers,
-                damping,
-            )
-        )[0]
+    P, с, A, b, G, h = assemble_local_ik(
+        model,
+        data,
+        tasks,
+        barriers,
+        damping,
+    )
+    return OSQP(maxiter=maxiter).run(params_obj=(P, с), params_ineq=(G, h)).params.primal
+    # TODO: remove qpax solver completely
+    # elif solver.lower() == "qpax":
+    #     return qpax.solve_qp(
+    #         *assemble_local_ik(
+    #             model,
+    #             data,
+    #             tasks,
+    #             barriers,
+    #             damping,
+    #         )
+    #     )[0]
 
 
 @partial(jax.jit, static_argnames=("dt"))
