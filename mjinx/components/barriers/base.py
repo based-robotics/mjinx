@@ -1,6 +1,6 @@
 import abc
 from dataclasses import field
-from typing import Callable, ClassVar
+from typing import Callable, ClassVar, Self
 
 import jax
 import jax.numpy as jnp
@@ -20,6 +20,11 @@ class Barrier(abc.ABC):
     gain: jnp.ndarray
     gain_function: jdc.Static[Callable[[float], float]] = field(default_factory=lambda: (lambda x: x))
     safe_displacement_gain: float = 0.0
+
+    def copy_and_set(self, **kwargs) -> Self:
+        r"""..."""
+        new_args = self.__dict__ | kwargs
+        return self.__class__(**new_args)
 
     @abc.abstractmethod
     def compute_barrier(self, data: mjx.Data) -> jnp.ndarray: ...  # h(q) > 0!
