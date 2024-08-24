@@ -1,10 +1,8 @@
 import abc
-from dataclasses import field
 from typing import Callable, ClassVar, Self
 
 import jax
 import jax.numpy as jnp
-import numpy as np
 import jax_dataclasses as jdc
 import mujoco.mjx as mjx
 
@@ -14,8 +12,7 @@ from mjinx.typing import Gain
 
 @jdc.pytree_dataclass(kw_only=True)
 class JaxComponent(abc.ABC):
-    dim: ClassVar[int]
-
+    dim: int
     model: mjx.Model
     gain: jnp.ndarray
     gain_function: jdc.Static[Callable[[float], float]]
@@ -50,15 +47,15 @@ class JaxComponent(abc.ABC):
         )(data.qpos)
 
 
-class Component(abc.ABC):
-    __jax_component: JaxComponent
+class Component[T: JaxComponent](abc.ABC):
+    __jax_component: T
     __model: mjx.Model
     __gain: jnp.ndarray
     __gain_fn: Callable[[float, float]] | None
-    __modified: bool
+    _modified: bool
 
     def __init__(self, model: mjx.Model, gain: Gain, gain_fn: Callable[[float, float]] | None = None):
-        self.__modified = False
+        self._modified = False
         self.model = model
         self.gain = gain
         self.__gain_fn = gain_fn if gain_fn is not None else lambda x: x
@@ -72,7 +69,7 @@ class Component(abc.ABC):
         self.update_model(value)
 
     def update_model(self, model: mjx.Model):
-        self.__modified = True
+        self._modified = True
         self.__model = model
 
     @property
@@ -84,16 +81,20 @@ class Component(abc.ABC):
         self.update_gain(value)
 
     def update_gain(self, gain: Gain):
-        self.__modified = True
+        self._modified = True
         self.__gain = gain if isinstance(gain, jnp.ndarray) else jnp.ndarray(gain)
 
     @property
-    def jax_component(self) -> JaxComponent:
-        if self.__modified:
-            self.__modified = False
-            self.__jax_component = JaxComponent(
-                model=self.__model,
-                gain=self.__gain,
-                gain_fn=self.__gain_fn,
-            )
+    def gain_fn(self) -> callable[[float], float]:
+        return self.__gain_fn
+
+    @abc.abstractmethod
+    def _build_component(self) -> T:
+        pass
+
+    @property
+    def jax_component(self) -> T:
+        if self._modified:
+            self._modified = False
+            self.__jax_component: T = self._build_component()
         return self.__jax_component

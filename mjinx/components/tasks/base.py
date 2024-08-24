@@ -1,48 +1,31 @@
-import abc
-from dataclasses import InitVar, field
-from typing import ClassVar, Self
+from typing import Callable, final, override
 
 import jax
 import jax.numpy as jnp
 import jax_dataclasses as jdc
 import mujoco.mjx as mjx
 
-from ..configuration import update
+from mjinx.components import Component, JaxComponent
+from mjinx.typing import Gain
 
 
 @jdc.pytree_dataclass(kw_only=True)
-class Task(abc.ABC):
-    dim: ClassVar[int]
+class JaxTask(JaxComponent):
 
-    model: mjx.Model
-    cost: jnp.ndarray
-    gain: jnp.ndarray
-    lm_damping: jdc.Static[float] = 0.0
+    lm_damping: jdc.Static[float]
 
-    def copy_and_set(self, **kwargs) -> Self:
-        r"""..."""
-        new_args = self.__dict__ | kwargs
-        return self.__class__(**new_args)
+    def compute_error(self, data: mjx.Data):
+        self.__call__(data)
 
-    @abc.abstractmethod
-    def compute_error(self, data: mjx.Data) -> jnp.ndarray:
-        r"""..."""
-
-    def compute_jacobian(self, data: mjx.Data) -> jnp.ndarray:
-        return jax.jacrev(
-            lambda q, model=self.model: self.compute_error(
-                update(model, qpos=q),
-            ),
-            argnums=0,
-        )(data.qpos)
-
+    @override
+    @final
     def compute_qp_objective(
         self,
         data: mjx.Data,
     ) -> tuple[jnp.ndarray, jnp.ndarray]:
         r"""..."""
         jacobian = self.compute_jacobian(data)
-        minus_gain_error = -self.gain * self.compute_error(data)
+        minus_gain_error = -self.gain * jax.lax.scan(self.gain_function, self.compute_error(data))
 
         weighted_jacobian = self.cost @ jacobian  # [cost]
         weighted_error = self.cost @ minus_gain_error  # [cost]
@@ -56,3 +39,23 @@ class Task(abc.ABC):
         H = weighted_jacobian.T @ weighted_jacobian + mu * eye_tg
         c = -weighted_error.T @ weighted_jacobian
         return (H, c)
+
+    @override
+    @final
+    def compute_qp_inequality(self, data: mjx.Data) -> tuple[jnp.ndarray, jnp.ndarray]:
+        # TODO: make sure it is handled well
+        return tuple(jnp.ndarray(), jnp.ndarray())
+
+
+class Task[T: JaxTask](Component[T]):
+    __lm_damping: float
+
+    def __init__(
+        self, model: mjx.Model, gain: Gain, gain_fn: Callable[[float], float] | None = None, lm_damping: float = 0
+    ):
+        super().__init__(model, gain, gain_fn)
+        self.__lm_damping = lm_damping
+
+    @property
+    def lm_damping(self) -> float:
+        return self.__lm_damping
