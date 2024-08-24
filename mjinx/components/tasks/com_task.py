@@ -6,7 +6,7 @@
 
 """Center of mass task implementation."""
 
-from typing import final, Callable
+from typing import Callable, final
 
 import jax.numpy as jnp
 import jax_dataclasses as jdc
@@ -24,7 +24,7 @@ class JaxComTask(JaxTask):
 
     @final
     @override
-    def compute_error(self, data: mjx.Data) -> jnp.ndarray:
+    def __call__(self, data: mjx.Data) -> jnp.ndarray:
         r"""..."""
         error = data.subtree_com[self.model.body_rootid[0], self.axes] - self.target_com
         return error
@@ -44,6 +44,7 @@ class ComTask(Task[JaxComTask]):
         axes: str = "xyz",
     ):
         super().__init__(model, gain, gain_fn, lm_damping)
+        self.target_com = jnp.zeros(3)
         self.__task_axes_str = axes
         self.__task_axes_idx = tuple([i for i in range(3) if "xyz"[i] in self.axes])
 
@@ -72,7 +73,7 @@ class ComTask(Task[JaxComTask]):
     @override
     def _build_component(self) -> JaxComTask:
         return JaxComTask(
-            dim=len(self.__task_axes_idx),
+            dim=len(self.task_axes),
             model=self.model,
             gain_function=self.gain_fn,
             lm_damping=self.lm_damping,

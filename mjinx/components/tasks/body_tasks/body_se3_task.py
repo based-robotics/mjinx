@@ -1,0 +1,103 @@
+"""Frame task implementation."""
+
+from typing import Callable, final
+
+import jax
+import jax.numpy as jnp
+import jax_dataclasses as jdc
+import mujoco.mjx as mjx
+import numpy as np
+from jaxlie import SE3, SO3
+from typing_extensions import override
+
+from mjinx.components.tasks.body_tasks.body_task import BodyTask, JaxBodyTask
+from mjinx.configuration import get_frame_jacobian_local, get_transform_frame_to_world
+
+
+@jdc.pytree_dataclass
+class JaxFrameTask(JaxBodyTask):
+    r""""""
+
+    target_frame: SE3
+
+    @final
+    @override
+    def __call__(self, data: mjx.Data) -> jnp.ndarray:
+        r""""""
+        return jnp.array(
+            (
+                get_transform_frame_to_world(
+                    self.model,
+                    data,
+                    self.body_id,
+                ).inverse()
+                @ self.target_frame
+            ).log()
+        )
+
+    @final
+    @override
+    def compute_jacobian(self, data: mjx.Data) -> jnp.ndarray:
+        T_bt = self.target_frame.inverse() @ get_transform_frame_to_world(
+            self.model,
+            data,
+            self.body_id,
+        )
+
+        def transform_log(tau):
+            return (T_bt.multiply(SE3.exp(tau))).log()
+
+        frame_jac = get_frame_jacobian_local(self.model, data, self.body_id)
+        jlog = jax.jacobian(transform_log)(jnp.zeros(self.dim))
+
+        return -jlog @ frame_jac.T
+
+
+class FrameTask(BodyTask[JaxFrameTask]):
+    __target_frame: SE3
+
+    def __init__(
+        self,
+        model: mjx.Model,
+        gain: np.ndarray | jnp.Array | float,
+        frame_name: str,
+        gain_fn: Callable[[float], float] | None = None,
+        lm_damping: float = 0,
+    ):
+        super().__init__(model, gain, gain_fn, frame_name, lm_damping)
+        self.target_frame = SE3.identity()
+
+    @property
+    def target_frame(self) -> SE3:
+        return self.__target_frame
+
+    @target_frame.setter
+    def target_frame(self, value: SE3 | jnp.ndarray | np.ndarray):
+        self.update_target_frame(value)
+
+    def update_target_frame(self, target_frame: SE3 | jnp.ndarray | np.ndarray):
+        self._modified = True
+        if not isinstance(target_frame, SE3):
+            if len(target_frame) != 7:
+                raise ValueError("target frame provided via array must has length 7 (xyz + quaternion (scalar first))")
+
+            target_frame = SE3.from_rotation_and_translation(
+                SO3.from_quaternion_xyzw(
+                    target_frame[[1, 2, 3, 0]],
+                ),
+                target_frame[:3],
+            )
+
+        self.__target_frame = target_frame
+
+    @final
+    @override
+    def _build_component(self) -> JaxFrameTask:
+        return JaxFrameTask(
+            dim=SE3.tangent_dim,
+            model=self.model,
+            gain_function=self.gain_fn,
+            lm_damping=self.lm_damping,
+            body_id=self.body_id,
+            target_frame=self.target_frame,
+        )
