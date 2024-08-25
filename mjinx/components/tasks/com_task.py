@@ -37,13 +37,12 @@ class ComTask(Task[JaxComTask]):
 
     def __init__(
         self,
-        model: mjx.Model,
         gain: np.ndarray | jnp.Array | float,
         gain_fn: Callable[[float], float] | None = None,
         lm_damping: float = 0,
         axes: str = "xyz",
     ):
-        super().__init__(model, gain, gain_fn, lm_damping)
+        super().__init__(gain, gain_fn, lm_damping)
         self.target_com = jnp.zeros(3)
         self.__task_axes_str = axes
         self.__task_axes_idx = tuple([i for i in range(3) if "xyz"[i] in self.axes])

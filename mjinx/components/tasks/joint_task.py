@@ -34,7 +34,6 @@ class JointTask(Task[JaxJointTask]):
 
     def __init__(
         self,
-        model: mjx.Model,
         gain: np.ndarray | jnp.Array | float,
         frame_name: str,
         gain_fn: Callable[[float], float] | None = None,
@@ -42,7 +41,7 @@ class JointTask(Task[JaxJointTask]):
         include_joints: tuple[str, ...] | tuple[int, ...] = (),
         exclude_joints: tuple[str, ...] | tuple[int, ...] = (),
     ):
-        super().__init__(model, gain, frame_name, gain_fn, lm_damping)
+        super().__init__(gain, frame_name, gain_fn, lm_damping)
 
         self.target_q = get_joint_zero(model)
         self.__joints_mask = self.__generate_mask(include_joints, exclude_joints)

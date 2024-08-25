@@ -54,9 +54,10 @@ class Component[T: JaxComponent](abc.ABC):
     __gain_fn: Callable[[float, float]] | None
     _modified: bool
 
-    def __init__(self, model: mjx.Model, gain: Gain, gain_fn: Callable[[float, float]] | None = None):
+    def __init__(self, gain: Gain, gain_fn: Callable[[float, float]] | None = None):
+        self.__model = None
         self._modified = False
-        self.model = model
+
         self.gain = gain
         self.__gain_fn = gain_fn if gain_fn is not None else lambda x: x
 
@@ -90,7 +91,8 @@ class Component[T: JaxComponent](abc.ABC):
 
     @abc.abstractmethod
     def _build_component(self) -> T:
-        pass
+        if self.__model is None:
+            raise ValueError("model is not provided")
 
     @property
     def jax_component(self) -> T:

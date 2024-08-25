@@ -50,10 +50,8 @@ class JaxTask(JaxComponent):
 class Task[T: JaxTask](Component[T]):
     __lm_damping: float
 
-    def __init__(
-        self, model: mjx.Model, gain: Gain, gain_fn: Callable[[float], float] | None = None, lm_damping: float = 0
-    ):
-        super().__init__(model, gain, gain_fn)
+    def __init__(self, gain: Gain, gain_fn: Callable[[float], float] | None = None, lm_damping: float = 0):
+        super().__init__(gain, gain_fn)
         self.__lm_damping = lm_damping
 
     @property

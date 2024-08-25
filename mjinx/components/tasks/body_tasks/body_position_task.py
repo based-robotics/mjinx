@@ -29,14 +29,13 @@ class PositionTask(BodyTask[JaxPositionTask]):
 
     def __init__(
         self,
-        model: mjx.Model,
         gain: np.ndarray | jnp.Array | float,
         frame_name: str,
         gain_fn: Callable[[float], float] | None = None,
         lm_damping: float = 0,
         axes: str = "xyz",
     ):
-        super().__init__(model, gain, frame_name, gain_fn, lm_damping)
+        super().__init__(gain, frame_name, gain_fn, lm_damping)
         # TODO: should I create interface for that?
         self.__task_axes_str = axes
         self.__task_axes_idx = tuple([i for i in range(3) if "xyz"[i] in self.axes])

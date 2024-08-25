@@ -51,12 +51,11 @@ class Barrier[T: JaxBarrier](Component[T]):
 
     def __init__(
         self,
-        model: mjx.Model,
         gain: Gain,
         gain_fn: Callable[[float], float] | None = None,
         safe_displacement_gain: float = 0,
     ):
-        super().__init__(model, gain, gain_fn)
+        super().__init__(gain, gain_fn)
         self.safe_displacement_gain = safe_displacement_gain
 
     @property

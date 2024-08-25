@@ -71,7 +71,6 @@ class PositionBarrier(BodyBarrier[JaxPositionBarrier]):
 
     def __init__(
         self,
-        model: mjx.Model,
         gain: Gain,
         body_name: str,
         p_min: jnp.ndarray | np.ndarray | None = None,
@@ -81,7 +80,7 @@ class PositionBarrier(BodyBarrier[JaxPositionBarrier]):
         safe_displacement_gain: float = 0,
         axes: str = "xyz",
     ):
-        super().__init__(model, gain, body_name, gain_fn, safe_displacement_gain)
+        super().__init__(gain, body_name, gain_fn, safe_displacement_gain)
         if limit_type not in {"min", "max", "both"}:
             raise ValueError("[PositionBarrier] PositionBarrier.limit should be either 'min', 'max', or 'both'")
 

@@ -58,13 +58,12 @@ class FrameTask(BodyTask[JaxFrameTask]):
 
     def __init__(
         self,
-        model: mjx.Model,
         gain: np.ndarray | jnp.Array | float,
         frame_name: str,
         gain_fn: Callable[[float], float] | None = None,
         lm_damping: float = 0,
     ):
-        super().__init__(model, gain, gain_fn, frame_name, lm_damping)
+        super().__init__(gain, gain_fn, frame_name, lm_damping)
         self.target_frame = SE3.identity()
 
     @property

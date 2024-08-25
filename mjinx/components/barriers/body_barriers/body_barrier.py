@@ -1,6 +1,6 @@
 """Frame task implementation."""
 
-from typing import Callable
+from typing import Callable, override
 
 import jax_dataclasses as jdc
 import mujoco as mj
@@ -23,21 +23,13 @@ class BodyBarrier[T: JaxBodyBarrier](Barrier[T]):
 
     def __init__(
         self,
-        model: mjx.Model,
         gain: Gain,
         body_name: str,
         gain_fn: Callable[[float], float] | None = None,
         safe_displacement_gain: float = 0,
     ):
-        super().__init__(model, gain, gain_fn, safe_displacement_gain)
+        super().__init__(gain, gain_fn, safe_displacement_gain)
         self.__body_name = body_name
-        self.__body_id = mjx.name2id(
-            model,
-            mj.mjtObj.mjOBJ_BODY,
-            self.__body_name,
-        )
-        if self.__body_id == -1:
-            raise ValueError(f"body with name {self.__body_name} is not found.")
 
     @property
     def body_name(self) -> str:
@@ -46,3 +38,15 @@ class BodyBarrier[T: JaxBodyBarrier](Barrier[T]):
     @property
     def body_id(self) -> int:
         return self.__body_id
+
+    @override
+    def update_model(self, model: mjx.Model):
+        self.__body_id = mjx.name2id(
+            model,
+            mj.mjtObj.mjOBJ_BODY,
+            self.__body_name,
+        )
+        if self.__body_id == -1:
+            raise ValueError(f"body with name {self.__body_name} is not found.")
+
+        return super().update_model(model)

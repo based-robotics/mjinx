@@ -33,12 +33,11 @@ class JointBarrier(Barrier[JaxJointBarrier]):
 
     def __init__(
         self,
-        model: mjx.Model,
         gain: Gain,
         gain_fn: Callable[[float], float] | None = None,
         safe_displacement_gain: float = 0,
     ):
-        super().__init__(model, gain, gain_fn, safe_displacement_gain)
+        super().__init__(gain, gain_fn, safe_displacement_gain)
         self.__q_min = self.model.jnt_range[:, 0]
         self.__q_max = self.model.jnt_range[:, 1]
 

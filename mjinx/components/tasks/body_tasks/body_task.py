@@ -1,6 +1,6 @@
 """Frame task implementation."""
 
-from typing import Callable
+from typing import Callable, override
 
 import jax.numpy as jnp
 import jax_dataclasses as jdc
@@ -25,21 +25,13 @@ class BodyTask[T: JaxBodyTask](Task[T]):
 
     def __init__(
         self,
-        model: mjx.Model,
         gain: Gain,
         body_name: str,
         gain_fn: Callable[[float], float] | None = None,
         lm_damping: float = 0,
     ):
-        super().__init__(model, gain, gain_fn, lm_damping)
+        super().__init__(gain, gain_fn, lm_damping)
         self.__body_name = body_name
-        self.__body_id = mjx.name2id(
-            model,
-            mj.mjtObj.mjOBJ_BODY,
-            self.__body_name,
-        )
-        if self.__body_id == -1:
-            raise ValueError(f"body with name {self.__body_name} is not found.")
 
     @property
     def body_name(self) -> str:
@@ -48,3 +40,15 @@ class BodyTask[T: JaxBodyTask](Task[T]):
     @property
     def body_id(self) -> int:
         return self.__body_id
+
+    @override
+    def update_model(self, model: mjx.Model):
+        self.__body_id = mjx.name2id(
+            model,
+            mj.mjtObj.mjOBJ_BODY,
+            self.__body_name,
+        )
+        if self.__body_id == -1:
+            raise ValueError(f"body with name {self.__body_name} is not found.")
+
+        return super().update_model(model)
