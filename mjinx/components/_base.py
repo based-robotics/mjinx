@@ -1,5 +1,5 @@
 import abc
-from typing import Callable, ClassVar, Self
+from typing import Callable, Self
 
 import jax
 import jax.numpy as jnp

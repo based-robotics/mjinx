@@ -44,7 +44,7 @@ class JaxTask(JaxComponent):
     @final
     def compute_qp_inequality(self, data: mjx.Data) -> tuple[jnp.ndarray, jnp.ndarray]:
         # TODO: make sure it is handled well
-        return tuple(jnp.ndarray(), jnp.ndarray())
+        return tuple(jnp.empty(0), jnp.empty(0))
 
 
 class Task[T: JaxTask](Component[T]):

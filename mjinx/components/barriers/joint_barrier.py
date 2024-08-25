@@ -1,28 +1,21 @@
-from dataclasses import field
+from typing import Callable, override
 
-import jax
 import jax.numpy as jnp
 import jax_dataclasses as jdc
 import mujoco.mjx as mjx
+import numpy as np
 
-from ..configuration import joint_difference
-from .base import Barrier
+from mjinx.components.barriers.base import Barrier, JaxBarrier
+from mjinx.configuration import joint_difference
+from mjinx.typing import Gain
 
 
 @jdc.pytree_dataclass
-class JointBarrier(Barrier):
+class JaxJointBarrier(JaxBarrier):
     r"""..."""
 
     qmin: jnp.ndarray
     qmax: jnp.ndarray
-    gain: jnp.ndarray = field(init=False)
-    joints_gain: jnp.ndarray
-
-    def __post_init__(self):
-        object.__setattr__(self, "dim", self.model.nv)
-        object.__setattr__(self, "gain", self.joints_gain)
-        # FIXME: why self.gain is object type, when vmap is applied
-        # object.__setattr__(self, "gain", jnp.tile(self.gain, 2))
 
     def compute_barrier(self, data: mjx.Data) -> jnp.ndarray:
         # TODO: what the constraint for SO3/SE3 groups is?
@@ -34,14 +27,61 @@ class JointBarrier(Barrier):
         )
 
 
-@jdc.pytree_dataclass
-class ModelJointBarrier(JointBarrier):
-    qmin: jnp.ndarray = field(init=False)
-    qmax: jnp.ndarray = field(init=False)
+class JointBarrier(Barrier[JaxJointBarrier]):
+    __q_min: jnp.ndarray
+    __q_max: jnp.ndarray
 
-    def __post_init__(self):
-        # FIXME: why self.model.jnt_range is object type, when vmap is applied?
-        object.__setattr__(self, "qmin", self.model.jnt_range[:, 0])
-        object.__setattr__(self, "qmax", self.model.jnt_range[:, 1])
+    def __init__(
+        self,
+        model: mjx.Model,
+        gain: Gain,
+        gain_fn: Callable[[float], float] | None = None,
+        safe_displacement_gain: float = 0,
+    ):
+        super().__init__(model, gain, gain_fn, safe_displacement_gain)
+        self.__q_min = self.model.jnt_range[:, 0]
+        self.__q_max = self.model.jnt_range[:, 1]
 
-        super().__post_init__()
+    @property
+    def q_min(self) -> jnp.ndarray:
+        return self.__q_min
+
+    @q_min.setter
+    def q_min(self, value: np.ndarray | jnp.ndarray):
+        self.update_q_min(value)
+
+    def update_q_min(self, q_min: np.ndarray | jnp.ndarray):
+        if q_min.shape[-1] != self.model.nv:
+            raise ValueError(
+                f"[JointBarrier] wrong dimension of q_min: expected {len(self.axes)}, got {q_min.shape[-1]}"
+            )
+
+        self._modified = True
+        self.__q_min = q_min if isinstance(q_min, jnp.ndarray) else jnp.ndarray(q_min)
+
+    @property
+    def q_max(self) -> jnp.ndarray:
+        return self.__q_max
+
+    @q_max.setter
+    def q_max(self, value: np.ndarray | jnp.ndarray):
+        self.update_q_max(value)
+
+    def update_q_max(self, q_max: np.ndarray | jnp.ndarray):
+        if q_max.shape[-1] != self.model.nv:
+            raise ValueError(
+                f"[JointBarrier] wrong dimension of q_max: expected {len(self.axes)}, got {q_max.shape[-1]}"
+            )
+        self._modified = True
+        self.__q_max = q_max if isinstance(q_max, jnp.ndarray) else jnp.ndarray(q_max)
+
+    @override
+    def _build_component(self) -> JaxJointBarrier:
+        return JaxJointBarrier(
+            dim=2 * self.model.nv,
+            model=self.model,
+            gain_function=self.gain_fn,
+            safe_displacement_gain=self.safe_displacement_gain,
+            q_min=self.q_min,
+            q_max=self.q_max,
+        )

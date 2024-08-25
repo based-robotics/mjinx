@@ -2,24 +2,22 @@
 
 from typing import Callable
 
-import jax.numpy as jnp
 import jax_dataclasses as jdc
 import mujoco as mj
 import mujoco.mjx as mjx
-import numpy as np
 
-from mjinx.components.tasks.base import JaxTask, Task
+from mjinx.components.barriers.base import Barrier, JaxBarrier
 from mjinx.typing import Gain
 
 
 @jdc.pytree_dataclass
-class JaxBodyTask(JaxTask):
+class JaxBodyBarrier(JaxBarrier):
     r""""""
 
     body_id: jdc.Static[int]
 
 
-class BodyTask[T: JaxBodyTask](Task[T]):
+class BodyBarrier[T: JaxBodyBarrier](Barrier[T]):
     __body_name: str
     __body_id: int
 
@@ -29,9 +27,9 @@ class BodyTask[T: JaxBodyTask](Task[T]):
         gain: Gain,
         body_name: str,
         gain_fn: Callable[[float], float] | None = None,
-        lm_damping: float = 0,
+        safe_displacement_gain: float = 0,
     ):
-        super().__init__(model, gain, gain_fn, lm_damping)
+        super().__init__(model, gain, gain_fn, safe_displacement_gain)
         self.__body_name = body_name
         self.__body_id = mjx.name2id(
             model,
