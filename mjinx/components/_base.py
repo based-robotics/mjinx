@@ -48,13 +48,15 @@ class JaxComponent(abc.ABC):
 
 
 class Component[T: JaxComponent](abc.ABC):
+    __name: str
     __jax_component: T
     __model: mjx.Model
     __gain: jnp.ndarray
     __gain_fn: Callable[[float, float]] | None
     _modified: bool
 
-    def __init__(self, gain: Gain, gain_fn: Callable[[float, float]] | None = None):
+    def __init__(self, name: str, gain: Gain, gain_fn: Callable[[float, float]] | None = None):
+        self.__name = name
         self.__model = None
         self._modified = False
 
@@ -88,6 +90,10 @@ class Component[T: JaxComponent](abc.ABC):
     @property
     def gain_fn(self) -> callable[[float], float]:
         return self.__gain_fn
+
+    @property
+    def name(self) -> str:
+        return self.__name
 
     @abc.abstractmethod
     def _build_component(self) -> T:
