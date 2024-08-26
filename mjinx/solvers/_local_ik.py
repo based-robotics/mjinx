@@ -11,7 +11,7 @@ from typing_extensions import Unpack
 
 from mjinx.components._base import JaxComponent
 from mjinx.problem import JaxProblemData
-from mjinx.solvers.base import Solver, SolverState
+from mjinx.solvers._base import Solver, SolverState
 
 # TODO: maybe passing instance of OSQP is easier to implement, but
 # I do not want to directly expose OSQP solver interface to the user (it's little bit ugly)

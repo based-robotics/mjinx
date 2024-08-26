@@ -7,10 +7,10 @@ import mujoco.mjx as mjx
 import optax
 
 from mjinx.components._base import JaxComponent
-from mjinx.components.barriers.base import JaxBarrier
-from mjinx.components.tasks.base import JaxTask
+from mjinx.components.barriers._base import JaxBarrier
+from mjinx.components.tasks._base import JaxTask
 from mjinx.problem import JaxProblemData
-from mjinx.solvers.base import Solver, SolverState
+from mjinx.solvers._base import Solver, SolverState
 
 
 @jdc.pytree_dataclass

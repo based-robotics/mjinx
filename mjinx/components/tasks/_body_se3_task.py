@@ -10,7 +10,7 @@ import numpy as np
 from jaxlie import SE3, SO3
 from typing_extensions import override
 
-from mjinx.components.tasks.body_tasks.body_task import BodyTask, JaxBodyTask
+from mjinx.components.tasks._body_task import BodyTask, JaxBodyTask
 from mjinx.configuration import get_frame_jacobian_local, get_transform_frame_to_world
 
 

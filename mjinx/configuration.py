@@ -4,8 +4,8 @@
 
 import jax
 import jax.numpy as jnp
-import mujoco as mj
 import jaxlie
+import mujoco as mj
 from jaxlie import SE3, SO3
 from mujoco import mjx
 
@@ -20,7 +20,7 @@ def update(model: mjx.Model, q: jnp.ndarray) -> mjx.Data:
     return data
 
 
-def check_limits(model: mjx.Model, data: mjx.Data) -> jnp.bool:
+def check_limits(model: mjx.Model, data: mjx.Data) -> bool:
     """..."""
     return jnp.all(model.jnt_range[:, 0] < data.qpos < model.jnt_range[:, 1])
 

@@ -3,8 +3,8 @@ from typing import cast
 import mujoco.mjx as mjx
 
 from mjinx.components._base import Component, JaxComponent
-from mjinx.components.barriers.base import Barrier
-from mjinx.components.tasks.base import Task
+from mjinx.components.barriers._base import Barrier
+from mjinx.components.tasks._base import Task
 
 JaxProblemData = dict[str, JaxComponent]
 

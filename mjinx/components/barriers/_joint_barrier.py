@@ -5,7 +5,7 @@ import jax_dataclasses as jdc
 import mujoco.mjx as mjx
 import numpy as np
 
-from mjinx.components.barriers.base import Barrier, JaxBarrier
+from mjinx.components.barriers._base import Barrier, JaxBarrier
 from mjinx.configuration import joint_difference
 from mjinx.typing import Gain
 

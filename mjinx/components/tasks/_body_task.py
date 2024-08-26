@@ -8,7 +8,7 @@ import mujoco as mj
 import mujoco.mjx as mjx
 import numpy as np
 
-from mjinx.components.tasks.base import JaxTask, Task
+from mjinx.components.tasks._base import JaxTask, Task
 from mjinx.typing import Gain
 
 

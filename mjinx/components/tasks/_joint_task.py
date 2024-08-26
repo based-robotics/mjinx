@@ -10,7 +10,7 @@ import mujoco.mjx as mjx
 import numpy as np
 from typing_extensions import override
 
-from mjinx.components.tasks.base import JaxTask, Task
+from mjinx.components.tasks._base import JaxTask, Task
 from mjinx.configuration import get_joint_zero, joint_difference
 
 

@@ -1,5 +1,6 @@
-from .base import Task
-from .body_tasks.body_position_task import PositionTask
-from .body_tasks.body_se3_task import FrameTask
-from .com_task import ComTask
-from .joint_task import JointTask, RegularizationTask
+from ._base import Task
+from ._body_position_task import PositionTask
+from ._body_se3_task import FrameTask
+from ._body_task import BodyTask
+from ._com_task import ComTask
+from ._joint_task import JointTas

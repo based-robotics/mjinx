@@ -1,3 +1,3 @@
-from .base import Barrier
-from .joint_barrier import JointBarrier, ModelJointBarrier
-from .body_barriers.body_position_barrier import PositionBarrier, PositionLowerBarrier, PositionUpperBarrier
+from ._base import Barrier
+from ._body_position_barrier import PositionLimitType, PositionBarrier
+from ._joint_barrier import JointBarrier

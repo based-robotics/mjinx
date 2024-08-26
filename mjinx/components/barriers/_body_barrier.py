@@ -6,7 +6,7 @@ import jax_dataclasses as jdc
 import mujoco as mj
 import mujoco.mjx as mjx
 
-from mjinx.components.barriers.base import Barrier, JaxBarrier
+from mjinx.components.barriers._base import Barrier, JaxBarrier
 from mjinx.typing import Gain
 
 

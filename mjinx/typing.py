@@ -1,6 +1,5 @@
 from typing import Callable, TypedDict
 
-import jax
 import jax.numpy as jnp
 import numpy as np
 
