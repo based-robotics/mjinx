@@ -15,6 +15,7 @@ import numpy as np
 from typing_extensions import override
 
 from mjinx.components.tasks._base import JaxTask, Task
+from mjinx.typing import ArrayOrFloat
 
 
 @jdc.pytree_dataclass
@@ -37,12 +38,14 @@ class ComTask(Task[JaxComTask]):
 
     def __init__(
         self,
-        gain: np.ndarray | jnp.Array | float,
+        name: str,
+        cost: ArrayOrFloat,
+        gain: ArrayOrFloat,
         gain_fn: Callable[[float], float] | None = None,
         lm_damping: float = 0,
         axes: str = "xyz",
     ):
-        super().__init__(gain, gain_fn, lm_damping)
+        super().__init__(name, cost, gain, gain_fn, lm_damping)
         self.target_com = jnp.zeros(3)
         self.__task_axes_str = axes
         self.__task_axes_idx = tuple([i for i in range(3) if "xyz"[i] in self.axes])
@@ -62,7 +65,7 @@ class ComTask(Task[JaxComTask]):
                 f"{len(target_com)} given, expected {len(self.__task_axes_idx)} "
             )
         self._modified = True
-        self.__target_com = target_com if isinstance(target_com, jnp.ndarray) else jnp.ndarray(target_com)
+        self.__target_com = target_com if isinstance(target_com, jnp.ndarray) else jnp.array(target_com)
 
     @property
     def task_axes(self) -> str:
@@ -74,6 +77,8 @@ class ComTask(Task[JaxComTask]):
         return JaxComTask(
             dim=len(self.task_axes),
             model=self.model,
+            cost=self.cost,
+            gain=self.gain,
             gain_function=self.gain_fn,
             lm_damping=self.lm_damping,
             target_com=self.target_com,

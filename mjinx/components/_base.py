@@ -7,7 +7,7 @@ import jax_dataclasses as jdc
 import mujoco.mjx as mjx
 
 from mjinx.configuration import update
-from mjinx.typing import Gain
+from mjinx.typing import ArrayOrFloat
 
 
 @jdc.pytree_dataclass(kw_only=True)
@@ -50,12 +50,17 @@ class JaxComponent(abc.ABC):
 class Component[T: JaxComponent](abc.ABC):
     __name: str
     __jax_component: T
-    __model: mjx.Model
+    __model: mjx.Model | None
     __gain: jnp.ndarray
-    __gain_fn: Callable[[float, float]] | None
+    __gain_fn: Callable[[float], float] | None
     _modified: bool
 
-    def __init__(self, name: str, gain: Gain, gain_fn: Callable[[float, float]] | None = None):
+    def __init__(
+        self,
+        name: str,
+        gain: ArrayOrFloat,
+        gain_fn: Callable[[float], float] | None = None,
+    ):
         self.__name = name
         self.__model = None
         self._modified = False
@@ -65,6 +70,8 @@ class Component[T: JaxComponent](abc.ABC):
 
     @property
     def model(self) -> mjx.Model:
+        if self.__model is None:
+            raise ValueError("model is not provided yet")
         return self.__model
 
     @model.setter
@@ -80,15 +87,15 @@ class Component[T: JaxComponent](abc.ABC):
         return self.__gain
 
     @gain.setter
-    def gain(self, value: Gain):
+    def gain(self, value: ArrayOrFloat):
         self.update_gain(value)
 
-    def update_gain(self, gain: Gain):
+    def update_gain(self, gain: ArrayOrFloat):
         self._modified = True
-        self.__gain = gain if isinstance(gain, jnp.ndarray) else jnp.ndarray(gain)
+        self.__gain = gain if isinstance(gain, jnp.ndarray) else jnp.array(gain)
 
     @property
-    def gain_fn(self) -> callable[[float], float]:
+    def gain_fn(self) -> Callable[[float], float]:
         return self.__gain_fn
 
     @property

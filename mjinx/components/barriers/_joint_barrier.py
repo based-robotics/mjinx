@@ -7,7 +7,7 @@ import numpy as np
 
 from mjinx.components.barriers._base import Barrier, JaxBarrier
 from mjinx.configuration import joint_difference
-from mjinx.typing import Gain
+from mjinx.typing import ArrayOrFloat
 
 
 @jdc.pytree_dataclass
@@ -33,11 +33,12 @@ class JointBarrier(Barrier[JaxJointBarrier]):
 
     def __init__(
         self,
-        gain: Gain,
+        name: str,
+        gain: ArrayOrFloat,
         gain_fn: Callable[[float], float] | None = None,
         safe_displacement_gain: float = 0,
     ):
-        super().__init__(gain, gain_fn, safe_displacement_gain)
+        super().__init__(name, gain, gain_fn, safe_displacement_gain)
         self.__q_min = self.model.jnt_range[:, 0]
         self.__q_max = self.model.jnt_range[:, 1]
 
@@ -56,7 +57,7 @@ class JointBarrier(Barrier[JaxJointBarrier]):
             )
 
         self._modified = True
-        self.__q_min = q_min if isinstance(q_min, jnp.ndarray) else jnp.ndarray(q_min)
+        self.__q_min = q_min if isinstance(q_min, jnp.ndarray) else jnp.array(q_min)
 
     @property
     def q_max(self) -> jnp.ndarray:
@@ -72,13 +73,14 @@ class JointBarrier(Barrier[JaxJointBarrier]):
                 f"[JointBarrier] wrong dimension of q_max: expected {len(self.axes)}, got {q_max.shape[-1]}"
             )
         self._modified = True
-        self.__q_max = q_max if isinstance(q_max, jnp.ndarray) else jnp.ndarray(q_max)
+        self.__q_max = q_max if isinstance(q_max, jnp.ndarray) else jnp.array(q_max)
 
     @override
     def _build_component(self) -> JaxJointBarrier:
         return JaxJointBarrier(
             dim=2 * self.model.nv,
             model=self.model,
+            gain=self.gain,
             gain_function=self.gain_fn,
             safe_displacement_gain=self.safe_displacement_gain,
             q_min=self.q_min,

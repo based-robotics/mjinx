@@ -7,7 +7,7 @@ import jax_dataclasses as jdc
 import mujoco.mjx as mjx
 
 from mjinx.components import Component, JaxComponent
-from mjinx.typing import Gain
+from mjinx.typing import ArrayOrFloat
 
 
 @jdc.pytree_dataclass(kw_only=True)
@@ -16,7 +16,6 @@ class JaxBarrier(JaxComponent):
 
     safe_displacement_gain: float
 
-    @abc.abstractmethod
     def compute_barrier(self, data: mjx.Data) -> jnp.ndarray:
         # h(q) > 0!
         return self.__call__(data)
@@ -51,11 +50,12 @@ class Barrier[T: JaxBarrier](Component[T]):
 
     def __init__(
         self,
-        gain: Gain,
+        name: str,
+        gain: ArrayOrFloat,
         gain_fn: Callable[[float], float] | None = None,
         safe_displacement_gain: float = 0,
     ):
-        super().__init__(gain, gain_fn)
+        super().__init__(name, gain, gain_fn)
         self.safe_displacement_gain = safe_displacement_gain
 
     @property

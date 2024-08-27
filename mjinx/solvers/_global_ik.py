@@ -47,7 +47,7 @@ class GlobalIKSolver(Solver[GlobalIKState]):
         self,
         data: mjx.Data,
         solver_state: GlobalIKState,
-        componets: JaxProblemData[str, JaxComponent],
+        componets: dict[str, JaxComponent],
         damping: float,
     ) -> tuple[jnp.ndarray, GlobalIKState]:
         grad = self.loss_grad(data, componets)

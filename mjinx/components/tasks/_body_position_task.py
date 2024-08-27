@@ -8,7 +8,8 @@ import mujoco.mjx as mjx
 import numpy as np
 from typing_extensions import override
 
-from mjinx.components.tasks.body_tasks.body_task import BodyTask, JaxBodyTask
+from mjinx.components.tasks._body_task import BodyTask, JaxBodyTask
+from mjinx.typing import ArrayOrFloat
 
 
 @jdc.pytree_dataclass
@@ -29,13 +30,15 @@ class PositionTask(BodyTask[JaxPositionTask]):
 
     def __init__(
         self,
-        gain: np.ndarray | jnp.Array | float,
+        name: str,
+        cost: ArrayOrFloat,
+        gain: ArrayOrFloat,
         frame_name: str,
         gain_fn: Callable[[float], float] | None = None,
         lm_damping: float = 0,
         axes: str = "xyz",
     ):
-        super().__init__(gain, frame_name, gain_fn, lm_damping)
+        super().__init__(name, cost, gain, frame_name, gain_fn, lm_damping)
         # TODO: should I create interface for that?
         self.__task_axes_str = axes
         self.__task_axes_idx = tuple([i for i in range(3) if "xyz"[i] in self.axes])
@@ -59,7 +62,7 @@ class PositionTask(BodyTask[JaxPositionTask]):
                 f"{len(target_pos)} given, expected {len(self.__task_axes_idx)} "
             )
         self._modified = True
-        self.__target_pos = target_pos if isinstance(target_pos, jnp.ndarray) else jnp.ndarray(target_pos)
+        self.__target_pos = target_pos if isinstance(target_pos, jnp.ndarray) else jnp.array(target_pos)
 
     @final
     @override
@@ -67,6 +70,8 @@ class PositionTask(BodyTask[JaxPositionTask]):
         return JaxPositionTask(
             dim=len(self.task_axes),
             model=self.model,
+            cost=self.cost,
+            gain=self.gain,
             gain_function=self.gain_fn,
             lm_damping=self.lm_damping,
             target_pos=self.target_pos,

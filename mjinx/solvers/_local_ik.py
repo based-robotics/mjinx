@@ -5,6 +5,7 @@ from typing import Callable, NotRequired, TypedDict, override
 import jax.numpy as jnp
 import jax_dataclasses as jdc
 import jaxopt
+import jaxopt.base
 import mujoco.mjx as mjx
 from jaxopt import OSQP
 from typing_extensions import Unpack
@@ -109,6 +110,6 @@ class LocalIKSolver(Solver[LocalIKState]):
         return (update(), LocalIKState(solution))
 
     @override
-    def init(self, data: mjx.Data | jnp.ndarray) -> LocalIKState:
+    def init(self, q0: jnp.ndarray) -> LocalIKState:
         # TODO: ensure this works
         return LocalIKState(None)

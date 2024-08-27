@@ -12,6 +12,7 @@ from typing_extensions import override
 
 from mjinx.components.tasks._body_task import BodyTask, JaxBodyTask
 from mjinx.configuration import get_frame_jacobian_local, get_transform_frame_to_world
+from mjinx.typing import ArrayOrFloat
 
 
 @jdc.pytree_dataclass
@@ -58,12 +59,14 @@ class FrameTask(BodyTask[JaxFrameTask]):
 
     def __init__(
         self,
-        gain: np.ndarray | jnp.Array | float,
-        frame_name: str,
+        name: str,
+        cost: ArrayOrFloat,
+        gain: ArrayOrFloat,
+        body_name: str,
         gain_fn: Callable[[float], float] | None = None,
         lm_damping: float = 0,
     ):
-        super().__init__(gain, gain_fn, frame_name, lm_damping)
+        super().__init__(name, cost, gain, body_name, gain_fn, lm_damping)
         self.target_frame = SE3.identity()
 
     @property
@@ -95,6 +98,8 @@ class FrameTask(BodyTask[JaxFrameTask]):
         return JaxFrameTask(
             dim=SE3.tangent_dim,
             model=self.model,
+            cost=self.cost,
+            gain=self.gain,
             gain_function=self.gain_fn,
             lm_damping=self.lm_damping,
             body_id=self.body_id,

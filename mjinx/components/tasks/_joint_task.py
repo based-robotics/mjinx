@@ -12,6 +12,7 @@ from typing_extensions import override
 
 from mjinx.components.tasks._base import JaxTask, Task
 from mjinx.configuration import get_joint_zero, joint_difference
+from mjinx.typing import ArrayOrFloat
 
 
 @jdc.pytree_dataclass
@@ -34,16 +35,17 @@ class JointTask(Task[JaxJointTask]):
 
     def __init__(
         self,
-        gain: np.ndarray | jnp.Array | float,
+        name: str,
+        cost: ArrayOrFloat,
+        gain: ArrayOrFloat,
         frame_name: str,
         gain_fn: Callable[[float], float] | None = None,
         lm_damping: float = 0,
         include_joints: tuple[str, ...] | tuple[int, ...] = (),
         exclude_joints: tuple[str, ...] | tuple[int, ...] = (),
     ):
-        super().__init__(gain, frame_name, gain_fn, lm_damping)
+        super().__init__(name, cost, gain, frame_name, gain_fn, lm_damping)
 
-        self.target_q = get_joint_zero(model)
         self.__joints_mask = self.__generate_mask(include_joints, exclude_joints)
 
     def __generate_mask(
@@ -94,6 +96,11 @@ class JointTask(Task[JaxJointTask]):
 
         return tuple(1 for i in range(self.model.nv) if i in idxs)
 
+    @override
+    def update_model(self, model: mjx.Model):
+        super().update_model(model)
+        self.target_q = get_joint_zero(model)
+
     @property
     def joints_mask(self) -> np.ndarray:
         return np.ndarray(self.__joints_mask)
@@ -113,13 +120,15 @@ class JointTask(Task[JaxJointTask]):
                 f"{len(target_q)} given, expected {len(self.__task_axes_idx)} "
             )
         self._modified = True
-        self.__target_q = target_q if isinstance(target_q, jnp.ndarray) else jnp.ndarray(target_q)
+        self.__target_q = target_q if isinstance(target_q, jnp.ndarray) else jnp.array(target_q)
 
     @override
     def _build_component(self) -> JaxJointTask:
         return JaxJointTask(
             dim=len(self.task_axes),
             model=self.model,
+            cost=self.cost,
+            gain=self.gain,
             gain_function=self.gain_fn,
             lm_damping=self.lm_damping,
             target_q=self.target_q,

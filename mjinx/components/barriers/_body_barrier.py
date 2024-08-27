@@ -7,7 +7,7 @@ import mujoco as mj
 import mujoco.mjx as mjx
 
 from mjinx.components.barriers._base import Barrier, JaxBarrier
-from mjinx.typing import Gain
+from mjinx.typing import ArrayOrFloat
 
 
 @jdc.pytree_dataclass
@@ -23,12 +23,13 @@ class BodyBarrier[T: JaxBodyBarrier](Barrier[T]):
 
     def __init__(
         self,
-        gain: Gain,
+        name: str,
+        gain: ArrayOrFloat,
         body_name: str,
         gain_fn: Callable[[float], float] | None = None,
         safe_displacement_gain: float = 0,
     ):
-        super().__init__(gain, gain_fn, safe_displacement_gain)
+        super().__init__(name, gain, gain_fn, safe_displacement_gain)
         self.__body_name = body_name
 
     @property

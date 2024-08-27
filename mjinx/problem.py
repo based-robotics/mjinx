@@ -15,12 +15,13 @@ class Problem:
 
     def __init__(self, model: mjx.Model):
         self.__model = model
+        self.__components = {}
 
     def add_component(self, component: Component):
-        if component.__name in self.__components:
+        if component.name in self.__components:
             raise ValueError("the component with this name already exists")
         component.model = self.__model
-        self.__components[component.name]
+        self.__components[component.name] = component
 
     def remove_component(self, name: str):
         if name in self.__components:

@@ -6,12 +6,13 @@ import jax_dataclasses as jdc
 import mujoco.mjx as mjx
 
 from mjinx.components import Component, JaxComponent
-from mjinx.typing import Gain
+from mjinx.typing import ArrayOrFloat
 
 
 @jdc.pytree_dataclass(kw_only=True)
 class JaxTask(JaxComponent):
 
+    cost: jnp.ndarray
     lm_damping: jdc.Static[float]
 
     def compute_error(self, data: mjx.Data):
@@ -49,10 +50,32 @@ class JaxTask(JaxComponent):
 
 class Task[T: JaxTask](Component[T]):
     __lm_damping: float
+    __cost: jnp.ndarray
 
-    def __init__(self, gain: Gain, gain_fn: Callable[[float], float] | None = None, lm_damping: float = 0):
-        super().__init__(gain, gain_fn)
+    def __init__(
+        self,
+        name: str,
+        cost: ArrayOrFloat,
+        gain: ArrayOrFloat,
+        gain_fn: Callable[[float], float] | None = None,
+        lm_damping: float = 0,
+    ):
+        super().__init__(name, gain, gain_fn)
         self.__lm_damping = lm_damping
+
+        self.cost = cost
+
+    @property
+    def cost(self) -> jnp.ndarray:
+        return self.__cost
+
+    @cost.setter
+    def cost(self, value: ArrayOrFloat):
+        self.update_cost(value)
+
+    def update_cost(self, cost: ArrayOrFloat):
+        self._modified = True
+        self.__cost = cost if isinstance(cost, jnp.ndarray) else jnp.array(cost)
 
     @property
     def lm_damping(self) -> float:

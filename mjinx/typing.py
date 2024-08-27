@@ -4,8 +4,8 @@ import jax.numpy as jnp
 import numpy as np
 
 ndarray = np.ndarray | jnp.ndarray
+ArrayOrFloat = ndarray | float
 ClassKFunctions = Callable[[ndarray], ndarray]
-Gain = ndarray | float
 CallableFromState = Callable[[ndarray, ndarray], ndarray]
 FrictionCallable = Callable[[ndarray, ndarray], ndarray]
 

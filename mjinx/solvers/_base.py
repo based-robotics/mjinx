@@ -24,9 +24,9 @@ class Solver[S: SolverState](abc.ABC):
         if self.model is None:
             raise ValueError("model is not provided, solution is unavailable")
 
-    def solve(self, q: jnp.ndarray, solver_state: S, components: JaxProblemData) -> tuple[jnp.ndarray, S]:
-        return self.solve_from_data(configuration.update(self.model, q), solver_state, components)
+    def solve(self, q: jnp.ndarray, solver_data: S, problem_data: JaxProblemData) -> tuple[jnp.ndarray, S]:
+        return self.solve_from_data(configuration.update(self.model, q), solver_data, problem_data)
 
     @abc.abstractmethod
-    def init(self, data: mjx.Data | jnp.ndarray) -> S:
+    def init(self, data: jnp.ndarray) -> S:
         pass

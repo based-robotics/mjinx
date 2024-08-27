@@ -9,7 +9,7 @@ import mujoco.mjx as mjx
 import numpy as np
 
 from mjinx.components.tasks._base import JaxTask, Task
-from mjinx.typing import Gain
+from mjinx.typing import ArrayOrFloat
 
 
 @jdc.pytree_dataclass
@@ -25,12 +25,14 @@ class BodyTask[T: JaxBodyTask](Task[T]):
 
     def __init__(
         self,
-        gain: Gain,
+        name: str,
+        cost: ArrayOrFloat,
+        gain: ArrayOrFloat,
         body_name: str,
         gain_fn: Callable[[float], float] | None = None,
         lm_damping: float = 0,
     ):
-        super().__init__(gain, gain_fn, lm_damping)
+        super().__init__(name, cost, gain, gain_fn, lm_damping)
         self.__body_name = body_name
 
     @property
