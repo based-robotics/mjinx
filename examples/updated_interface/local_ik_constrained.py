@@ -35,9 +35,11 @@ position_barrier = PositionBarrier(
     p_max=0.3,
     safe_displacement_gain=1e-2,
 )
+# print(frame_task.gain) # <- ValueError
 
 problem.add_component(frame_task)
 problem.add_component(position_barrier)
+
 
 # Compiling the problem upon any parameters update
 problem_data = problem.compile()

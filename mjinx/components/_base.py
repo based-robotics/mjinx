@@ -41,13 +41,14 @@ class JaxComponent(abc.ABC):
     def compute_jacobian(self, data: mjx.Data) -> jnp.ndarray:
         return jax.jacrev(
             lambda q, model=self.model: self.__call__(
-                update(model, qpos=q),
+                update(model, q),
             ),
             argnums=0,
         )(data.qpos)
 
 
 class Component[T: JaxComponent](abc.ABC):
+    _dim: int
     __name: str
     __jax_component: T
     __model: mjx.Model | None
@@ -67,6 +68,7 @@ class Component[T: JaxComponent](abc.ABC):
 
         self.gain = gain
         self.__gain_fn = gain_fn if gain_fn is not None else lambda x: x
+        self._dim = -1
 
     @property
     def model(self) -> mjx.Model:
@@ -86,6 +88,26 @@ class Component[T: JaxComponent](abc.ABC):
     def gain(self) -> jnp.ndarray:
         return self.__gain
 
+    @property
+    def vector_gain(self) -> jnp.ndarray:
+        # scalar -> jnp.ones(self.dim) * scalar
+        # vector -> vector
+        if self._dim == -1:
+            raise ValueError(
+                "fail to calculate vector gain without dimension specified. "
+                "You should provide robot model or pass component into the problem first."
+            )
+
+        match self.gain.ndim:
+            case 0:
+                return jnp.ones(self.dim) * self.gain
+            case 1:
+                if len(self.gain) != self.dim:
+                    raise ValueError(f"invalid gain size: {self.gain.shape} != {self.dim}")
+                return self.gain
+            case _:
+                raise ValueError("fail to construct vector gain from gain with ndim > 1")
+
     @gain.setter
     def gain(self, value: ArrayOrFloat):
         self.update_gain(value)
@@ -101,6 +123,15 @@ class Component[T: JaxComponent](abc.ABC):
     @property
     def name(self) -> str:
         return self.__name
+
+    @property
+    def dim(self) -> int:
+        if self._dim == -1:
+            raise ValueError(
+                "component dimension is not defined yet. "
+                "Provide robot model or pass component into the problem first."
+            )
+        return self._dim
 
     @abc.abstractmethod
     def _build_component(self) -> T:

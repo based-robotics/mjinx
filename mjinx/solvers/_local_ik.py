@@ -2,6 +2,7 @@
 
 from typing import Callable, NotRequired, TypedDict, override
 
+import jax
 import jax.numpy as jnp
 import jax_dataclasses as jdc
 import jaxopt
@@ -11,8 +12,10 @@ from jaxopt import OSQP
 from typing_extensions import Unpack
 
 from mjinx.components._base import JaxComponent
+from mjinx.components.barriers._base import JaxBarrier
+from mjinx.components.tasks._base import JaxTask
 from mjinx.problem import JaxProblemData
-from mjinx.solvers._base import Solver, SolverState
+from mjinx.solvers._base import Solver, SolverData
 
 # TODO: maybe passing instance of OSQP is easier to implement, but
 # I do not want to directly expose OSQP solver interface to the user (it's little bit ugly)
@@ -37,39 +40,82 @@ class OSQPParameters(TypedDict):
 
 
 @jdc.pytree_dataclass
-class LocalIKState(SolverState):
+class LocalIKData(SolverData):
     q_prev: jnp.ndarray | None
 
 
-class LocalIKSolver(Solver[LocalIKState]):
+class LocalIKSolver(Solver[LocalIKData]):
     _solver: OSQP
 
     def __init__(self, model: mjx.Model, **kwargs: Unpack[OSQPParameters]):
         super().__init__(model)
         self._solver = OSQP(**kwargs)
 
-    def __compute_qp_objective(
+    def __parse_component_objective(
         self,
-        data: mjx.Model,
-        components: dict[str, JaxComponent],
+        model: mjx.Model,
+        model_data: mjx.Data,
+        component: JaxComponent,
+    ) -> tuple[jnp.ndarray, jnp.ndarray]:
+        if isinstance(component, JaxTask):
+            jacobian = component.compute_jacobian(model_data)
+            minus_gain_error = -component.gain * jax.lax.map(component.gain_function, component(model_data))
+
+            weighted_jacobian = component.cost.T @ jacobian  # [cost]
+            weighted_error = component.cost.T @ minus_gain_error  # [cost]
+
+            mu = component.lm_damping * weighted_error.T @ weighted_error  # [cost]^2
+            # TODO: nv is a dimension of the tangent space, right?..
+            eye_tg = jnp.eye(model.nv)
+            # Our Levenberg-Marquardt damping `mu * eye_tg` is isotropic in the
+            # robot's tangent space. If it helps we can add a tangent-space scaling
+            # to damp the floating base differently from joint angular velocities.
+            H = weighted_jacobian.T @ weighted_jacobian + mu * eye_tg
+            c = -weighted_error.T @ weighted_jacobian
+
+            # TODO: is it possible not to use model from JaxComponent?
+            return (
+                H,
+                c,
+            )
+
+        elif isinstance(component, JaxBarrier):
+            gain_over_jacobian = (
+                component.safe_displacement_gain / jnp.linalg.norm(component.compute_jacobian(model_data)) ** 2
+            )
+
+            return (
+                gain_over_jacobian * jnp.eye(model.nv),
+                -gain_over_jacobian * component.compute_safe_displacement(model_data),
+            )
+        else:
+            return jnp.zeros(model.nv, model.nv), jnp.zeros(model.nv)
+
+    def __parse_component_constraints(
+        self,
+        model: mjx.Model,
+        model_data: mjx.Data,
+        component: JaxComponent,
+    ) -> tuple[jnp.ndarray, jnp.ndarray]:
+        if isinstance(component, JaxBarrier):
+            barrier = component.compute_barrier(model_data)
+
+            return (
+                -component.compute_jacobian(model_data),
+                component.gain * jax.lax.map(component.gain_function, barrier),
+            )
+        else:
+            return jnp.empty((0, model.nq)), jnp.empty(0)
+
+    def __compute_qp_matrices(
+        self,
+        problem_data: JaxProblemData,
+        model_data: mjx.Data,
     ) -> tuple[jnp.ndarray, jnp.ndarray]:
         r"""..."""
-
         H = jnp.zeros((self.model.nv, self.model.nv))
         c = jnp.zeros(self.model.nv)
-        for component in components.values():
-            H, c = component.compute_qp_objective(data)
-            H += H
-            c += c
 
-        return (H, c)
-
-    def __compute_qp_inequalities(
-        self,
-        data: mjx.Data,
-        components: JaxProblemData,
-    ) -> tuple[jnp.ndarray, jnp.ndarray]:
-        r"""..."""
         G_list = []
         h_list = []
 
@@ -77,39 +123,38 @@ class LocalIKSolver(Solver[LocalIKState]):
         # G_v_limit, h_v_limit = get_configuration_limit(model, 100 * jnp.ones(model.nv))
         # G_list.append(G_v_limit)
         # h_list.append(h_v_limit)
-        for component in components.values():
-            G_barrier, h_barrier = component.compute_qp_inequality(data)
-            G_list.append(G_barrier)
-            h_list.append(h_barrier)
 
-        return jnp.vstack(G_list), jnp.concatenate(h_list)
+        for component in problem_data.components.values():
+            # The objective
+            H, c = self.__parse_component_objective(problem_data.model, model_data, component)
+            H += H
+            c += c
 
-    def assemble_local_ik(
-        self, data: mjx.Data, components: JaxProblemData
-    ) -> tuple[jnp.ndarray, jnp.ndarray, jnp.ndarray, jnp.ndarray, jnp.ndarray, jnp.ndarray]:
-        r"""..."""
-        P, q = self.__compute_qp_objective(data, components)
-        G, h = self.__compute_qp_inequalities(data, components)
-        return P, q, G, h
+            # The constraints
+            G, h = self.__parse_component_constraints(problem_data.model, model_data, component)
+            G_list.append(G)
+            h_list.append(h)
+
+        return H, c, jnp.vstack(G_list), jnp.concatenate(h_list)
 
     @override
     def solve_from_data(
         self,
-        data: mjx.Data,
-        solver_state: LocalIKState,
-        components: JaxProblemData,
-    ) -> tuple[jnp.ndarray, LocalIKState]:
-        super().solve_from_data(data, components)
-        P, с, G, h = self.assemble_local_ik(data, components)
+        problem_data: JaxProblemData,
+        model_data: mjx.Data,
+        solver_data: LocalIKData,
+    ) -> tuple[jnp.ndarray, LocalIKData]:
+        super().solve_from_data(problem_data, model_data, solver_data)
+        P, с, G, h = self.__compute_qp_matrices(problem_data, model_data)
         solution = self._solver.run(
-            init_params=self._solver.init_params(solver_state.q_prev, (P, с), (G, h), None),
+            init_params=self._solver.init_params(solver_data.q_prev, (P, с), (G, h), None),
             params_obj=(P, с),
             params_ineq=(G, h),
         ).params.primal
 
-        return (update(), LocalIKState(solution))
+        return (solution, LocalIKData(solution))
 
     @override
-    def init(self, q0: jnp.ndarray) -> LocalIKState:
+    def init(self, q0: jnp.ndarray) -> LocalIKData:
         # TODO: ensure this works
-        return LocalIKState(None)
+        return LocalIKData(None)

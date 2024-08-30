@@ -1,12 +1,17 @@
 from typing import cast
 
+import jax_dataclasses as jdc
 import mujoco.mjx as mjx
 
 from mjinx.components._base import Component, JaxComponent
 from mjinx.components.barriers._base import Barrier
 from mjinx.components.tasks._base import Task
 
-JaxProblemData = dict[str, JaxComponent]
+
+@jdc.pytree_dataclass
+class JaxProblemData:
+    model: mjx.Model
+    components: dict[str, JaxComponent]
 
 
 class Problem:
@@ -29,8 +34,10 @@ class Problem:
 
     def compile(self) -> JaxProblemData:
         # TODO: is this cast is considered a normal practice?..
-        a = {name: cast(JaxComponent, component.jax_component) for name, component in self.__components.items()}
-        return a
+        components = {
+            name: cast(JaxComponent, component.jax_component) for name, component in self.__components.items()
+        }
+        return JaxProblemData(self.__model, components)
 
     def component(self, name: str) -> Component:
         if name not in self.__components:

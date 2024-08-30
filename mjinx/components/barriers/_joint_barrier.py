@@ -76,11 +76,16 @@ class JointBarrier(Barrier[JaxJointBarrier]):
         self.__q_max = q_max if isinstance(q_max, jnp.ndarray) else jnp.array(q_max)
 
     @override
+    def update_model(self, model: mjx.Model):
+        super().update_model(model)
+        self._dim = 2 * self.model.nv
+
+    @override
     def _build_component(self) -> JaxJointBarrier:
         return JaxJointBarrier(
-            dim=2 * self.model.nv,
+            dim=self.dim,
             model=self.model,
-            gain=self.gain,
+            gain=self.vector_gain,
             gain_function=self.gain_fn,
             safe_displacement_gain=self.safe_displacement_gain,
             q_min=self.q_min,

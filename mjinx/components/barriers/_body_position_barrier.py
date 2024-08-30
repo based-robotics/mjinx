@@ -5,7 +5,6 @@ from typing import Callable, Self, final, override
 import jax.numpy as jnp
 import jax_dataclasses as jdc
 import mujoco.mjx as mjx
-import numpy as np
 
 from mjinx.components.barriers._body_barrier import BodyBarrier, JaxBodyBarrier
 from mjinx.typing import ArrayOrFloat
@@ -96,6 +95,7 @@ class PositionBarrier(BodyBarrier[JaxPositionBarrier]):
             p_max if p_max is not None else jnp.empty(len(self.__axes_str)),
             ignore_warnings=True,
         )
+        self._dim = 2 * len(self.axes) if self.limit_type == PositionLimitType.BOTH else len(self.axes)
 
     @property
     def limit_type(self) -> PositionLimitType:
@@ -159,9 +159,9 @@ class PositionBarrier(BodyBarrier[JaxPositionBarrier]):
     @override
     def _build_component(self) -> JaxPositionBarrier:
         return JaxPositionBarrier(
-            dim=2 * len(self.axes) if self.limit_type == PositionLimitType.BOTH else len(self.axes),
+            dim=self.dim,
             model=self.model,
-            gain=self.gain,
+            gain=self.vector_gain,
             gain_function=self.gain_fn,
             safe_displacement_gain=self.safe_displacement_gain,
             body_id=self.body_id,

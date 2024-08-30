@@ -25,16 +25,14 @@ class JaxFrameTask(JaxBodyTask):
     @override
     def __call__(self, data: mjx.Data) -> jnp.ndarray:
         r""""""
-        return jnp.array(
-            (
-                get_transform_frame_to_world(
-                    self.model,
-                    data,
-                    self.body_id,
-                ).inverse()
-                @ self.target_frame
-            ).log()
-        )
+        return (
+            get_transform_frame_to_world(
+                self.model,
+                data,
+                self.body_id,
+            ).inverse()
+            @ self.target_frame
+        ).log()
 
     @final
     @override
@@ -68,6 +66,7 @@ class FrameTask(BodyTask[JaxFrameTask]):
     ):
         super().__init__(name, cost, gain, body_name, gain_fn, lm_damping)
         self.target_frame = SE3.identity()
+        self._dim = 6
 
     @property
     def target_frame(self) -> SE3:
@@ -96,10 +95,10 @@ class FrameTask(BodyTask[JaxFrameTask]):
     @override
     def _build_component(self) -> JaxFrameTask:
         return JaxFrameTask(
-            dim=SE3.tangent_dim,
+            dim=self.dim,
             model=self.model,
-            cost=self.cost,
-            gain=self.gain,
+            cost=self.matrix_cost,
+            gain=self.vector_gain,
             gain_function=self.gain_fn,
             lm_damping=self.lm_damping,
             body_id=self.body_id,

@@ -49,6 +49,7 @@ class ComTask(Task[JaxComTask]):
         self.target_com = jnp.zeros(3)
         self.__task_axes_str = axes
         self.__task_axes_idx = tuple([i for i in range(3) if "xyz"[i] in self.axes])
+        self._dim = len(self.__task_axes_idx)
 
     @property
     def target_com(self) -> jnp.ndarray:
@@ -75,10 +76,10 @@ class ComTask(Task[JaxComTask]):
     @override
     def _build_component(self) -> JaxComTask:
         return JaxComTask(
-            dim=len(self.task_axes),
+            dim=self._dim,
             model=self.model,
-            cost=self.cost,
-            gain=self.gain,
+            cost=self.matrix_cost,
+            gain=self.vector_gain,
             gain_function=self.gain_fn,
             lm_damping=self.lm_damping,
             target_com=self.target_com,

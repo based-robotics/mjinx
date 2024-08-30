@@ -45,8 +45,8 @@ class JointTask(Task[JaxJointTask]):
         exclude_joints: tuple[str, ...] | tuple[int, ...] = (),
     ):
         super().__init__(name, cost, gain, frame_name, gain_fn, lm_damping)
-
-        self.__joints_mask = self.__generate_mask(include_joints, exclude_joints)
+        self.__include_joints = include_joints
+        self.__exclude_joints = exclude_joints
 
     def __generate_mask(
         self,
@@ -94,12 +94,14 @@ class JointTask(Task[JaxJointTask]):
         else:
             idxs = set(range(self.model.nv))
 
-        return tuple(1 for i in range(self.model.nv) if i in idxs)
+        return tuple(idxs)
 
     @override
     def update_model(self, model: mjx.Model):
         super().update_model(model)
         self.target_q = get_joint_zero(model)
+        self.__joints_mask = self.__generate_mask(self.__include_joints, self.__include_joints)
+        self._dim = len(self.__joints_mask)
 
     @property
     def joints_mask(self) -> np.ndarray:
@@ -125,10 +127,10 @@ class JointTask(Task[JaxJointTask]):
     @override
     def _build_component(self) -> JaxJointTask:
         return JaxJointTask(
-            dim=len(self.task_axes),
+            dim=self.dim,
             model=self.model,
-            cost=self.cost,
-            gain=self.gain,
+            cost=self.matrix_cost,
+            gain=self.vector_gain,
             gain_function=self.gain_fn,
             lm_damping=self.lm_damping,
             target_q=self.target_q,

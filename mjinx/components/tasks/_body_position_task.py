@@ -42,6 +42,7 @@ class PositionTask(BodyTask[JaxPositionTask]):
         # TODO: should I create interface for that?
         self.__task_axes_str = axes
         self.__task_axes_idx = tuple([i for i in range(3) if "xyz"[i] in self.axes])
+        self._dim = len(self.__task_axes_idx)
 
     @property
     def task_axes(self) -> str:
@@ -68,10 +69,10 @@ class PositionTask(BodyTask[JaxPositionTask]):
     @override
     def _build_component(self) -> JaxPositionTask:
         return JaxPositionTask(
-            dim=len(self.task_axes),
+            dim=self.dim,
             model=self.model,
-            cost=self.cost,
-            gain=self.gain,
+            cost=self.matrix_cost,
+            gain=self.vector_gain,
             gain_function=self.gain_fn,
             lm_damping=self.lm_damping,
             target_pos=self.target_pos,
