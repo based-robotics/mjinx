@@ -11,12 +11,16 @@ packages = [
 ]
 
 [tool.poetry.dependencies]
-python = "^3.10"
+python = "^3.12"
 mujoco = "3.1.6"
 mujoco_mjx = "3.1.6"
 jaxlib = "*"
 jaxopt = "*"
 jax = "*"
+robot_descriptions = "1.12"
+jaxlie = "*"
+optax = "^0.2"
+
 jax_dataclasses = "1.6.0"
 
 [tool.poetry.group.dev.dependencies]
