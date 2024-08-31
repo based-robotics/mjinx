@@ -145,7 +145,8 @@ class LocalIKSolver(Solver[LocalIKData]):
         super().solve_from_data(problem_data, model_data, solver_data)
         P, c, G, h = self.__compute_qp_matrices(problem_data, model_data)
         solution = self._solver.run(
-            init_params=self._solver.init_params(solver_data.q_prev, (P, c), None, (G, h)),
+            # TODO: warm start does not help much, but vmap does not work with it...
+            # init_params=self._solver.init_params(solver_data.q_prev, (P, c), None, (G, h)),
             params_obj=(P, c),
             params_ineq=(G, h),
         ).params.primal
