@@ -153,6 +153,6 @@ class LocalIKSolver(Solver[LocalIKData]):
         return (solution, LocalIKData(solution))
 
     @override
-    def init(self, q0: jnp.ndarray) -> LocalIKData:
+    def init(self, q: jnp.ndarray) -> LocalIKData:
         # TODO: ensure this works
-        return LocalIKData(q0)
+        return LocalIKData(q)
