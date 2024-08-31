@@ -1,26 +1,71 @@
 from typing import cast
 
+import jax.numpy as jnp
 import jax_dataclasses as jdc
 import mujoco.mjx as mjx
 
 from mjinx.components._base import Component, JaxComponent
 from mjinx.components.barriers._base import Barrier
 from mjinx.components.tasks._base import Task
+from mjinx.typing import ArrayOrFloat
 
 
 @jdc.pytree_dataclass
 class JaxProblemData:
+    # TODO: should v_min and v_max be here?,.
     model: mjx.Model
+    v_min: jnp.ndarray
+    v_max: jnp.ndarray
     components: dict[str, JaxComponent]
 
 
 class Problem:
     __model: mjx.Model
     __components: dict[str, Component]
+    __v_min: jnp.ndarray
+    __v_max: jnp.ndarray
 
-    def __init__(self, model: mjx.Model):
+    def __init__(self, model: mjx.Model, v_min: ArrayOrFloat, v_max: ArrayOrFloat):
         self.__model = model
         self.__components = {}
+        self.v_min = v_min
+        self.v_max = v_max
+
+    @property
+    def v_min(self) -> jnp.ndarray:
+        return self.__v_min
+
+    @v_min.setter
+    def v_min(self, v_min: ArrayOrFloat):
+        if not isinstance(v_min, jnp.ndarray):
+            v_min = jnp.array(v_min)
+        match v_min.ndim:
+            case 0:
+                self.__v_min = jnp.ones(self.__model.nv) * v_min
+            case 1:
+                if v_min.shape != (self.__model.nv,):
+                    raise ValueError(f"invalid v_min shape: expected ({self.__model.nv},) got {v_min.shape}")
+                self.__v_min = v_min
+            case _:
+                raise ValueError("v_min with ndim>1 is not allowed")
+
+    @property
+    def v_max(self) -> jnp.ndarray:
+        return self.__v_max
+
+    @v_max.setter
+    def v_max(self, v_max: ArrayOrFloat):
+        if not isinstance(v_max, jnp.ndarray):
+            v_max = jnp.array(v_max)
+        match v_max.ndim:
+            case 0:
+                self.__v_max = jnp.ones(self.__model.nv) * v_max
+            case 1:
+                if v_max.shape != (self.__model.nv,):
+                    raise ValueError(f"invalid v_max shape: expected ({self.__model.nv},) got {v_max.shape}")
+                self.__v_max = v_max
+            case _:
+                raise ValueError("v_max with ndim>1 is not allowed")
 
     def add_component(self, component: Component):
         if component.name in self.__components:
@@ -37,7 +82,7 @@ class Problem:
         components = {
             name: cast(JaxComponent, component.jax_component) for name, component in self.__components.items()
         }
-        return JaxProblemData(self.__model, components)
+        return JaxProblemData(self.__model, self.v_min, self.v_max, components)
 
     def component(self, name: str) -> Component:
         if name not in self.__components:

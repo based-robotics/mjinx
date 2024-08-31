@@ -74,10 +74,7 @@ class LocalIKSolver(Solver[LocalIKData]):
             c = -weighted_error.T @ weighted_jacobian
 
             # TODO: is it possible not to use model from JaxComponent?
-            return (
-                H,
-                c,
-            )
+            return H, c
 
         elif isinstance(component, JaxBarrier):
             gain_over_jacobian = (
@@ -119,10 +116,11 @@ class LocalIKSolver(Solver[LocalIKData]):
         G_list = []
         h_list = []
 
-        # TODO: fix velocity limit?
-        # G_v_limit, h_v_limit = get_configuration_limit(model, 100 * jnp.ones(model.nv))
-        # G_list.append(G_v_limit)
-        # h_list.append(h_v_limit)
+        # Adding velocity limit
+        G_list.append(jnp.eye(problem_data.model.nv))
+        G_list.append(-jnp.eye(problem_data.model.nv))
+        h_list.append(problem_data.v_min)
+        h_list.append(-problem_data.v_max)
 
         for component in problem_data.components.values():
             # The objective
@@ -145,10 +143,10 @@ class LocalIKSolver(Solver[LocalIKData]):
         solver_data: LocalIKData,
     ) -> tuple[jnp.ndarray, LocalIKData]:
         super().solve_from_data(problem_data, model_data, solver_data)
-        P, с, G, h = self.__compute_qp_matrices(problem_data, model_data)
+        P, c, G, h = self.__compute_qp_matrices(problem_data, model_data)
         solution = self._solver.run(
-            init_params=self._solver.init_params(solver_data.q_prev, (P, с), (G, h), None),
-            params_obj=(P, с),
+            # init_params=self._solver.init_params(solver_data.q_prev, (P, c), None, (G, h)),
+            params_obj=(P, c),
             params_ineq=(G, h),
         ).params.primal
 
@@ -157,4 +155,4 @@ class LocalIKSolver(Solver[LocalIKData]):
     @override
     def init(self, q0: jnp.ndarray) -> LocalIKData:
         # TODO: ensure this works
-        return LocalIKData(None)
+        return LocalIKData(q0)

@@ -86,15 +86,9 @@ def get_transform(model: mjx.Model, data: mjx.Data, source_id: int, dest_id: int
     return get_transform_frame_to_world(data, dest_id) @ get_transform_frame_to_world(data, source_id)
 
 
-def integrate(model: mjx.Model, data: mjx.Data, velocity: jnp.ndarray, dt: jnp.ndarray) -> jnp.ndarray:
+def integrate(model: mjx.Model, q0: jnp.ndarray, velocity: jnp.ndarray, dt: jnp.ndarray) -> jnp.ndarray:
     """..."""
-    data = data.replace(qvel=velocity)
-    return mjx._src.forward._integrate_pos(model.jnt_type, data.qpos, velocity, dt)
-
-
-def integrate_inplace(model: mjx.Model, data: mjx.Data, velocity: jnp.ndarray, dt: jnp.ndarray) -> mjx.Data:
-    """..."""
-    return data.replace(qpos=integrate(model, data, velocity, dt))
+    return mjx._src.forward._integrate_pos(model.jnt_type, q0, velocity, dt)
 
 
 def get_configuration_limit(model: mjx.Model, limit: jnp.ndarray | float) -> tuple[jnp.ndarray, jnp.ndarray]:

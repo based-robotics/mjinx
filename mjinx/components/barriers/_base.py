@@ -24,26 +24,6 @@ class JaxBarrier(JaxComponent):
         r""""""
         return jnp.zeros(self.model.nv)
 
-    def compute_qp_objective(self, data: mjx.Data) -> tuple[jnp.ndarray, jnp.ndarray]:
-        r""""""
-        gain_over_jacobian = self.safe_displacement_gain / jnp.linalg.norm(self.compute_jacobian(data)) ** 2
-
-        return (
-            gain_over_jacobian * jnp.eye(self.model.nv),
-            -gain_over_jacobian * self.compute_safe_displacement(data),
-        )
-
-    def compute_qp_inequality(
-        self,
-        data: mjx.Data,
-    ) -> tuple[jnp.ndarray, jnp.ndarray]:
-        r""""""
-        barrier = self.compute_barrier(data)
-        return (
-            -self.compute_jacobian(data),
-            self.gain * jax.lax.map(self.gain_function, barrier),
-        )
-
 
 class Barrier[T: JaxBarrier](Component[T]):
     __safe_displacement_gain: float

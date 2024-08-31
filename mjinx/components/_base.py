@@ -12,7 +12,7 @@ from mjinx.typing import ArrayOrFloat
 
 @jdc.pytree_dataclass(kw_only=True)
 class JaxComponent(abc.ABC):
-    dim: int
+    dim: jdc.Static[int]
     model: mjx.Model
     gain: jnp.ndarray
     gain_function: jdc.Static[Callable[[float], float]]
@@ -20,18 +20,6 @@ class JaxComponent(abc.ABC):
     @abc.abstractmethod
     def __call__(self, data: mjx.Data) -> jnp.ndarray:
         pass
-
-    @abc.abstractmethod
-    def compute_qp_objective(self, data: mjx.Data) -> tuple[jnp.ndarray, jnp.ndarray]:
-        r""""""
-        pass
-
-    @abc.abstractmethod
-    def compute_qp_inequality(
-        self,
-        data: mjx.Data,
-    ) -> tuple[jnp.ndarray, jnp.ndarray]:
-        r""""""
 
     def copy_and_set(self, **kwargs) -> Self:
         r"""..."""
