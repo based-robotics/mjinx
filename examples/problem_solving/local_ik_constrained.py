@@ -124,7 +124,9 @@ try:
 
         t_solve = (t1 - t0) * 1e3
 
-        t_solve_avg = t_solve_avg + (t_solve - t_solve_avg) / (n + 1)
+        if t > 0:
+            t_solve_avg = t_solve_avg + (t_solve - t_solve_avg) / (n + 1)
+            n += 1
 
         # Run the forward dynamics to reflec
         # the updated state in the data
