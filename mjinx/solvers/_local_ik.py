@@ -61,10 +61,10 @@ class LocalIKSolver(Solver[LocalIKData]):
             jacobian = component.compute_jacobian(model_data)
             minus_gain_error = -component.gain * jax.lax.map(component.gain_function, component(model_data))
 
-            weighted_jacobian = component.cost.T @ jacobian  # [cost]
-            weighted_error = component.cost.T @ minus_gain_error  # [cost]
+            weighted_jacobian = component.cost @ jacobian  # [cost]
+            weighted_error = component.cost @ minus_gain_error  # [cost]
 
-            mu = component.lm_damping * weighted_error.T @ weighted_error  # [cost]^2
+            mu = component.lm_damping * weighted_error @ weighted_error  # [cost]^2
             # TODO: nv is a dimension of the tangent space, right?..
             eye_tg = jnp.eye(model.nv)
             # Our Levenberg-Marquardt damping `mu * eye_tg` is isotropic in the
@@ -110,8 +110,8 @@ class LocalIKSolver(Solver[LocalIKData]):
         model_data: mjx.Data,
     ) -> tuple[jnp.ndarray, jnp.ndarray]:
         r"""..."""
-        H = jnp.zeros((self.model.nv, self.model.nv))
-        c = jnp.zeros(self.model.nv)
+        H_total = jnp.zeros((self.model.nv, self.model.nv))
+        c_total = jnp.zeros(self.model.nv)
 
         G_list = []
         h_list = []
@@ -119,21 +119,21 @@ class LocalIKSolver(Solver[LocalIKData]):
         # Adding velocity limit
         G_list.append(jnp.eye(problem_data.model.nv))
         G_list.append(-jnp.eye(problem_data.model.nv))
-        h_list.append(problem_data.v_min)
-        h_list.append(-problem_data.v_max)
+        h_list.append(-problem_data.v_min)
+        h_list.append(problem_data.v_max)
 
         for component in problem_data.components.values():
             # The objective
             H, c = self.__parse_component_objective(problem_data.model, model_data, component)
-            H += H
-            c += c
+            H_total += H
+            c_total += c
 
             # The constraints
             G, h = self.__parse_component_constraints(problem_data.model, model_data, component)
             G_list.append(G)
             h_list.append(h)
 
-        return H, c, jnp.vstack(G_list), jnp.concatenate(h_list)
+        return H_total, c_total, jnp.vstack(G_list), jnp.concatenate(h_list)
 
     @override
     def solve_from_data(
@@ -145,7 +145,7 @@ class LocalIKSolver(Solver[LocalIKData]):
         super().solve_from_data(problem_data, model_data, solver_data)
         P, c, G, h = self.__compute_qp_matrices(problem_data, model_data)
         solution = self._solver.run(
-            # init_params=self._solver.init_params(solver_data.q_prev, (P, c), None, (G, h)),
+            init_params=self._solver.init_params(solver_data.q_prev, (P, c), None, (G, h)),
             params_obj=(P, c),
             params_ineq=(G, h),
         ).params.primal

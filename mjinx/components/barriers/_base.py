@@ -1,7 +1,5 @@
-import abc
 from typing import Callable
 
-import jax
 import jax.numpy as jnp
 import jax_dataclasses as jdc
 import mujoco.mjx as mjx

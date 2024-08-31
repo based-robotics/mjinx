@@ -14,22 +14,22 @@ from mjinx.typing import ArrayOrFloat
 class JaxJointBarrier(JaxBarrier):
     r"""..."""
 
-    qmin: jnp.ndarray
-    qmax: jnp.ndarray
+    q_min: jnp.ndarray
+    q_max: jnp.ndarray
 
-    def compute_barrier(self, data: mjx.Data) -> jnp.ndarray:
+    def __call__(self, data: mjx.Data) -> jnp.ndarray:
         # TODO: what the constraint for SO3/SE3 groups is?
         return jnp.concatenate(
             [
-                joint_difference(self.model, data.qpos, self.qmin),
-                joint_difference(self.model, self.qmax, data.qpos),
+                joint_difference(self.model, data.qpos, self.q_min),
+                joint_difference(self.model, self.q_max, data.qpos),
             ]
         )
 
 
 class JointBarrier(Barrier[JaxJointBarrier]):
-    __q_min: jnp.ndarray
-    __q_max: jnp.ndarray
+    __q_min: jnp.ndarray | None
+    __q_max: jnp.ndarray | None
 
     def __init__(
         self,
@@ -37,13 +37,19 @@ class JointBarrier(Barrier[JaxJointBarrier]):
         gain: ArrayOrFloat,
         gain_fn: Callable[[float], float] | None = None,
         safe_displacement_gain: float = 0,
+        q_min: np.ndarray | jnp.ndarray | None = None,
+        q_max: np.ndarray | jnp.ndarray | None = None,
     ):
         super().__init__(name, gain, gain_fn, safe_displacement_gain)
-        self.__q_min = self.model.jnt_range[:, 0]
-        self.__q_max = self.model.jnt_range[:, 1]
+        self.__q_min = q_min
+        self.__q_max = q_max
 
     @property
     def q_min(self) -> jnp.ndarray:
+        if self.__q_min is None:
+            raise ValueError(
+                "q_min is not yet defined. Either provide it explicitly, or provide an instance of a model"
+            )
         return self.__q_min
 
     @q_min.setter
@@ -61,6 +67,10 @@ class JointBarrier(Barrier[JaxJointBarrier]):
 
     @property
     def q_max(self) -> jnp.ndarray:
+        if self.__q_max is None:
+            raise ValueError(
+                "q_max is not yet defined. Either provide it explicitly, or provide an instance of a model"
+            )
         return self.__q_max
 
     @q_max.setter
@@ -79,6 +89,10 @@ class JointBarrier(Barrier[JaxJointBarrier]):
     def update_model(self, model: mjx.Model):
         super().update_model(model)
         self._dim = 2 * self.model.nv
+        if self.__q_min is None:
+            self.__q_min = self.model.jnt_range[:, 0]
+        if self.__q_max is None:
+            self.__q_max = self.model.jnt_range[:, 1]
 
     @override
     def _build_component(self) -> JaxJointBarrier:

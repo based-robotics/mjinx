@@ -31,6 +31,7 @@ class BodyBarrier[T: JaxBodyBarrier](Barrier[T]):
     ):
         super().__init__(name, gain, gain_fn, safe_displacement_gain)
         self.__body_name = body_name
+        self.__body_id = -1
 
     @property
     def body_name(self) -> str:
@@ -38,6 +39,8 @@ class BodyBarrier[T: JaxBodyBarrier](Barrier[T]):
 
     @property
     def body_id(self) -> int:
+        if self.__body_id == -1:
+            raise ValueError("body_id is not available until model is provided.")
         return self.__body_id
 
     @override

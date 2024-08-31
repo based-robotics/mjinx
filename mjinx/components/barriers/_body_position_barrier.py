@@ -54,7 +54,7 @@ class JaxPositionBarrier(JaxBodyBarrier):
         return jnp.concatenate(
             [
                 data.xpos[self.body_id, self.min_axes] - self.p_min,
-                self.p_max - data.xpos[self.body_id, self.min_axes],
+                self.p_max - data.xpos[self.body_id, self.max_axes],
             ]
         )
 

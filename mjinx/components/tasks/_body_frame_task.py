@@ -66,7 +66,7 @@ class FrameTask(BodyTask[JaxFrameTask]):
     ):
         super().__init__(name, cost, gain, body_name, gain_fn, lm_damping)
         self.target_frame = SE3.identity()
-        self._dim = 6
+        self._dim = SE3.tangent_dim
 
     @property
     def target_frame(self) -> SE3:
@@ -81,12 +81,12 @@ class FrameTask(BodyTask[JaxFrameTask]):
         if not isinstance(target_frame, SE3):
             if len(target_frame) != 7:
                 raise ValueError("target frame provided via array must has length 7 (xyz + quaternion (scalar first))")
-
+            xyz, quat = target_frame[:3], target_frame[3:]
             target_frame = SE3.from_rotation_and_translation(
                 SO3.from_quaternion_xyzw(
-                    target_frame[[1, 2, 3, 0]],
+                    quat[[1, 2, 3, 0]],
                 ),
-                target_frame[:3],
+                xyz,
             )
 
         self.__target_frame = target_frame
