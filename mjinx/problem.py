@@ -103,3 +103,7 @@ class Problem:
         if not isinstance(self.__components[name], Barrier):
             raise ValueError("specified component is not a barrier")
         return cast(Barrier, self.__components[name])
+
+    def empty_data(self) -> JaxProblemData:
+        empty_components = {name: cast(JaxComponent, component.empty) for name, component in self.__components.items()}
+        return JaxProblemData(None, None, None, empty_components)

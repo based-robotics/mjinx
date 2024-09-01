@@ -136,3 +136,18 @@ class JointTask(Task[JaxJointTask]):
             target_q=self.target_q,
             mask=self.__joints_mask,
         )
+
+    @final
+    @override
+    @property
+    def empty(self) -> JaxJointTask:
+        return JaxJointTask(
+            dim=self.dim,
+            model=self.model,  # despite model is not static, I see no point in batching through mjx.model
+            gain_function=self.gain_fn,
+            lm_damping=self.lm_damping,
+            mask=self.__joints_mask,
+            target_q=None,
+            cost=None,
+            gain=None,
+        )

@@ -132,3 +132,8 @@ class Component[T: JaxComponent](abc.ABC):
             self._modified = False
             self.__jax_component: T = self._build_component()
         return self.__jax_component
+
+    @property
+    @abc.abstractmethod
+    def empty(self) -> T:
+        pass

@@ -1,5 +1,6 @@
 """Frame task implementation."""
 
+import abc
 from typing import Callable, override
 
 import jax.numpy as jnp

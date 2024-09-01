@@ -78,3 +78,19 @@ class PositionTask(BodyTask[JaxPositionTask]):
             target_pos=self.target_pos,
             axes=self.__task_axes_idx,
         )
+
+    @final
+    @override
+    @property
+    def empty(self) -> JaxPositionTask:
+        return JaxPositionTask(
+            dim=self.dim,
+            model=self.model,  # despite model is not static, I see no point in batching through mjx.model
+            gain_function=self.gain_fn,
+            lm_damping=self.lm_damping,
+            body_id=self.body_id,
+            axes=self.__task_axes_idx,
+            cost=None,
+            gain=None,
+            target_pos=None,
+        )

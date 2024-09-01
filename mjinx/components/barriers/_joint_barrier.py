@@ -1,4 +1,4 @@
-from typing import Callable, override
+from typing import Callable, final, override
 
 import jax.numpy as jnp
 import jax_dataclasses as jdc
@@ -94,6 +94,7 @@ class JointBarrier(Barrier[JaxJointBarrier]):
         if self.__q_max is None:
             self.__q_max = self.model.jnt_range[:, 1]
 
+    @final
     @override
     def _build_component(self) -> JaxJointBarrier:
         return JaxJointBarrier(
@@ -104,4 +105,18 @@ class JointBarrier(Barrier[JaxJointBarrier]):
             safe_displacement_gain=self.safe_displacement_gain,
             q_min=self.q_min,
             q_max=self.q_max,
+        )
+
+    @final
+    @override
+    @property
+    def empty(self) -> JaxJointBarrier:
+        return JaxJointBarrier(
+            dim=self.dim,
+            model=self.model,
+            gain_function=self.gain_fn,
+            gain=None,
+            safe_displacement_gain=None,
+            q_min=None,
+            q_max=None,
         )

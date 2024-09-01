@@ -79,16 +79,16 @@ class FrameTask(BodyTask[JaxFrameTask]):
     def update_target_frame(self, target_frame: SE3 | jnp.ndarray | np.ndarray):
         self._modified = True
         if not isinstance(target_frame, SE3):
-            if len(target_frame) != 7:
-                raise ValueError("target frame provided via array must has length 7 (xyz + quaternion (scalar first))")
-            xyz, quat = target_frame[:3], target_frame[3:]
+            # if len(target_frame) != 7:
+            #     raise ValueError("target frame provided via array must has length 7 (xyz + quaternion (scalar first))")
+            target_frame = jnp.array(target_frame)
+            xyz, quat = target_frame[..., :3], target_frame[..., 3:]
             target_frame = SE3.from_rotation_and_translation(
                 SO3.from_quaternion_xyzw(
-                    quat[[1, 2, 3, 0]],
+                    quat[..., [1, 2, 3, 0]],
                 ),
                 xyz,
             )
-
         self.__target_frame = target_frame
 
     @final
@@ -103,4 +103,19 @@ class FrameTask(BodyTask[JaxFrameTask]):
             lm_damping=self.lm_damping,
             body_id=self.body_id,
             target_frame=self.target_frame,
+        )
+
+    @final
+    @override
+    @property
+    def empty(self) -> JaxFrameTask:
+        return JaxFrameTask(
+            dim=None,
+            model=None,
+            gain_function=None,
+            lm_damping=None,
+            body_id=None,
+            cost=None,
+            gain=None,
+            target_frame=SE3(None),
         )
