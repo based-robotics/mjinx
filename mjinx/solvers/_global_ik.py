@@ -26,7 +26,7 @@ class GlobalIKSolver(Solver[GlobalIKData]):
     def __init__(self, model: mjx.Model, optimizer: optax.GradientTransformation, dt: float = 1e-2):
         super().__init__(model)
         self._optimizer = optimizer
-        self.__grad_fn = jax.grad(
+        self.grad_fn = jax.grad(
             self.loss_fn,
             argnums=0,
         )
@@ -47,9 +47,6 @@ class GlobalIKSolver(Solver[GlobalIKData]):
                 loss = loss - self.__log_barrier(component(model_data), gain=component.gain)
         return loss
 
-    def loss_grad(self, q: jnp.ndarray, problem_data: JaxProblemData) -> jnp.ndarray:
-        return self.__grad_fn(q, problem_data)
-
     @override
     def solve_from_data(
         self,
@@ -57,8 +54,14 @@ class GlobalIKSolver(Solver[GlobalIKData]):
         model_data: mjx.Data,
         solver_data: GlobalIKData,
     ) -> tuple[jnp.ndarray, GlobalIKData]:
+        pass
+
+    def solve(
+        self, q: jnp.ndarray, problem_data: JaxProblemData, solver_data: GlobalIKData
+    ) -> tuple[jnp.ndarray, GlobalIKData]:
         # print(f"Loss: {GlobalIKSolver.loss_fn(model_data, problem_data)}")
-        grad = self.__grad_fn(model_data.qpos, problem_data)
+        grad = self.grad_fn(q, problem_data)
+
         delta_q, opt_state_raw = self._optimizer.update(grad, solver_data.optax_state)
 
         return delta_q / self.__dt, GlobalIKData(optax_state=opt_state_raw)
