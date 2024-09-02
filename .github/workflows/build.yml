@@ -21,7 +21,7 @@ jobs:
           pip install ruff==0.6.3 # keep in sync with pyproject.toml
       # Update output format to enable automatic inline annotations.
       - name: Run Ruff
-        run: ruff check --output-format=github .
+        run: ruff format --diff .
 
   # TODO: Add a step to run tests
 
