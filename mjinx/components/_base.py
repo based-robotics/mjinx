@@ -10,7 +10,7 @@ from mjinx.configuration import update
 from mjinx.typing import ArrayOrFloat
 
 
-@jdc.pytree_dataclass(kw_only=True)
+@jdc.pytree_dataclass
 class JaxComponent(abc.ABC):
     dim: jdc.Static[int]
     model: mjx.Model
@@ -132,8 +132,3 @@ class Component[T: JaxComponent](abc.ABC):
             self._modified = False
             self.__jax_component: T = self._build_component()
         return self.__jax_component
-
-    @property
-    @abc.abstractmethod
-    def empty(self) -> T:
-        pass

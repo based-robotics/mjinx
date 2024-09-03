@@ -104,18 +104,3 @@ class FrameTask(BodyTask[JaxFrameTask]):
             body_id=self.body_id,
             target_frame=self.target_frame,
         )
-
-    @final
-    @override
-    @property
-    def empty(self) -> JaxFrameTask:
-        return JaxFrameTask(
-            dim=None,
-            model=None,
-            gain_function=None,
-            lm_damping=None,
-            body_id=None,
-            cost=None,
-            gain=None,
-            target_frame=SE3(None),
-        )

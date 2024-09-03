@@ -170,20 +170,3 @@ class PositionBarrier(BodyBarrier[JaxPositionBarrier]):
             min_axes=self.__axes_idx if PositionLimitType.includes_min(self.limit_type) else (),
             max_axes=self.__axes_idx if PositionLimitType.includes_max(self.limit_type) else (),
         )
-
-    @final
-    @override
-    @property
-    def empty(self) -> JaxPositionBarrier:
-        return JaxPositionBarrier(
-            dim=self.dim,
-            model=self.model,
-            gain_function=self.gain_fn,
-            body_id=self.body_id,
-            min_axes=self.__axes_idx if PositionLimitType.includes_min(self.limit_type) else (),
-            max_axes=self.__axes_idx if PositionLimitType.includes_max(self.limit_type) else (),
-            gain=None,
-            safe_displacement_gain=None,
-            p_min=None,
-            p_max=None,
-        )

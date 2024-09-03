@@ -103,13 +103,10 @@ q = jnp.array(
         for _ in range(N_batch)
     ]
 )
-print(q.shape)
 solver_data = solver.init(q=q)
 
 solve_jit = jax.jit(jax.vmap(solver.solve, in_axes=(0, None, None)))
 integrate_jit = jax.jit(jax.vmap(integrate, in_axes=(None, 0, 0, None)), static_argnames=["dt"])
-# solve_jit = solver.solve
-# integrate_jit = integrate
 
 
 dt = 1e-2
@@ -157,8 +154,5 @@ for t in ts:
     if t > 0:
         t_solve_avg = t_solve_avg + (t_solve - t_solve_avg) / (n + 1)
         n += 1
-    # print(q)
-    # print(v_opt)
-    # print("-" * 100)
 
 print(f"Avg solving time: {t_solve_avg:0.3f}ms")

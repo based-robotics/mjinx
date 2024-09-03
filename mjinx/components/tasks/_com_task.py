@@ -85,18 +85,3 @@ class ComTask(Task[JaxComTask]):
             target_com=self.target_com,
             axes=self.__task_axes_idx,
         )
-
-    @final
-    @override
-    @property
-    def empty(self) -> JaxComTask:
-        return JaxComTask(
-            dim=self.dim,
-            model=self.model,  # despite model is not static, I see no point in batching through mjx.model
-            gain_function=self.gain_fn,
-            lm_damping=self.lm_damping,
-            axes=self.__task_axes_idx,
-            target_com=None,
-            cost=None,
-            gain=None,
-        )

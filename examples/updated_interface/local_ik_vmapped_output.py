@@ -6,14 +6,16 @@ import jax_dataclasses as jdc
 import mujoco as mj
 import mujoco.mjx as mjx
 import numpy as np
+from jaxlie import SE3
 from mujoco import viewer
 from robot_descriptions.iiwa14_mj_description import MJCF_PATH
 
 from mjinx.components.barriers import JointBarrier, PositionBarrier
 from mjinx.components.tasks import FrameTask
+from mjinx.components.tasks._body_frame_task import JaxFrameTask
 from mjinx.configuration import integrate
-from mjinx.problem import Problem
-from mjinx.solvers import LocalIKSolver
+from mjinx.problem import JaxProblemData, Problem
+from mjinx.solvers import LocalIKData, LocalIKSolver
 
 # === Mujoco ===
 
@@ -53,22 +55,22 @@ mj.mjv_initGeom(
 problem = Problem(mjx_model, v_min=-100, v_max=100)
 
 frame_task = FrameTask("ee_task", cost=1, gain=20, body_name="link7")
-# position_barrier = PositionBarrier(
-#     "ee_barrier",
-#     gain=100,
-#     body_name="link7",
-#     limit_type="max",
-#     axes="x",
-#     p_max=0.3,
-#     safe_displacement_gain=1e-2,
-# )
-# joints_barrier = JointBarrier("jnt_range", gain=10)
+position_barrier = PositionBarrier(
+    "ee_barrier",
+    gain=100,
+    body_name="link7",
+    limit_type="max",
+    axes="x",
+    p_max=0.3,
+    safe_displacement_gain=1e-2,
+)
+joints_barrier = JointBarrier("jnt_range", gain=10)
 # mj_model.jnt_range = [(-20 * np.pi, 20 * np.pi) for _ in range(7)]
 
 
 problem.add_component(frame_task)
-# problem.add_component(position_barrier)
-# problem.add_component(joints_barrier)
+problem.add_component(position_barrier)
+problem.add_component(joints_barrier)
 
 
 # Compiling the problem upon any parameters update
@@ -93,11 +95,15 @@ q = jnp.array([q0.copy() for _ in range(N_batch)])
 solver_data = solver.init(q=q)
 
 # Batch the problem along desired frame in the task
-# empty_problem_data = problem.empty_data()
-with jdc.copy_and_mutate(problem.empty_data(), validate=False) as empty_problem_data:
+with problem.set_vmap_dimension() as empty_problem_data:
     empty_problem_data.components["ee_task"].target_frame.wxyz_xyz = 0
 
-solve_jit = jax.jit(jax.vmap(solver.solve, in_axes=(0, empty_problem_data, None)))
+solve_jit = jax.jit(
+    jax.vmap(
+        solver.solve,
+        in_axes=(0, empty_problem_data, None),
+    )
+)
 integrate_jit = jax.jit(jax.vmap(integrate, in_axes=(None, 0, 0, None)), static_argnames=["dt"])
 
 dt = 1e-2
@@ -112,10 +118,8 @@ for t in ts:
     frame_task.target_frame = np.array(
         [[0.2 + 0.2 * np.sin(t + np.pi * i / N_batch) ** 2, 0.2, 0.2, 1, 0, 0, 0] for i in range(N_batch)]
     )
-    print(frame_task.target_frame)
     # After changes, recompiling the model
     problem_data = problem.compile()
-
     # Solving the instance of the problem
     t0 = time.perf_counter()
     v_opt, solver_data = solve_jit(q, problem_data, solver_data)
@@ -126,12 +130,11 @@ for t in ts:
     # MuJoCo visualization
     mj_data.qpos = q[0]
     mj.mj_forward(mj_model, mj_data)
-    # print(f"Position barrier: {mj_data.xpos[position_barrier.body_id][0]} <= {position_barrier.p_max[0]}")
     mj.mjv_initGeom(
         mj_viewer.user_scn.geoms[0],
         mj.mjtGeom.mjGEOM_SPHERE,
         0.1 * np.ones(3),
-        np.array(frame_task.target_frame.wxyz_xyz[-3:], dtype=np.float64),
+        np.array(frame_task.target_frame.wxyz_xyz[0, -3:], dtype=np.float64),
         np.eye(3).flatten(),
         np.array([0.565, 0.933, 0.565, 0.4]),
     )
@@ -148,8 +151,5 @@ for t in ts:
     if t > 0:
         t_solve_avg = t_solve_avg + (t_solve - t_solve_avg) / (n + 1)
         n += 1
-    # print(q)
-    # print(v_opt)
-    # print("-" * 100)
 
 print(f"Avg solving time: {t_solve_avg:0.3f}ms")

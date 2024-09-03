@@ -1,5 +1,6 @@
-from typing import cast
+from typing import ContextManager, cast
 
+import jax
 import jax.numpy as jnp
 import jax_dataclasses as jdc
 import mujoco.mjx as mjx
@@ -104,6 +105,5 @@ class Problem:
             raise ValueError("specified component is not a barrier")
         return cast(Barrier, self.__components[name])
 
-    def empty_data(self) -> JaxProblemData:
-        empty_components = {name: cast(JaxComponent, component.empty) for name, component in self.__components.items()}
-        return JaxProblemData(None, None, None, empty_components)
+    def set_vmap_dimension(self) -> ContextManager[JaxProblemData]:
+        return jdc.copy_and_mutate(jax.tree_util.tree_map(lambda x: None, self.compile()), validate=False)

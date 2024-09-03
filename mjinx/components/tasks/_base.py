@@ -9,7 +9,7 @@ from mjinx.components import Component, JaxComponent
 from mjinx.typing import ArrayOrFloat
 
 
-@jdc.pytree_dataclass(kw_only=True)
+@jdc.pytree_dataclass
 class JaxTask(JaxComponent):
 
     cost: jnp.ndarray
