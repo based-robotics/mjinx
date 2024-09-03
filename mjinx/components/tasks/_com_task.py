@@ -6,7 +6,7 @@
 
 """Center of mass task implementation."""
 
-from typing import Callable, final
+from typing import Callable, Iterable, final
 
 import jax.numpy as jnp
 import jax_dataclasses as jdc
@@ -32,8 +32,6 @@ class JaxComTask(JaxTask):
 
 class ComTask(Task[JaxComTask]):
     __target_com: jnp.ndarray
-    __task_axes_str: str
-    __task_axes_idx: tuple[int, ...]
 
     def __init__(
         self,
@@ -42,11 +40,11 @@ class ComTask(Task[JaxComTask]):
         gain: ArrayOrFloat,
         gain_fn: Callable[[float], float] | None = None,
         lm_damping: float = 0,
-        mask: jnp.ndarray | np.ndarray | None = None,
+        mask: Iterable | None = None,
     ):
         super().__init__(name, cost, gain, gain_fn, lm_damping, mask=mask)
         self.target_com = jnp.zeros(3)
-        self._dim = len(self.__task_axes_idx)
+        self._dim = 3 if mask is None else len(self.mask_idxs)
 
     @property
     def target_com(self) -> jnp.ndarray:
@@ -57,7 +55,7 @@ class ComTask(Task[JaxComTask]):
         self.update_target_com(value)
 
     def update_target_com(self, target_com: jnp.ndarray | np.ndarray):
-        if len(target_com) != len(self.__task_axes_idx):
+        if len(target_com) != self._dim:
             raise ValueError(
                 "invalid dimension of the target CoM value: "
                 f"{len(target_com)} given, expected {len(self.__task_axes_idx)} "

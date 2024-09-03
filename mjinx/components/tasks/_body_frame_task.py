@@ -1,6 +1,6 @@
 """Frame task implementation."""
 
-from typing import Callable, final
+from typing import Callable, Iterable, final
 
 import jax
 import jax.numpy as jnp
@@ -64,11 +64,11 @@ class FrameTask(BodyTask[JaxFrameTask]):
         body_name: str,
         gain_fn: Callable[[float], float] | None = None,
         lm_damping: float = 0,
-        mask: np.ndarray | jnp.ndarray | None = None,
+        mask: Iterable | None = None,
     ):
         super().__init__(name, cost, gain, body_name, gain_fn, lm_damping, mask)
         self.target_frame = SE3.identity()
-        self._dim = SE3.tangent_dim
+        self._dim = SE3.tangent_dim if mask is None else len(self.mask_idxs)
 
     @property
     def target_frame(self) -> SE3:
@@ -81,7 +81,7 @@ class FrameTask(BodyTask[JaxFrameTask]):
     def update_target_frame(self, target_frame: SE3 | jnp.ndarray | np.ndarray):
         self._modified = True
         if not isinstance(target_frame, SE3):
-            if target_frame.shape[-1] != 7:
+            if target_frame.shape[-1] != SE3.parameters_dim:
                 raise ValueError("target frame provided via array must has length 7 (xyz + quaternion (scalar first))")
 
             target_frame = jnp.array(target_frame)

@@ -1,11 +1,9 @@
 """Center of mass task implementation."""
 
-import warnings
-from typing import Callable, final
+from typing import Callable, Iterable, final
 
 import jax.numpy as jnp
 import jax_dataclasses as jdc
-import mujoco as mj
 import mujoco.mjx as mjx
 import numpy as np
 from typing_extensions import override
@@ -29,7 +27,7 @@ class JaxJointTask(JaxTask):
 
 
 class JointTask(Task[JaxJointTask]):
-    __target_q: jnp.ndarray
+    __target_q: jnp.ndarray | None
     __joints_mask: tuple[int, ...]
 
     def __init__(
@@ -40,16 +38,23 @@ class JointTask(Task[JaxJointTask]):
         frame_name: str,
         gain_fn: Callable[[float], float] | None = None,
         lm_damping: float = 0,
-        mask: np.ndarray | jnp.ndarray | None = None,
+        mask: Iterable | None = None,
     ):
         super().__init__(name, cost, gain, frame_name, gain_fn, lm_damping, mask)
+        self.__target_q = None
 
     @override
     def update_model(self, model: mjx.Model):
         super().update_model(model)
-        self.target_q = get_joint_zero(model)
+        self._dim = len(self.__joints_mask) if len(self.mask_idxs) == 0 else len(self.mask_idxs)
+        if self.target_q is None:
+            self.target_q = get_joint_zero(model)
+        elif len(self.target_q) != self._dim:
+            raise ValueError(
+                "provided model is incompatible with target q: "
+                f"{len(self.target_q)} is set, model expects {len(self._dim)}."
+            )
         self.__joints_mask = self.__generate_mask(self.__include_joints, self.__include_joints)
-        self._dim = len(self.__joints_mask)
 
     @property
     def joints_mask(self) -> np.ndarray:
@@ -64,11 +69,6 @@ class JointTask(Task[JaxJointTask]):
         self.update_target_q(value)
 
     def update_target_q(self, target_q: jnp.ndarray | np.ndarray):
-        if len(target_q) != len(self.__joints_mask):
-            raise ValueError(
-                "invalid dimension of the target joints value: "
-                f"{len(target_q)} given, expected {len(self.__task_axes_idx)} "
-            )
         self._modified = True
         self.__target_q = target_q if isinstance(target_q, jnp.ndarray) else jnp.array(target_q)
 

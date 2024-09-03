@@ -1,11 +1,10 @@
 import warnings
 from enum import Enum
-from typing import Callable, Self, final, override
+from typing import Callable, Iterable, Self, final, override
 
 import jax.numpy as jnp
 import jax_dataclasses as jdc
 import mujoco.mjx as mjx
-import numpy as np
 
 from mjinx.components.barriers._body_barrier import BodyBarrier, JaxBodyBarrier
 from mjinx.typing import ArrayOrFloat
@@ -73,23 +72,26 @@ class PositionBarrier(BodyBarrier[JaxPositionBarrier]):
         limit_type: str = "both",
         gain_fn: Callable[[float], float] | None = None,
         safe_displacement_gain: float = 0,
-        mask: jnp.ndarray | np.ndarray | None = None,
+        mask: Iterable | None = None,
     ):
+        mask = mask if mask is not None else jnp.array([1, 1, 1])
         super().__init__(name, gain, body_name, gain_fn, safe_displacement_gain, mask)
         if limit_type not in {"min", "max", "both"}:
             raise ValueError("[PositionBarrier] PositionBarrier.limit should be either 'min', 'max', or 'both'")
 
+        # Setting up the dimension, using mask and limit type
         self.__limit_type = PositionLimitType.from_str(limit_type)
+        n_axes = len(self.mask_idxs)
+        self._dim = 2 * n_axes if self.limit_type == PositionLimitType.BOTH else n_axes
 
         self.update_p_min(
-            p_min if p_min is not None else jnp.empty(len(self.__axes_str)),
+            p_min if p_min is not None else jnp.empty(len(self.mask_idxs)),
             ignore_warnings=True,
         )
         self.update_p_max(
-            p_max if p_max is not None else jnp.empty(len(self.__axes_str)),
+            p_max if p_max is not None else jnp.empty(len(self.mask_idxs)),
             ignore_warnings=True,
         )
-        self._dim = 2 * len(self.axes) if self.limit_type == PositionLimitType.BOTH else len(self.axes)
 
     @property
     def limit_type(self) -> PositionLimitType:
@@ -109,11 +111,11 @@ class PositionBarrier(BodyBarrier[JaxPositionBarrier]):
 
     def update_p_min(self, p_min: ArrayOrFloat, ignore_warnings: bool = False):
         if isinstance(p_min, float):
-            p_min = jnp.ones(len(self.axes)) * p_min
+            p_min = jnp.ones(len(self.mask_idxs)) * p_min
 
-        if p_min.shape[-1] != len(self.axes):
+        if p_min.shape[-1] != len(self.mask_idxs):
             raise ValueError(
-                f"[PositionBarrier] wrong dimension of p_min: expected {len(self.axes)}, got {p_min.shape[-1]}"
+                f"[PositionBarrier] wrong dimension of p_min: expected {len(self.mask_idxs)}, got {p_min.shape[-1]}"
             )
         if not ignore_warnings and not PositionLimitType.includes_min(self.limit_type):
             warnings.warn(
@@ -135,11 +137,11 @@ class PositionBarrier(BodyBarrier[JaxPositionBarrier]):
 
     def update_p_max(self, p_max: ArrayOrFloat, ignore_warnings: bool = False):
         if isinstance(p_max, float):
-            p_max = jnp.ones(len(self.axes)) * p_max
+            p_max = jnp.ones(len(self.mask_idxs)) * p_max
 
-        if p_max.shape[-1] != len(self.axes):
+        if p_max.shape[-1] != len(self.mask_idxs):
             raise ValueError(
-                f"[PositionBarrier] wrong dimension of p_max: expected {len(self.axes)}, got {p_max.shape[-1]}"
+                f"[PositionBarrier] wrong dimension of p_max: expected {len(self.mask_idxs)}, got {p_max.shape[-1]}"
             )
         if not ignore_warnings and not PositionLimitType.includes_max(self.limit_type):
             warnings.warn(

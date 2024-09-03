@@ -25,7 +25,7 @@ def check_limits(model: mjx.Model, data: mjx.Data) -> bool:
     return jnp.all(model.jnt_range[:, 0] < data.qpos < model.jnt_range[:, 1])
 
 
-def get_frame_jacobian_world_aligned(model: mjx.Model, data: mjx.Data, body_id: int) -> jnp.array:
+def get_frame_jacobian_world_aligned(model: mjx.Model, data: mjx.Data, body_id: int) -> jnp.ndarray:
     """Compute pair of (NV, 3) Jacobians of global point attached to body."""
 
     def fn(carry, b):

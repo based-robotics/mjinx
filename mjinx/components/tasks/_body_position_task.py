@@ -1,6 +1,6 @@
 """Frame task implementation."""
 
-from typing import Callable, final
+from typing import Callable, Iterable, final
 
 import jax.numpy as jnp
 import jax_dataclasses as jdc
@@ -24,8 +24,6 @@ class JaxPositionTask(JaxBodyTask):
 
 class PositionTask(BodyTask[JaxPositionTask]):
     __target_pos: jnp.ndarray
-    __task_axes_str: str
-    __task_axes_idx: tuple[int, ...]
 
     def __init__(
         self,
@@ -35,11 +33,10 @@ class PositionTask(BodyTask[JaxPositionTask]):
         frame_name: str,
         gain_fn: Callable[[float], float] | None = None,
         lm_damping: float = 0,
-        mask: jnp.ndarray | np.ndarray | None = None,
+        mask: Iterable | None = None,
     ):
-        super().__init__(name, cost, gain, frame_name, gain_fn, lm_damping, mask=mask)
-        # TODO: should I create interface for that?
-        self._dim = len(self.__task_axes_idx)
+        super().__init__(name, cost, gain, frame_name, gain_fn, lm_damping, mask)
+        self._dim = 3 if mask is None else len(self.mask_idxs)
 
     @property
     def target_pos(self) -> jnp.ndarray:
@@ -50,7 +47,7 @@ class PositionTask(BodyTask[JaxPositionTask]):
         self.update_target_pos(value)
 
     def update_target_pos(self, target_pos: jnp.ndarray | np.ndarray):
-        if len(target_pos) != len(self.__task_axes_idx):
+        if len(target_pos) != self._dim:
             raise ValueError(
                 "invalid dimension of the target positin value: "
                 f"{len(target_pos)} given, expected {len(self.__task_axes_idx)} "

@@ -1,12 +1,10 @@
 """Frame task implementation."""
 
-from typing import Callable, override
+from typing import Callable, Iterable, override
 
-import jax.numpy as jnp
 import jax_dataclasses as jdc
 import mujoco as mj
 import mujoco.mjx as mjx
-import numpy as np
 
 from mjinx.components.barriers._base import Barrier, JaxBarrier
 from mjinx.typing import ArrayOrFloat
@@ -30,7 +28,7 @@ class BodyBarrier[T: JaxBodyBarrier](Barrier[T]):
         body_name: str,
         gain_fn: Callable[[float], float] | None = None,
         safe_displacement_gain: float = 0,
-        mask: jnp.ndarray | np.ndarray | None = None,
+        mask: Iterable | None = None,
     ):
         super().__init__(name, gain, gain_fn, safe_displacement_gain, mask)
         self.__body_name = body_name

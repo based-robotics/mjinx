@@ -1,4 +1,4 @@
-from typing import Callable, final, override
+from typing import Callable, Iterable, final, override
 
 import jax.numpy as jnp
 import jax_dataclasses as jdc
@@ -37,13 +37,15 @@ class JointBarrier(Barrier[JaxJointBarrier]):
         gain: ArrayOrFloat,
         gain_fn: Callable[[float], float] | None = None,
         safe_displacement_gain: float = 0,
-        q_min: np.ndarray | jnp.ndarray | None = None,
-        q_max: np.ndarray | jnp.ndarray | None = None,
-        mask: jnp.ndarray | np.ndarray | None = None,
+        q_min: Iterable | None = None,
+        q_max: Iterable | None = None,
+        mask: Iterable | None = None,
     ):
         super().__init__(name, gain, gain_fn, safe_displacement_gain, mask=mask)
-        self.__q_min = q_min
-        self.__q_max = q_max
+        if len(self.mask_idxs) != 0:
+            self._dim = 2 * self.mask_idxs
+        self.__q_min = jnp.array(q_min) if q_min is not None else None
+        self.__q_max = jnp.array(q_max) if q_max is not None else None
 
     @property
     def q_min(self) -> jnp.ndarray:
@@ -94,6 +96,8 @@ class JointBarrier(Barrier[JaxJointBarrier]):
             self.__q_min = self.model.jnt_range[:, 0]
         if self.__q_max is None:
             self.__q_max = self.model.jnt_range[:, 1]
+        if self._dim is None:
+            self._dim = 2 * self.model.nv
 
     @final
     @override
@@ -106,18 +110,5 @@ class JointBarrier(Barrier[JaxJointBarrier]):
             safe_displacement_gain=self.safe_displacement_gain,
             q_min=self.q_min,
             q_max=self.q_max,
-        )
-
-    @final
-    @override
-    @property
-    def empty(self) -> JaxJointBarrier:
-        return JaxJointBarrier(
-            dim=self.dim,
-            model=self.model,
-            gain_function=self.gain_fn,
-            gain=None,
-            safe_displacement_gain=None,
-            q_min=None,
-            q_max=None,
+            mask_idxs=self.mask_idxs,
         )

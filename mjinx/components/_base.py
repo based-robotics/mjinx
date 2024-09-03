@@ -1,11 +1,10 @@
 import abc
-from typing import Callable, Self
+from typing import Callable, Iterable, Self
 
 import jax
 import jax.numpy as jnp
 import jax_dataclasses as jdc
 import mujoco.mjx as mjx
-import numpy as np
 
 from mjinx.configuration import update
 from mjinx.typing import ArrayOrFloat
@@ -54,7 +53,7 @@ class Component[T: JaxComponent](abc.ABC):
         name: str,
         gain: ArrayOrFloat,
         gain_fn: Callable[[float], float] | None = None,
-        mask: np.ndarray | jnp.ndarray | None = None,
+        mask: Iterable | None = None,
     ):
         self.__name = name
         self.__model = None
@@ -66,7 +65,7 @@ class Component[T: JaxComponent](abc.ABC):
 
         if mask is not None:
             self.__mask = jnp.array(mask)
-            self.__mask_idxs = tuple(jnp.argwhere(mask))
+            self.__mask_idxs = tuple(*jnp.argwhere(mask).tolist())
         else:
             self.__mask = None
             self.__mask_idxs = ()

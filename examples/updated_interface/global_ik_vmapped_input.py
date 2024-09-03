@@ -58,9 +58,9 @@ position_barrier = PositionBarrier(
     gain=0.1,
     body_name="link7",
     limit_type="max",
-    axes="x",
     p_max=0.3,
     safe_displacement_gain=1e-2,
+    mask=[1, 0, 0],
 )
 joints_barrier = JointBarrier("jnt_range", gain=0.1)
 

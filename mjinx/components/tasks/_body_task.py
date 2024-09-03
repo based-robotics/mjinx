@@ -1,13 +1,10 @@
 """Frame task implementation."""
 
-import abc
-from typing import Callable, override
+from typing import Callable, Iterable, override
 
-import jax.numpy as jnp
 import jax_dataclasses as jdc
 import mujoco as mj
 import mujoco.mjx as mjx
-import numpy as np
 
 from mjinx.components.tasks._base import JaxTask, Task
 from mjinx.typing import ArrayOrFloat
@@ -32,7 +29,7 @@ class BodyTask[T: JaxBodyTask](Task[T]):
         body_name: str,
         gain_fn: Callable[[float], float] | None = None,
         lm_damping: float = 0,
-        mask: jnp.ndarray | np.array | None = None,
+        mask: Iterable | None = None,
     ):
         super().__init__(name, cost, gain, gain_fn, lm_damping, mask)
         self.__body_name = body_name
