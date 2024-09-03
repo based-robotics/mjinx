@@ -96,7 +96,7 @@ solver_data = solver.init(q=q)
 
 # Batch the problem along desired frame in the task
 with problem.set_vmap_dimension() as empty_problem_data:
-    empty_problem_data.components["ee_task"].target_frame.wxyz_xyz = 0
+    empty_problem_data.components["ee_task"].target_frame = 0
 
 solve_jit = jax.jit(
     jax.vmap(
