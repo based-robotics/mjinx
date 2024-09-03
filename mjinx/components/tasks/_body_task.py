@@ -32,8 +32,9 @@ class BodyTask[T: JaxBodyTask](Task[T]):
         body_name: str,
         gain_fn: Callable[[float], float] | None = None,
         lm_damping: float = 0,
+        mask: jnp.ndarray | np.array | None = None,
     ):
-        super().__init__(name, cost, gain, gain_fn, lm_damping)
+        super().__init__(name, cost, gain, gain_fn, lm_damping, mask)
         self.__body_name = body_name
 
     @property

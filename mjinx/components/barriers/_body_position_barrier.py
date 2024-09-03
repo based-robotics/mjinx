@@ -5,6 +5,7 @@ from typing import Callable, Self, final, override
 import jax.numpy as jnp
 import jax_dataclasses as jdc
 import mujoco.mjx as mjx
+import numpy as np
 
 from mjinx.components.barriers._body_barrier import BodyBarrier, JaxBodyBarrier
 from mjinx.typing import ArrayOrFloat
@@ -45,16 +46,13 @@ class JaxPositionBarrier(JaxBodyBarrier):
     p_min: jnp.ndarray
     p_max: jnp.ndarray
 
-    min_axes: jdc.Static[tuple[int, ...]]
-    max_axes: jdc.Static[tuple[int, ...]]
-
     @final
     @override
     def __call__(self, data: mjx.Data) -> jnp.ndarray:
         return jnp.concatenate(
             [
-                data.xpos[self.body_id, self.min_axes] - self.p_min,
-                self.p_max - data.xpos[self.body_id, self.max_axes],
+                data.xpos[self.body_id, self.mask_idxs] - self.p_min,
+                self.p_max - data.xpos[self.body_id, self.mask_idxs],
             ]
         )
 
@@ -64,8 +62,6 @@ class PositionBarrier(BodyBarrier[JaxPositionBarrier]):
     __p_max: jnp.ndarray
 
     __limit_type: PositionLimitType
-    __axes_str: str
-    __axes_idx: tuple[int, ...]
 
     def __init__(
         self,
@@ -77,15 +73,13 @@ class PositionBarrier(BodyBarrier[JaxPositionBarrier]):
         limit_type: str = "both",
         gain_fn: Callable[[float], float] | None = None,
         safe_displacement_gain: float = 0,
-        axes: str = "xyz",
+        mask: jnp.ndarray | np.ndarray | None = None,
     ):
-        super().__init__(name, gain, body_name, gain_fn, safe_displacement_gain)
+        super().__init__(name, gain, body_name, gain_fn, safe_displacement_gain, mask)
         if limit_type not in {"min", "max", "both"}:
             raise ValueError("[PositionBarrier] PositionBarrier.limit should be either 'min', 'max', or 'both'")
 
         self.__limit_type = PositionLimitType.from_str(limit_type)
-        self.__axes_str = axes
-        self.__axes_idx = tuple([i for i in range(3) if "xyz"[i] in self.axes])
 
         self.update_p_min(
             p_min if p_min is not None else jnp.empty(len(self.__axes_str)),
@@ -167,6 +161,5 @@ class PositionBarrier(BodyBarrier[JaxPositionBarrier]):
             body_id=self.body_id,
             p_min=self.p_min,
             p_max=self.p_max,
-            min_axes=self.__axes_idx if PositionLimitType.includes_min(self.limit_type) else (),
-            max_axes=self.__axes_idx if PositionLimitType.includes_max(self.limit_type) else (),
+            mask_idxs=self.mask_idxs,
         )

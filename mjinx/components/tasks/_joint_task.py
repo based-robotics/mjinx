@@ -18,13 +18,12 @@ from mjinx.typing import ArrayOrFloat
 @jdc.pytree_dataclass
 class JaxJointTask(JaxTask):
     target_q: jnp.ndarray
-    mask: jdc.Static[tuple[int, ...]]
 
     @final
     @override
     def compute_error(self, data: mjx.Data) -> jnp.ndarray:
         r"""..."""
-        return joint_difference(self.model, data.qpos, self.target_q)[self.mask]
+        return joint_difference(self.model, data.qpos, self.target_q)[self.mask_idxs]
 
     # TODO: jacobian of joint task
 
@@ -41,60 +40,9 @@ class JointTask(Task[JaxJointTask]):
         frame_name: str,
         gain_fn: Callable[[float], float] | None = None,
         lm_damping: float = 0,
-        include_joints: tuple[str, ...] | tuple[int, ...] = (),
-        exclude_joints: tuple[str, ...] | tuple[int, ...] = (),
+        mask: np.ndarray | jnp.ndarray | None = None,
     ):
-        super().__init__(name, cost, gain, frame_name, gain_fn, lm_damping)
-        self.__include_joints = include_joints
-        self.__exclude_joints = exclude_joints
-
-    def __generate_mask(
-        self,
-        include_joints: tuple[str, ...] | tuple[int, ...] = (),
-        exclude_joints: tuple[str, ...] | tuple[int, ...] = (),
-    ) -> tuple[int, ...]:
-        if len(include_joints) != 0 and len(include_joints) != 0:
-            warnings.warn(
-                "[JointTask] joints to exclude are provided, include joints would be ignored",
-                stacklevel=2,
-            )
-
-        idxs: set[int]
-        if len(exclude_joints) != 0:
-            idxs = set(range(self.model.nv))
-            for jnt in exclude_joints:
-                jnt_idx = (
-                    jnt
-                    if isinstance(jnt, int)
-                    else mjx.name2id(
-                        self.model,
-                        mj.mjtObj.mjOBJ_JOINT,
-                        jnt,
-                    )
-                )
-                if jnt_idx == -1:
-                    warnings.warn(f"[JointTask] joint {jnt} not found, skipping", stacklevel=2)
-                else:
-                    idxs.difference_update({jnt_idx})
-        elif len(include_joints) != 0:
-            for jnt in include_joints:
-                jnt_idx = (
-                    jnt
-                    if isinstance(jnt, int)
-                    else mjx.name2id(
-                        self.model,
-                        mj.mjtObj.mjOBJ_JOINT,
-                        jnt,
-                    )
-                )
-                if jnt_idx == -1:
-                    warnings.warn(f"[JointTask] joint {jnt} not found, skipping", stacklevel=2)
-                else:
-                    idxs.add(jnt_idx)
-        else:
-            idxs = set(range(self.model.nv))
-
-        return tuple(idxs)
+        super().__init__(name, cost, gain, frame_name, gain_fn, lm_damping, mask)
 
     @override
     def update_model(self, model: mjx.Model):
@@ -134,5 +82,5 @@ class JointTask(Task[JaxJointTask]):
             gain_function=self.gain_fn,
             lm_damping=self.lm_damping,
             target_q=self.target_q,
-            mask=self.__joints_mask,
+            mask_idxs=self.mask_idxs,
         )

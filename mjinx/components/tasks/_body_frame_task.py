@@ -32,7 +32,7 @@ class JaxFrameTask(JaxBodyTask):
                 self.body_id,
             ).inverse()
             @ self.target_frame
-        ).log()
+        ).log()[self.mask_idxs]
 
     @final
     @override
@@ -49,7 +49,8 @@ class JaxFrameTask(JaxBodyTask):
         frame_jac = get_frame_jacobian_local(self.model, data, self.body_id)
         jlog = jax.jacobian(transform_log)(jnp.zeros(self.dim))
 
-        return -jlog @ frame_jac.T
+        # TODO: is indexing correct
+        return (-jlog @ frame_jac.T)[self.mask_idxs]
 
 
 class FrameTask(BodyTask[JaxFrameTask]):
@@ -63,8 +64,9 @@ class FrameTask(BodyTask[JaxFrameTask]):
         body_name: str,
         gain_fn: Callable[[float], float] | None = None,
         lm_damping: float = 0,
+        mask: np.ndarray | jnp.ndarray | None = None,
     ):
-        super().__init__(name, cost, gain, body_name, gain_fn, lm_damping)
+        super().__init__(name, cost, gain, body_name, gain_fn, lm_damping, mask)
         self.target_frame = SE3.identity()
         self._dim = SE3.tangent_dim
 
@@ -79,8 +81,9 @@ class FrameTask(BodyTask[JaxFrameTask]):
     def update_target_frame(self, target_frame: SE3 | jnp.ndarray | np.ndarray):
         self._modified = True
         if not isinstance(target_frame, SE3):
-            # if len(target_frame) != 7:
-            #     raise ValueError("target frame provided via array must has length 7 (xyz + quaternion (scalar first))")
+            if target_frame.shape[-1] != 7:
+                raise ValueError("target frame provided via array must has length 7 (xyz + quaternion (scalar first))")
+
             target_frame = jnp.array(target_frame)
             xyz, quat = target_frame[..., :3], target_frame[..., 3:]
             target_frame = SE3.from_rotation_and_translation(
@@ -89,6 +92,7 @@ class FrameTask(BodyTask[JaxFrameTask]):
                 ),
                 xyz,
             )
+
         self.__target_frame = target_frame
 
     @final
@@ -103,4 +107,5 @@ class FrameTask(BodyTask[JaxFrameTask]):
             lm_damping=self.lm_damping,
             body_id=self.body_id,
             target_frame=self.target_frame,
+            mask_idxs=self.mask_idxs,
         )

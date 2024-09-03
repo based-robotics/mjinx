@@ -21,8 +21,8 @@ class JaxJointBarrier(JaxBarrier):
         # TODO: what the constraint for SO3/SE3 groups is?
         return jnp.concatenate(
             [
-                joint_difference(self.model, data.qpos, self.q_min),
-                joint_difference(self.model, self.q_max, data.qpos),
+                joint_difference(self.model, data.qpos, self.q_min)[self.mask_idxs],
+                joint_difference(self.model, self.q_max, data.qpos)[self.mask_idxs],
             ]
         )
 
@@ -39,8 +39,9 @@ class JointBarrier(Barrier[JaxJointBarrier]):
         safe_displacement_gain: float = 0,
         q_min: np.ndarray | jnp.ndarray | None = None,
         q_max: np.ndarray | jnp.ndarray | None = None,
+        mask: jnp.ndarray | np.ndarray | None = None,
     ):
-        super().__init__(name, gain, gain_fn, safe_displacement_gain)
+        super().__init__(name, gain, gain_fn, safe_displacement_gain, mask=mask)
         self.__q_min = q_min
         self.__q_max = q_max
 

@@ -5,6 +5,7 @@ import jax
 import jax.numpy as jnp
 import jax_dataclasses as jdc
 import mujoco.mjx as mjx
+import numpy as np
 
 from mjinx.configuration import update
 from mjinx.typing import ArrayOrFloat
@@ -16,6 +17,7 @@ class JaxComponent(abc.ABC):
     model: mjx.Model
     gain: jnp.ndarray
     gain_function: jdc.Static[Callable[[float], float]]
+    mask_idxs: jdc.Static[tuple[int, ...]]
 
     @abc.abstractmethod
     def __call__(self, data: mjx.Data) -> jnp.ndarray:
@@ -42,6 +44,9 @@ class Component[T: JaxComponent](abc.ABC):
     __model: mjx.Model | None
     __gain: jnp.ndarray
     __gain_fn: Callable[[float], float] | None
+    __mask: jnp.ndarray | None
+    __mask_idxs: tuple[int, ...]
+
     _modified: bool
 
     def __init__(
@@ -49,6 +54,7 @@ class Component[T: JaxComponent](abc.ABC):
         name: str,
         gain: ArrayOrFloat,
         gain_fn: Callable[[float], float] | None = None,
+        mask: np.ndarray | jnp.ndarray | None = None,
     ):
         self.__name = name
         self.__model = None
@@ -57,6 +63,13 @@ class Component[T: JaxComponent](abc.ABC):
         self.gain = gain
         self.__gain_fn = gain_fn if gain_fn is not None else lambda x: x
         self._dim = -1
+
+        if mask is not None:
+            self.__mask = jnp.array(mask)
+            self.__mask_idxs = tuple(jnp.argwhere(mask))
+        else:
+            self.__mask = None
+            self.__mask_idxs = ()
 
     @property
     def model(self) -> mjx.Model:
@@ -120,6 +133,20 @@ class Component[T: JaxComponent](abc.ABC):
                 "Provide robot model or pass component into the problem first."
             )
         return self._dim
+
+    @property
+    def mask(self) -> jnp.ndarray:
+        if self.__mask is None and self._dim == -1:
+            raise ValueError("either mask should be provided explicitly, or dimension should be set")
+        elif self.__mask is None:
+            self.__mask = jnp.ones(self.dim)
+            self.__mask_idxs = tuple(range(self.dim))
+
+        return self.mask
+
+    @property
+    def mask_idxs(self) -> jnp.ndarray:
+        return self.__mask_idxs
 
     @abc.abstractmethod
     def _build_component(self) -> T:

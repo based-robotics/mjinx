@@ -15,12 +15,11 @@ from mjinx.typing import ArrayOrFloat
 @jdc.pytree_dataclass
 class JaxPositionTask(JaxBodyTask):
     target_pos: jnp.ndarray
-    axes: jdc.Static[tuple[int, ...]]
 
     @override
     def __call__(self, data: mjx.Data) -> jnp.ndarray:
         r""""""
-        return data.xpos[self.body_id, self.axes] - self.target_pos
+        return data.xpos[self.body_id, self.mask_idxs] - self.target_pos
 
 
 class PositionTask(BodyTask[JaxPositionTask]):
@@ -36,17 +35,11 @@ class PositionTask(BodyTask[JaxPositionTask]):
         frame_name: str,
         gain_fn: Callable[[float], float] | None = None,
         lm_damping: float = 0,
-        axes: str = "xyz",
+        mask: jnp.ndarray | np.ndarray | None = None,
     ):
-        super().__init__(name, cost, gain, frame_name, gain_fn, lm_damping)
+        super().__init__(name, cost, gain, frame_name, gain_fn, lm_damping, mask=mask)
         # TODO: should I create interface for that?
-        self.__task_axes_str = axes
-        self.__task_axes_idx = tuple([i for i in range(3) if "xyz"[i] in self.axes])
         self._dim = len(self.__task_axes_idx)
-
-    @property
-    def task_axes(self) -> str:
-        return self.__task_axes_str
 
     @property
     def target_pos(self) -> jnp.ndarray:
@@ -76,5 +69,5 @@ class PositionTask(BodyTask[JaxPositionTask]):
             gain_function=self.gain_fn,
             lm_damping=self.lm_damping,
             target_pos=self.target_pos,
-            axes=self.__task_axes_idx,
+            mask_idxs=self.mask_idxs,
         )

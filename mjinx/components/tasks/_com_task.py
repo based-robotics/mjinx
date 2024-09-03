@@ -21,13 +21,12 @@ from mjinx.typing import ArrayOrFloat
 @jdc.pytree_dataclass
 class JaxComTask(JaxTask):
     target_com: jnp.ndarray
-    axes: jdc.Static[tuple[int, ...]]
 
     @final
     @override
     def __call__(self, data: mjx.Data) -> jnp.ndarray:
         r"""..."""
-        error = data.subtree_com[self.model.body_rootid[0], self.axes] - self.target_com
+        error = data.subtree_com[self.model.body_rootid[0], self.mask_idxs] - self.target_com
         return error
 
 
@@ -43,12 +42,10 @@ class ComTask(Task[JaxComTask]):
         gain: ArrayOrFloat,
         gain_fn: Callable[[float], float] | None = None,
         lm_damping: float = 0,
-        axes: str = "xyz",
+        mask: jnp.ndarray | np.ndarray | None = None,
     ):
-        super().__init__(name, cost, gain, gain_fn, lm_damping)
+        super().__init__(name, cost, gain, gain_fn, lm_damping, mask=mask)
         self.target_com = jnp.zeros(3)
-        self.__task_axes_str = axes
-        self.__task_axes_idx = tuple([i for i in range(3) if "xyz"[i] in self.axes])
         self._dim = len(self.__task_axes_idx)
 
     @property
@@ -68,10 +65,6 @@ class ComTask(Task[JaxComTask]):
         self._modified = True
         self.__target_com = target_com if isinstance(target_com, jnp.ndarray) else jnp.array(target_com)
 
-    @property
-    def task_axes(self) -> str:
-        return self.__task_axes_str
-
     @final
     @override
     def _build_component(self) -> JaxComTask:
@@ -83,5 +76,5 @@ class ComTask(Task[JaxComTask]):
             gain_function=self.gain_fn,
             lm_damping=self.lm_damping,
             target_com=self.target_com,
-            axes=self.__task_axes_idx,
+            mask_idxs=self.mask_idxs,
         )

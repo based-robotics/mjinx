@@ -32,8 +32,9 @@ class Barrier[T: JaxBarrier](Component[T]):
         gain: ArrayOrFloat,
         gain_fn: Callable[[float], float] | None = None,
         safe_displacement_gain: float = 0,
+        mask: np.ndarray | jnp.ndarray | None = None,
     ):
-        super().__init__(name, gain, gain_fn)
+        super().__init__(name, gain, gain_fn, mask)
         self.safe_displacement_gain = safe_displacement_gain
 
     @property

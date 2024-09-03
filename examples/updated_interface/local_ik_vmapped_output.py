@@ -65,8 +65,6 @@ position_barrier = PositionBarrier(
     safe_displacement_gain=1e-2,
 )
 joints_barrier = JointBarrier("jnt_range", gain=10)
-# mj_model.jnt_range = [(-20 * np.pi, 20 * np.pi) for _ in range(7)]
-
 
 problem.add_component(frame_task)
 problem.add_component(position_barrier)

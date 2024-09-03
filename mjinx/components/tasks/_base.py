@@ -1,9 +1,9 @@
-from typing import Callable, final, override
+from typing import Callable
 
-import jax
 import jax.numpy as jnp
 import jax_dataclasses as jdc
 import mujoco.mjx as mjx
+import numpy as np
 
 from mjinx.components import Component, JaxComponent
 from mjinx.typing import ArrayOrFloat
@@ -31,8 +31,9 @@ class Task[T: JaxTask](Component[T]):
         gain: ArrayOrFloat,
         gain_fn: Callable[[float], float] | None = None,
         lm_damping: float = 0,
+        mask: jnp.ndarray | np.ndarray | None = None,
     ):
-        super().__init__(name, gain, gain_fn)
+        super().__init__(name, gain, gain_fn, mask)
         self.__lm_damping = lm_damping
 
         self.cost = cost
