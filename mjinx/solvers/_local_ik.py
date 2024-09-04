@@ -15,7 +15,8 @@ from mjinx.components._base import JaxComponent
 from mjinx.components.barriers._base import JaxBarrier
 from mjinx.components.tasks._base import JaxTask
 from mjinx.problem import JaxProblemData
-from mjinx.solvers._base import Solver, SolverData
+from mjinx.solvers._base import Solver, SolverData, SolverSolution
+from mjinx import configuration
 
 # TODO: maybe passing instance of OSQP is easier to implement, but
 # I do not want to directly expose OSQP solver interface to the user (it's little bit ugly)
@@ -41,10 +42,20 @@ class OSQPParameters(TypedDict):
 
 @jdc.pytree_dataclass
 class LocalIKData(SolverData):
-    q_prev: jnp.ndarray | None
+    v_prev: jnp.ndarray
 
 
-class LocalIKSolver(Solver[LocalIKData]):
+@jdc.pytree_dataclass
+class LocalIKSolution(SolverSolution):
+    v_opt: jnp.ndarray
+    dual_var_eq: jnp.ndarray
+    dual_var_ineq: jnp.ndarray
+    iter_num: int
+    error: float
+    status: int
+
+
+class LocalIKSolver(Solver[LocalIKData, LocalIKSolution]):
     _solver: OSQP
 
     def __init__(self, model: mjx.Model, **kwargs: Unpack[OSQPParameters]):
@@ -138,22 +149,31 @@ class LocalIKSolver(Solver[LocalIKData]):
     @override
     def solve_from_data(
         self,
+        solver_data: LocalIKData,
         problem_data: JaxProblemData,
         model_data: mjx.Data,
-        solver_data: LocalIKData,
-    ) -> tuple[jnp.ndarray, LocalIKData]:
-        super().solve_from_data(problem_data, model_data, solver_data)
+    ) -> LocalIKData:
+        super().solve_from_data(solver_data, problem_data, model_data)
         P, c, G, h = self.__compute_qp_matrices(problem_data, model_data)
         solution = self._solver.run(
             # TODO: warm start does not help much, but vmap does not work with it...
-            # init_params=self._solver.init_params(solver_data.q_prev, (P, c), None, (G, h)),
+            # init_params=self._solver.init_params(solver_data.v, (P, c), None, (G, h)),
             params_obj=(P, c),
             params_ineq=(G, h),
-        ).params.primal
+        )
 
-        return (solution, LocalIKData(solution))
+        return (
+            LocalIKSolution(
+                v_opt=solution.params.primal,
+                dual_var_eq=solution.params.dual_eq,
+                dual_var_ineq=solution.params.dual_ineq,
+                iter_num=solution.state.iter_num,
+                error=solution.state.error,
+                status=solution.state.status,
+            ),
+            LocalIKData(v_prev=solution.params.primal),
+        )
 
     @override
-    def init(self, q: jnp.ndarray) -> LocalIKData:
-        # TODO: ensure this works
-        return LocalIKData(q)
+    def init(self, v_init: jnp.ndarray | None = None) -> LocalIKData:
+        return LocalIKData(v_prev=v_init if v_init is not None else jnp.zeros(self.model.nv))

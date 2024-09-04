@@ -87,7 +87,7 @@ q = jnp.array(
         -2.5521986,
     ]
 )
-solver_data = solver.init(q=q)
+solver_data = solver.init()
 
 solve_jit = jax.jit(solver.solve)
 integrate_jit = jax.jit(integrate, static_argnames=["dt"])
@@ -110,13 +110,13 @@ for t in ts:
 
     # Solving the instance of the problem
     t0 = time.perf_counter()
-    v_opt, solver_data = solve_jit(q, problem_data, solver_data)
+    solver_solution, solver_data = solve_jit(q, solver_data, problem_data)
     t1 = time.perf_counter()
     # Integrating
     q = integrate_jit(
         mjx_model,
         q,
-        velocity=v_opt,
+        velocity=solver_solution.v_opt,
         dt=dt,
     )
 

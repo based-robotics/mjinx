@@ -1,3 +1,4 @@
+import warnings
 from typing import Callable, override
 
 import jax
@@ -10,7 +11,7 @@ from mjinx import configuration
 from mjinx.components.barriers._base import JaxBarrier
 from mjinx.components.tasks._base import JaxTask
 from mjinx.problem import JaxProblemData
-from mjinx.solvers._base import Solver, SolverData
+from mjinx.solvers._base import Solver, SolverData, SolverSolution
 
 
 @jdc.pytree_dataclass
@@ -18,7 +19,12 @@ class GlobalIKData(SolverData):
     optax_state: optax.OptState
 
 
-class GlobalIKSolver(Solver[GlobalIKData]):
+@jdc.pytree_dataclass
+class GlobalIKSolution(SolverSolution):
+    q_opt: jnp.ndarray
+
+
+class GlobalIKSolver(Solver[GlobalIKData, GlobalIKSolution]):
     _optimizer: optax.GradientTransformation
     __dt: float
     __grad_fn: Callable[[jnp.ndarray, JaxProblemData], float]
@@ -47,24 +53,22 @@ class GlobalIKSolver(Solver[GlobalIKData]):
                 loss = loss - self.__log_barrier(component(model_data), gain=component.gain)
         return loss
 
-    @override
     def solve_from_data(
         self,
-        problem_data: JaxProblemData,
         model_data: mjx.Data,
         solver_data: GlobalIKData,
-    ) -> tuple[jnp.ndarray, GlobalIKData]:
-        pass
+        problem_data: JaxProblemData,
+    ) -> tuple[GlobalIKSolution, GlobalIKData]:
+        return self.solve(model_data.qpos, solver_data=solver_data, problem_data=problem_data)
 
     def solve(
-        self, q: jnp.ndarray, problem_data: JaxProblemData, solver_data: GlobalIKData
-    ) -> tuple[jnp.ndarray, GlobalIKData]:
-        # print(f"Loss: {GlobalIKSolver.loss_fn(model_data, problem_data)}")
+        self, q: jnp.ndarray, solver_data: GlobalIKData, problem_data: JaxProblemData
+    ) -> tuple[GlobalIKSolution, GlobalIKData]:
         grad = self.grad_fn(q, problem_data)
 
-        delta_q, opt_state_raw = self._optimizer.update(grad, solver_data.optax_state)
+        delta_q, opt_state = self._optimizer.update(grad, solver_data.optax_state)
 
-        return delta_q / self.__dt, GlobalIKData(optax_state=opt_state_raw)
+        return GlobalIKSolution(q_opt=q + delta_q, v_opt=delta_q / self.__dt), GlobalIKData(optax_state=opt_state)
 
     @override
     def init(self, q: jax.Array) -> GlobalIKData:

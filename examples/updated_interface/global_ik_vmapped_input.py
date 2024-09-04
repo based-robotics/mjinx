@@ -120,7 +120,7 @@ t_solve_avg = 0
 n = 0
 
 # Compiling
-solve_jit(q, problem_data, solver_data)
+solve_jit(q, solver_data, problem_data)
 print("~" * 100)
 
 # Solution loop
@@ -134,10 +134,13 @@ for t in ts:
     # Solving the instance of the problem
     t1 = time.perf_counter()
     for _ in range(2):
-        v_opt, solver_data = solve_jit(q, problem_data, solver_data)
+        opt_solution, solver_data = solve_jit(q, solver_data, problem_data)
     t2 = time.perf_counter()
 
-    q = integrate_jit(mjx_model, q, v_opt, dt)
+    # Option 1:
+    # q = integrate(mjx_model, q, opt_solution.v_opt, dt=dt)
+    # Option 2:
+    q = opt_solution.q_opt
 
     # MuJoCo visualization
     mj_data.qpos = q[0]

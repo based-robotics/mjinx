@@ -90,7 +90,7 @@ q0 = np.array(
     ]
 )
 q = jnp.array([q0.copy() for _ in range(N_batch)])
-solver_data = solver.init(q=q)
+solver_data = solver.init(v_init=jnp.zeros((N_batch, mjx_model.nv)))
 
 # Batch the problem along desired frame in the task
 with problem.set_vmap_dimension() as empty_problem_data:
@@ -99,7 +99,7 @@ with problem.set_vmap_dimension() as empty_problem_data:
 solve_jit = jax.jit(
     jax.vmap(
         solver.solve,
-        in_axes=(0, empty_problem_data, None),
+        in_axes=(0, None, empty_problem_data),
     )
 )
 integrate_jit = jax.jit(jax.vmap(integrate, in_axes=(None, 0, 0, None)), static_argnames=["dt"])
@@ -120,10 +120,11 @@ for t in ts:
     problem_data = problem.compile()
     # Solving the instance of the problem
     t0 = time.perf_counter()
-    v_opt, solver_data = solve_jit(q, problem_data, solver_data)
+    opt_solution, solver_data = solve_jit(q, solver_data, problem_data)
     t1 = time.perf_counter()
+
     # Integrating
-    q = integrate_jit(mjx_model, q, v_opt, dt)
+    q = integrate_jit(mjx_model, q, opt_solution.v_opt, dt)
 
     # MuJoCo visualization
     mj_data.qpos = q[0]
