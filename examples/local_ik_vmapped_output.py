@@ -162,7 +162,7 @@ for t in ts:
 
     # --- Logging ---
     # Execution time
-    t_solve = (t2 - t1) * 1e3
+    t_solve = (t1 - t0) * 1e3
     # Ignore the first (compiling) iteration and calculate mean solution times
     if t > 0:
         t_solve_avg = t_solve_avg + (t_solve - t_solve_avg) / (n + 1)
