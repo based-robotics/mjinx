@@ -2,20 +2,17 @@ import time
 
 import jax
 import jax.numpy as jnp
-import jax_dataclasses as jdc
 import mujoco as mj
 import mujoco.mjx as mjx
 import numpy as np
-from jaxlie import SE3
 from mujoco import viewer
 from robot_descriptions.iiwa14_mj_description import MJCF_PATH
 
 from mjinx.components.barriers import JointBarrier, PositionBarrier
 from mjinx.components.tasks import FrameTask
-from mjinx.components.tasks._body_frame_task import JaxFrameTask
 from mjinx.configuration import integrate
-from mjinx.problem import JaxProblemData, Problem
-from mjinx.solvers import LocalIKData, LocalIKSolver
+from mjinx.problem import Problem
+from mjinx.solvers import LocalIKSolver
 
 # === Mujoco ===
 
@@ -26,8 +23,10 @@ mjx_model = mjx.put_model(mj_model)
 
 q_min = mj_model.jnt_range[:, 0].copy()
 q_max = mj_model.jnt_range[:, 1].copy()
-print(q_min, q_max)
+
+
 # --- Mujoco visualization ---
+# Initialize render window and launch it at the background
 mj_data = mj.MjData(mj_model)
 renderer = mj.Renderer(mj_model)
 mj_viewer = viewer.launch_passive(
@@ -36,12 +35,14 @@ mj_viewer = viewer.launch_passive(
     show_left_ui=False,
     show_right_ui=False,
 )
+
+# Initialize a sphere marker for end-effector task
 renderer.scene.ngeom += 1
 mj_viewer.user_scn.ngeom = 1
 mj.mjv_initGeom(
     mj_viewer.user_scn.geoms[0],
     mj.mjtGeom.mjGEOM_SPHERE,
-    0.1 * np.ones(3),
+    0.05 * np.ones(3),
     np.array([0.2, 0.2, 0.2]),
     np.eye(3).flatten(),
     np.array([0.565, 0.933, 0.565, 0.4]),
@@ -50,10 +51,10 @@ mj.mjv_initGeom(
 # === Mjinx ===
 
 # --- Constructing the problem ---
-
 # Creating problem formulation
 problem = Problem(mjx_model, v_min=-100, v_max=100)
 
+# Creating components of interest and adding them to the problem
 frame_task = FrameTask("ee_task", cost=1, gain=20, body_name="link7")
 position_barrier = PositionBarrier(
     "ee_barrier",
@@ -70,13 +71,13 @@ problem.add_component(frame_task)
 problem.add_component(position_barrier)
 problem.add_component(joints_barrier)
 
-
 # Compiling the problem upon any parameters update
 problem_data = problem.compile()
 
 # Initializing solver and its initial state
 solver = LocalIKSolver(mjx_model, maxiter=20)
 
+# Initializing initial condition
 N_batch = 10000
 q0 = np.array(
     [
@@ -90,49 +91,65 @@ q0 = np.array(
     ]
 )
 q = jnp.array([q0.copy() for _ in range(N_batch)])
-solver_data = solver.init(v_init=jnp.zeros((N_batch, mjx_model.nv)))
 
-# Batch the problem along desired frame in the task
+# --- Batching ---
+# First of all, data should be created via vmapped init function
+solver_data = jax.vmap(solver.init, in_axes=0)(v_init=jnp.zeros((N_batch, mjx_model.nv)))
+
+# To create a batch w.r.t. desired component's attributes, library defines convinient wrapper
+# That sets all elements to None and allows user to mutate dataclasses of interest.
+# After exiting the Context Manager, you'll get immutable jax dataclass object.
 with problem.set_vmap_dimension() as empty_problem_data:
     empty_problem_data.components["ee_task"].target_frame = 0
 
+# Vmapping solve and integrate functions.
+# Note that for batching w.r.t. q both q and solver_data should be batched.
+# Other approaches might work, but it would be undefined behaviour, please stick to this format.
 solve_jit = jax.jit(
     jax.vmap(
         solver.solve,
-        in_axes=(0, None, empty_problem_data),
+        in_axes=(0, 0, empty_problem_data),
     )
 )
 integrate_jit = jax.jit(jax.vmap(integrate, in_axes=(None, 0, 0, None)), static_argnames=["dt"])
 
+
+# === Control loop ===
 dt = 1e-2
 ts = np.arange(0, 20, dt)
 
 t_solve_avg = 0
 n = 0
 
-# Solution loop
 for t in ts:
     # Changing desired values
     frame_task.target_frame = np.array(
         [[0.2 + 0.2 * np.sin(t + np.pi * i / N_batch) ** 2, 0.2, 0.2, 1, 0, 0, 0] for i in range(N_batch)]
     )
-    # After changes, recompiling the model
     problem_data = problem.compile()
-    # Solving the instance of the problem
     t0 = time.perf_counter()
+
+    # Solving the instance of the problem
     opt_solution, solver_data = solve_jit(q, solver_data, problem_data)
     t1 = time.perf_counter()
 
     # Integrating
-    q = integrate_jit(mjx_model, q, opt_solution.v_opt, dt)
+    q = integrate_jit(
+        mjx_model,
+        q,
+        opt_solution.v_opt,
+        dt,
+    )
+    t2 = time.perf_counter()
 
-    # MuJoCo visualization
+    # --- MuJoCo visualization ---
     mj_data.qpos = q[0]
     mj.mj_forward(mj_model, mj_data)
+    print(f"Position barrier: {mj_data.xpos[position_barrier.body_id][0]} <= {position_barrier.p_max[0]}")
     mj.mjv_initGeom(
         mj_viewer.user_scn.geoms[0],
         mj.mjtGeom.mjGEOM_SPHERE,
-        0.1 * np.ones(3),
+        0.05 * np.ones(3),
         np.array(frame_task.target_frame.wxyz_xyz[0, -3:], dtype=np.float64),
         np.eye(3).flatten(),
         np.array([0.565, 0.933, 0.565, 0.4]),
@@ -143,10 +160,10 @@ for t in ts:
     mj.mj_forward(mj_model, mj_data)
     mj_viewer.sync()
 
-    t2 = time.perf_counter()
-    t_solve = (t1 - t0) * 1e3
-    t_interpolate = (t2 - t1) * 1e3
-
+    # --- Logging ---
+    # Execution time
+    t_solve = (t2 - t1) * 1e3
+    # Ignore the first (compiling) iteration and calculate mean solution times
     if t > 0:
         t_solve_avg = t_solve_avg + (t_solve - t_solve_avg) / (n + 1)
         n += 1
