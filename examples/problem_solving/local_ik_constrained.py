@@ -8,13 +8,13 @@ import numpy as np
 from jaxlie import SE3, SO3
 from matplotlib import pyplot as plt
 from mujoco import viewer
+from robot_descriptions.iiwa14_mj_description import MJCF_PATH
 
 from mjinx import solve_local_ik
 from mjinx.barriers import ModelJointBarrier, PositionUpperBarrier
 from mjinx.tasks import FrameTask
 
-model_path = os.path.abspath(os.path.dirname(__file__)) + "/../robot_descriptions/kuka_iiwa_14/iiwa14.xml"
-mj_model = mj.MjModel.from_xml_path(model_path)
+mj_model = mj.MjModel.from_xml_path(MJCF_PATH)
 mjx_model = mjx.put_model(mj_model)
 
 mj_data = mj.MjData(mj_model)
@@ -34,13 +34,13 @@ mj_viewer.user_scn.ngeom = 1
 N_batch = 200
 cur_q = jnp.array(
     [
-        -1.5878328,
-        -2.0968683,
-        -1.4339591,
-        1.6550868,
-        2.1080072,
-        1.646142,
-        -2.982619,
+        -1.4238753,
+        -1.7268502,
+        -0.84355015,
+        2.0962472,
+        2.1339328,
+        2.0837479,
+        -2.5521986,
     ]
 )
 
@@ -82,6 +82,9 @@ mj.mjv_initGeom(
     np.array([0.565, 0.933, 0.565, 0.4]),
 )
 
+t_solve_avg = 0
+n = 0
+
 try:
     # Warm-up JIT
     jnts = []
@@ -100,7 +103,8 @@ try:
         )
         t0 = time.perf_counter()
         vel = solve_local_ik(mjx_model, cur_q, tasks, barriers, damping=1e-12, maxiter=20)
-        print(f"Time: {(time.perf_counter() - t0)*1e3 :.3f} ms")
+        t1 = time.perf_counter()
+
         if vel is None:
             raise ValueError("No solution found for IK")
 
@@ -118,6 +122,12 @@ try:
             np.array([0.565, 0.933, 0.565, 0.4]),
         )
 
+        t_solve = (t1 - t0) * 1e3
+
+        if t > 0:
+            t_solve_avg = t_solve_avg + (t_solve - t_solve_avg) / (n + 1)
+            n += 1
+
         # Run the forward dynamics to reflec
         # the updated state in the data
         mj.mj_forward(mj_model, mj_data)
@@ -130,18 +140,19 @@ except Exception as e:
 finally:
     mj_viewer.close()
 
-    jnts = np.array(jnts)
+    # jnts = np.array(jnts)
 
-    fig, ax = plt.subplots(7, 1, figsize=(10, 20))
+    # fig, ax = plt.subplots(7, 1, figsize=(10, 20))
 
-    for i in range(7):
-        ax[i].axhline(q_min[i], color="r", ls="--", label="Lower limit")
-        ax[i].axhline(q_max[i], color="r", ls="--", label="Upper limit")
-        ax[i].plot(ts, jnts[:, i], label=f"Joint {i}")
-        ax[i].set_title(f"Joint {i}")
-        ax[i].set_xlabel("Time (s)")
-        ax[i].set_ylabel("Joint position (rad)")
-        ax[i].legend()
+    # for i in range(7):
+    #     ax[i].axhline(q_min[i], color="r", ls="--", label="Lower limit")
+    #     ax[i].axhline(q_max[i], color="r", ls="--", label="Upper limit")
+    #     ax[i].plot(ts, jnts[:, i], label=f"Joint {i}")
+    #     ax[i].set_title(f"Joint {i}")
+    #     ax[i].set_xlabel("Time (s)")
+    #     ax[i].set_ylabel("Joint position (rad)")
+    #     ax[i].legend()
 
-    plt.tight_layout()
-    plt.show()
+    # plt.tight_layout()
+    # plt.show()
+    print(t_solve_avg)
