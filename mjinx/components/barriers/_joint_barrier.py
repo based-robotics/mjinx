@@ -1,4 +1,4 @@
-from typing import Callable, Iterable, final, override
+from typing import Callable, Iterable, final
 
 import jax.numpy as jnp
 import jax_dataclasses as jdc
@@ -88,7 +88,6 @@ class JointBarrier(Barrier[JaxJointBarrier]):
         self._modified = True
         self.__q_max = q_max if isinstance(q_max, jnp.ndarray) else jnp.array(q_max)
 
-    @override
     def update_model(self, model: mjx.Model):
         super().update_model(model)
         self._dim = 2 * self.model.nv
@@ -100,7 +99,6 @@ class JointBarrier(Barrier[JaxJointBarrier]):
             self._dim = 2 * self.model.nv
 
     @final
-    @override
     def _build_component(self) -> JaxJointBarrier:
         return JaxJointBarrier(
             dim=self.dim,

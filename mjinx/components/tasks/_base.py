@@ -1,10 +1,10 @@
-from typing import Callable, Iterable
+from typing import Callable, Iterable, TypeVar, Generic
 
 import jax.numpy as jnp
 import jax_dataclasses as jdc
 import mujoco.mjx as mjx
 
-from mjinx.components import Component, JaxComponent
+from mjinx.components._base import Component, JaxComponent, AtomicComponentType
 from mjinx.typing import ArrayOrFloat
 
 
@@ -18,7 +18,10 @@ class JaxTask(JaxComponent):
         return self.__call__(data)
 
 
-class Task[T: JaxTask](Component[T]):
+AtomicTaskType = TypeVar("AtomicTaskType", bound=JaxTask)
+
+
+class Task(Generic[AtomicTaskType], Component[AtomicTaskType]):
     __lm_damping: float
     __cost: jnp.ndarray
     __cost_raw: jnp.ndarray

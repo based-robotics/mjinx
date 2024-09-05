@@ -1,6 +1,7 @@
+from __future__ import annotations
 import warnings
 from enum import Enum
-from typing import Callable, Iterable, Self, final, override
+from typing import Callable, Iterable, final
 
 import jax.numpy as jnp
 import jax_dataclasses as jdc
@@ -16,7 +17,7 @@ class PositionLimitType(Enum):
     BOTH = 2
 
     @staticmethod
-    def from_str(type: str) -> Self:
+    def from_str(type: str) -> PositionLimitType:
         match type.lower():
             case "min":
                 return PositionLimitType.MIN
@@ -30,11 +31,11 @@ class PositionLimitType(Enum):
                 )
 
     @staticmethod
-    def includes_min(type: Self) -> bool:
+    def includes_min(type: PositionLimitType) -> bool:
         return type == PositionLimitType.MIN or type == PositionLimitType.BOTH
 
     @staticmethod
-    def includes_max(type: Self) -> bool:
+    def includes_max(type: PositionLimitType) -> bool:
         return type == PositionLimitType.MAX or type == PositionLimitType.BOTH
 
 
@@ -46,7 +47,6 @@ class JaxPositionBarrier(JaxBodyBarrier):
     p_max: jnp.ndarray
 
     @final
-    @override
     def __call__(self, data: mjx.Data) -> jnp.ndarray:
         return jnp.concatenate(
             [
@@ -152,7 +152,6 @@ class PositionBarrier(BodyBarrier[JaxPositionBarrier]):
         self._modified = True
         self.__p_max = p_max if isinstance(p_max, jnp.ndarray) else jnp.array(p_max)
 
-    @override
     def _build_component(self) -> JaxPositionBarrier:
         return JaxPositionBarrier(
             dim=self.dim,

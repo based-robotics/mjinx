@@ -12,7 +12,6 @@ import jax.numpy as jnp
 import jax_dataclasses as jdc
 import mujoco.mjx as mjx
 import numpy as np
-from typing_extensions import override
 
 from mjinx.components.tasks._base import JaxTask, Task
 from mjinx.typing import ArrayOrFloat
@@ -23,7 +22,6 @@ class JaxComTask(JaxTask):
     target_com: jnp.ndarray
 
     @final
-    @override
     def __call__(self, data: mjx.Data) -> jnp.ndarray:
         r"""..."""
         error = data.subtree_com[self.model.body_rootid[0], self.mask_idxs] - self.target_com
@@ -64,7 +62,6 @@ class ComTask(Task[JaxComTask]):
         self.__target_com = target_com if isinstance(target_com, jnp.ndarray) else jnp.array(target_com)
 
     @final
-    @override
     def _build_component(self) -> JaxComTask:
         return JaxComTask(
             dim=self._dim,

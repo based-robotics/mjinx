@@ -1,4 +1,4 @@
-from typing import Callable, Iterable
+from typing import Callable, Iterable, TypeVar, Generic
 
 import jax.numpy as jnp
 import jax_dataclasses as jdc
@@ -23,7 +23,10 @@ class JaxBarrier(JaxComponent):
         return jnp.zeros(self.model.nv)
 
 
-class Barrier[T: JaxBarrier](Component[T]):
+AtomicBarrierType = TypeVar("AtomicBarrierType", bound=JaxBarrier)
+
+
+class Barrier(Generic[AtomicBarrierType], Component[AtomicBarrierType]):
     __safe_displacement_gain: float
 
     def __init__(

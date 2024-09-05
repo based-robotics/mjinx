@@ -1,12 +1,12 @@
 """Frame task implementation."""
 
-from typing import Callable, Iterable, override
+from typing import Callable, Iterable, TypeVar, Generic
 
 import jax_dataclasses as jdc
 import mujoco as mj
 import mujoco.mjx as mjx
 
-from mjinx.components.tasks._base import JaxTask, Task
+from mjinx.components.tasks._base import JaxTask, Task, AtomicTaskType
 from mjinx.typing import ArrayOrFloat
 
 
@@ -17,7 +17,10 @@ class JaxBodyTask(JaxTask):
     body_id: jdc.Static[int]
 
 
-class BodyTask[T: JaxBodyTask](Task[T]):
+AtomicBodyTaskType = TypeVar("AtomicBodyTaskType", bound=JaxBodyTask)
+
+
+class BodyTask(Generic[AtomicBodyTaskType], Task[AtomicBodyTaskType]):
     __body_name: str
     __body_id: int
 
@@ -42,7 +45,6 @@ class BodyTask[T: JaxBodyTask](Task[T]):
     def body_id(self) -> int:
         return self.__body_id
 
-    @override
     def update_model(self, model: mjx.Model):
         self.__body_id = mjx.name2id(
             model,

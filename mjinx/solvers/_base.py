@@ -1,4 +1,5 @@
 import abc
+from typing import Generic, TypeVar
 
 import jax.numpy as jnp
 import jax_dataclasses as jdc
@@ -18,21 +19,29 @@ class SolverSolution:
     v_opt: jnp.ndarray
 
 
-class Solver[D: SolverData, S: SolverSolution](abc.ABC):
+SolverDataType = TypeVar("SolverDataType", bound=SolverData)
+SolverSolutionType = TypeVar("SsolverSolutionType", bound=SolverSolution)
+
+
+class Solver(Generic[SolverDataType, SolverSolutionType], abc.ABC):
     model: mjx.Model
 
     def __init__(self, model: mjx.Model | None = None):
         self.model = model
 
     @abc.abstractmethod
-    def solve_from_data(self, solver_data: D, problem_data: JaxProblemData, model_data: mjx.Data) -> tuple[S, D]:
+    def solve_from_data(
+        self, solver_data: SolverDataType, problem_data: JaxProblemData, model_data: mjx.Data
+    ) -> tuple[SolverSolutionType, SolverDataType]:
         if self.model is None:
             raise ValueError("model is not provided, solution is unavailable")
 
-    def solve(self, q: jnp.ndarray, solver_data: D, problem_data: JaxProblemData) -> tuple[S, D]:
+    def solve(
+        self, q: jnp.ndarray, solver_data: SolverDataType, problem_data: JaxProblemData
+    ) -> tuple[SolverSolutionType, SolverDataType]:
         model_data = configuration.update(self.model, q)
         return self.solve_from_data(solver_data, problem_data, model_data)
 
     @abc.abstractmethod
-    def init(self) -> D:
+    def init(self) -> SolverDataType:
         pass

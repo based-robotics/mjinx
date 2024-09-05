@@ -1,5 +1,7 @@
+from __future__ import annotations
+
 import abc
-from typing import Callable, Iterable, Self
+from typing import Callable, Generic, Iterable, TypeVar
 
 import jax
 import jax.numpy as jnp
@@ -22,7 +24,7 @@ class JaxComponent(abc.ABC):
     def __call__(self, data: mjx.Data) -> jnp.ndarray:
         pass
 
-    def copy_and_set(self, **kwargs) -> Self:
+    def copy_and_set(self, **kwargs) -> JaxComponent:
         r"""..."""
         new_args = self.__dict__ | kwargs
         return self.__class__(**new_args)
@@ -36,10 +38,13 @@ class JaxComponent(abc.ABC):
         )(data.qpos)
 
 
-class Component[T: JaxComponent](abc.ABC):
+AtomicComponentType = TypeVar("AtomicComponentType", bound=JaxComponent)
+
+
+class Component(Generic[AtomicComponentType], abc.ABC):
     _dim: int
     __name: str
-    __jax_component: T
+    __jax_component: AtomicComponentType
     __model: mjx.Model | None
     __gain: jnp.ndarray
     __gain_fn: Callable[[float], float] | None
@@ -148,13 +153,13 @@ class Component[T: JaxComponent](abc.ABC):
         return self.__mask_idxs
 
     @abc.abstractmethod
-    def _build_component(self) -> T:
+    def _build_component(self) -> AtomicComponentType:
         if self.__model is None:
             raise ValueError("model is not provided")
 
     @property
-    def jax_component(self) -> T:
+    def jax_component(self) -> AtomicComponentType:
         if self._modified:
             self._modified = False
-            self.__jax_component: T = self._build_component()
+            self.__jax_component: AtomicComponentType = self._build_component()
         return self.__jax_component

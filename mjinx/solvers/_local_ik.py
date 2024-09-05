@@ -1,6 +1,6 @@
 """Build and solve the inverse kinematics problem."""
 
-from typing import Callable, NotRequired, TypedDict, override
+from typing import Callable, TypedDict
 
 import jax
 import jax.numpy as jnp
@@ -11,33 +11,33 @@ import mujoco.mjx as mjx
 from jaxopt import OSQP
 from typing_extensions import Unpack
 
+from mjinx import configuration
 from mjinx.components._base import JaxComponent
 from mjinx.components.barriers._base import JaxBarrier
 from mjinx.components.tasks._base import JaxTask
 from mjinx.problem import JaxProblemData
 from mjinx.solvers._base import Solver, SolverData, SolverSolution
-from mjinx import configuration
 
 # TODO: maybe passing instance of OSQP is easier to implement, but
 # I do not want to directly expose OSQP solver interface to the user (it's little bit ugly)
 # plus I want to generalize this for many solvers
 
 
-class OSQPParameters(TypedDict):
-    check_primal_dual_infeasability: NotRequired[jaxopt.base.AutoOrBoolean]
-    sigma: NotRequired[float]
-    momentum: NotRequired[float]
-    eq_qp_solve: NotRequired[str]
-    rho_start: NotRequired[float]
-    rho_min: NotRequired[float]
-    rho_max: NotRequired[float]
-    stepsize_updates_frequency: NotRequired[int]
-    primal_infeasible_tol: NotRequired[float]
-    dual_infeasible_tol: NotRequired[float]
-    maxiter: NotRequired[int]
-    tol: NotRequired[float]
-    termination_check_frequency: NotRequired[int]
-    implicit_diff_solve: NotRequired[Callable]
+class OSQPParameters(TypedDict, total=False):
+    check_primal_dual_infeasability: jaxopt.base.AutoOrBoolean
+    sigma: float
+    momentum: float
+    eq_qp_solve: str
+    rho_start: float
+    rho_min: float
+    rho_max: float
+    stepsize_updates_frequency: int
+    primal_infeasible_tol: float
+    dual_infeasible_tol: float
+    maxiter: int
+    tol: float
+    termination_check_frequency: int
+    implicit_diff_solve: Callable
 
 
 @jdc.pytree_dataclass
@@ -146,7 +146,6 @@ class LocalIKSolver(Solver[LocalIKData, LocalIKSolution]):
 
         return H_total, c_total, jnp.vstack(G_list), jnp.concatenate(h_list)
 
-    @override
     def solve_from_data(
         self,
         solver_data: LocalIKData,
@@ -172,6 +171,5 @@ class LocalIKSolver(Solver[LocalIKData, LocalIKSolution]):
             LocalIKData(v_prev=solution.params.primal),
         )
 
-    @override
     def init(self, v_init: jnp.ndarray | None = None) -> LocalIKData:
         return LocalIKData(v_prev=v_init if v_init is not None else jnp.zeros(self.model.nv))

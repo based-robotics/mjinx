@@ -6,7 +6,6 @@ import jax.numpy as jnp
 import jax_dataclasses as jdc
 import mujoco.mjx as mjx
 import numpy as np
-from typing_extensions import override
 
 from mjinx.components.tasks._body_task import BodyTask, JaxBodyTask
 from mjinx.typing import ArrayOrFloat
@@ -16,7 +15,6 @@ from mjinx.typing import ArrayOrFloat
 class JaxPositionTask(JaxBodyTask):
     target_pos: jnp.ndarray
 
-    @override
     def __call__(self, data: mjx.Data) -> jnp.ndarray:
         r""""""
         return data.xpos[self.body_id, self.mask_idxs] - self.target_pos
@@ -56,7 +54,6 @@ class PositionTask(BodyTask[JaxPositionTask]):
         self.__target_pos = target_pos if isinstance(target_pos, jnp.ndarray) else jnp.array(target_pos)
 
     @final
-    @override
     def _build_component(self) -> JaxPositionTask:
         return JaxPositionTask(
             dim=self.dim,

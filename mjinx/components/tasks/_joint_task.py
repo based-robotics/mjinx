@@ -6,7 +6,6 @@ import jax.numpy as jnp
 import jax_dataclasses as jdc
 import mujoco.mjx as mjx
 import numpy as np
-from typing_extensions import override
 
 from mjinx.components.tasks._base import JaxTask, Task
 from mjinx.configuration import get_joint_zero, joint_difference
@@ -18,7 +17,6 @@ class JaxJointTask(JaxTask):
     target_q: jnp.ndarray
 
     @final
-    @override
     def compute_error(self, data: mjx.Data) -> jnp.ndarray:
         r"""..."""
         return joint_difference(self.model, data.qpos, self.target_q)[self.mask_idxs]
@@ -43,7 +41,6 @@ class JointTask(Task[JaxJointTask]):
         super().__init__(name, cost, gain, frame_name, gain_fn, lm_damping, mask)
         self.__target_q = None
 
-    @override
     def update_model(self, model: mjx.Model):
         super().update_model(model)
         self._dim = len(self.__joints_mask) if len(self.mask_idxs) == 0 else len(self.mask_idxs)
@@ -72,7 +69,6 @@ class JointTask(Task[JaxJointTask]):
         self._modified = True
         self.__target_q = target_q if isinstance(target_q, jnp.ndarray) else jnp.array(target_q)
 
-    @override
     def _build_component(self) -> JaxJointTask:
         return JaxJointTask(
             dim=self.dim,

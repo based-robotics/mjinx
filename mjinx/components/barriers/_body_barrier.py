@@ -1,6 +1,6 @@
 """Frame task implementation."""
 
-from typing import Callable, Iterable, override
+from typing import Callable, Iterable, Generic, TypeVar
 
 import jax_dataclasses as jdc
 import mujoco as mj
@@ -17,7 +17,10 @@ class JaxBodyBarrier(JaxBarrier):
     body_id: jdc.Static[int]
 
 
-class BodyBarrier[T: JaxBodyBarrier](Barrier[T]):
+AtomicBodyBarrierType = TypeVar("AtomicBodeBarrierType", bound=JaxBodyBarrier)
+
+
+class BodyBarrier(Generic[AtomicBodyBarrierType], Barrier[AtomicBodyBarrierType]):
     __body_name: str
     __body_id: int
 
@@ -44,7 +47,6 @@ class BodyBarrier[T: JaxBodyBarrier](Barrier[T]):
             raise ValueError("body_id is not available until model is provided.")
         return self.__body_id
 
-    @override
     def update_model(self, model: mjx.Model):
         self.__body_id = mjx.name2id(
             model,

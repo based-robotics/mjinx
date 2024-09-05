@@ -8,7 +8,6 @@ import jax_dataclasses as jdc
 import mujoco.mjx as mjx
 import numpy as np
 from jaxlie import SE3, SO3
-from typing_extensions import override
 
 from mjinx.components.tasks._body_task import BodyTask, JaxBodyTask
 from mjinx.configuration import get_frame_jacobian_local, get_transform_frame_to_world
@@ -22,7 +21,6 @@ class JaxFrameTask(JaxBodyTask):
     target_frame: SE3
 
     @final
-    @override
     def __call__(self, data: mjx.Data) -> jnp.ndarray:
         r""""""
         return (
@@ -35,7 +33,6 @@ class JaxFrameTask(JaxBodyTask):
         ).log()[self.mask_idxs]
 
     @final
-    @override
     def compute_jacobian(self, data: mjx.Data) -> jnp.ndarray:
         T_bt = self.target_frame.inverse() @ get_transform_frame_to_world(
             self.model,
@@ -96,7 +93,6 @@ class FrameTask(BodyTask[JaxFrameTask]):
         self.__target_frame = target_frame
 
     @final
-    @override
     def _build_component(self) -> JaxFrameTask:
         return JaxFrameTask(
             dim=self.dim,

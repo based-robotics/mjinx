@@ -1,5 +1,5 @@
 import warnings
-from typing import Callable, override
+from typing import Callable
 
 import jax
 import jax.numpy as jnp
@@ -70,6 +70,5 @@ class GlobalIKSolver(Solver[GlobalIKData, GlobalIKSolution]):
 
         return GlobalIKSolution(q_opt=q + delta_q, v_opt=delta_q / self.__dt), GlobalIKData(optax_state=opt_state)
 
-    @override
     def init(self, q: jax.Array) -> GlobalIKData:
         return GlobalIKData(optax_state=self._optimizer.init(q))
