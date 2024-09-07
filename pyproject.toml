@@ -7,7 +7,7 @@ authors = [
 ]   
 readme = "README.md"
 packages = [
-  { include = "mjinx",},
+  { include = "mjinx"},
 ]
 
 [tool.poetry.dependencies]
