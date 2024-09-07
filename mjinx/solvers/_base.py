@@ -5,6 +5,7 @@ import jax.numpy as jnp
 import jax_dataclasses as jdc
 import mujoco.mjx as mjx
 
+import mjinx.typing as mjt
 from mjinx import configuration
 from mjinx.problem import JaxProblemData
 
@@ -44,5 +45,5 @@ class Solver(Generic[SolverDataType, SolverSolutionType], abc.ABC):
         return self.solve_from_data(solver_data, problem_data, model_data)
 
     @abc.abstractmethod
-    def init(self, q: jnp.ndarray) -> SolverDataType:
+    def init(self, q: mjt.ndarray) -> SolverDataType:
         pass

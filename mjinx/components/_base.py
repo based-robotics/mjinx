@@ -7,7 +7,6 @@ import jax
 import jax.numpy as jnp
 import jax_dataclasses as jdc
 import mujoco.mjx as mjx
-import numpy as np
 
 from mjinx.configuration import update
 from mjinx.typing import ArrayOrFloat

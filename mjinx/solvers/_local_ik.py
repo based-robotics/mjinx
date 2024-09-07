@@ -11,7 +11,7 @@ import mujoco.mjx as mjx
 from jaxopt import OSQP
 from typing_extensions import Unpack
 
-from mjinx import configuration
+import mjinx.typing as mjt
 from mjinx.components._base import JaxComponent
 from mjinx.components.barriers._base import JaxBarrier
 from mjinx.components.tasks._base import JaxTask
@@ -170,5 +170,5 @@ class LocalIKSolver(Solver[LocalIKData, LocalIKSolution]):
             LocalIKData(v_prev=solution.params.primal),
         )
 
-    def init(self, q: jnp.ndarray | None = None, v_init: jnp.ndarray | None = None) -> LocalIKData:
-        return LocalIKData(v_prev=v_init if v_init is not None else jnp.zeros(self.model.nv))
+    def init(self, q: mjt.ndarray | None = None, v_init: mjt.ndarray | None = None) -> LocalIKData:
+        return LocalIKData(v_prev=jnp.ndarray(v_init) if jnp.ndarray(v_init) is not None else jnp.zeros(self.model.nv))

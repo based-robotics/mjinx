@@ -7,7 +7,7 @@ authors = [
 ]   
 readme = "README.md"
 packages = [
-  { include = "mjinx"},
+  { include = "mjinx",},
 ]
 
 [tool.poetry.dependencies]
@@ -27,14 +27,11 @@ jax_dataclasses = "^1.6.0"
 pre-commit = "^3.6.0"
 ruff = "^0.1.13"
 pytest = "^7.4.4"
+mypy = "^1.11"
 
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
-
-
-[tool.pytest]
-filterwarnings = "ignore:.*U.*mode is deprecated:DeprecationWarning"
 
 [tool.ruff]
 select = [
