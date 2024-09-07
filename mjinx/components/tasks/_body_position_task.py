@@ -47,8 +47,7 @@ class PositionTask(BodyTask[JaxPositionTask]):
     def update_target_pos(self, target_pos: jnp.ndarray | np.ndarray):
         if len(target_pos) != self._dim:
             raise ValueError(
-                "invalid dimension of the target positin value: "
-                f"{len(target_pos)} given, expected {len(self.__task_axes_idx)} "
+                "invalid dimension of the target positin value: " f"{len(target_pos)} given, expected {self._dim} "
             )
         self._modified = True
         self.__target_pos = target_pos if isinstance(target_pos, jnp.ndarray) else jnp.array(target_pos)
@@ -64,4 +63,5 @@ class PositionTask(BodyTask[JaxPositionTask]):
             lm_damping=self.lm_damping,
             target_pos=self.target_pos,
             mask_idxs=self.mask_idxs,
+            body_id=self.body_id,
         )

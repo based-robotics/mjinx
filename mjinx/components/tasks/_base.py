@@ -1,16 +1,15 @@
-from typing import Callable, Iterable, TypeVar, Generic
+from typing import Callable, Generic, Iterable, TypeVar
 
 import jax.numpy as jnp
 import jax_dataclasses as jdc
 import mujoco.mjx as mjx
 
-from mjinx.components._base import Component, JaxComponent, AtomicComponentType
+from mjinx.components._base import Component, JaxComponent
 from mjinx.typing import ArrayOrFloat
 
 
 @jdc.pytree_dataclass
 class JaxTask(JaxComponent):
-
     cost: jnp.ndarray
     lm_damping: jdc.Static[float]
 
@@ -38,11 +37,19 @@ class Task(Generic[AtomicTaskType], Component[AtomicTaskType]):
         super().__init__(name, gain, gain_fn, mask)
         self.__lm_damping = lm_damping
 
-        self.cost = cost
+        self.update_cost(cost)
 
     @property
     def cost(self) -> jnp.ndarray:
         return self.__cost
+
+    @cost.setter
+    def cost(self, value: ArrayOrFloat):
+        self.update_cost(value)
+
+    def update_cost(self, cost: ArrayOrFloat):
+        self._modified = True
+        self.__cost = cost if isinstance(cost, jnp.ndarray) else jnp.array(cost)
 
     @property
     def matrix_cost(self) -> jnp.ndarray:
@@ -73,14 +80,6 @@ class Task(Generic[AtomicTaskType], Component[AtomicTaskType]):
                 return self.gain
             case _:
                 raise ValueError("fail to construct matrix cost from cost with ndim > 2")
-
-    @cost.setter
-    def cost(self, value: ArrayOrFloat):
-        self.update_cost(value)
-
-    def update_cost(self, cost: ArrayOrFloat):
-        self._modified = True
-        self.__cost = cost if isinstance(cost, jnp.ndarray) else jnp.array(cost)
 
     @property
     def lm_damping(self) -> float:

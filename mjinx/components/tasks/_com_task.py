@@ -55,8 +55,7 @@ class ComTask(Task[JaxComTask]):
     def update_target_com(self, target_com: jnp.ndarray | np.ndarray):
         if len(target_com) != self._dim:
             raise ValueError(
-                "invalid dimension of the target CoM value: "
-                f"{len(target_com)} given, expected {len(self.__task_axes_idx)} "
+                "invalid dimension of the target CoM value: " f"{len(target_com)} given, expected {self._dim} "
             )
         self._modified = True
         self.__target_com = target_com if isinstance(target_com, jnp.ndarray) else jnp.array(target_com)

@@ -1,4 +1,4 @@
-from typing import Callable, Iterable, TypeVar, Generic
+from typing import Callable, Generic, Iterable, TypeVar
 
 import jax.numpy as jnp
 import jax_dataclasses as jdc

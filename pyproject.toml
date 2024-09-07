@@ -14,14 +14,14 @@ packages = [
 python = "^3.10"
 mujoco = "3.1.6"
 mujoco_mjx = "3.1.6"
-jaxlib = "*"
+jaxlib = "^0.4"
 jaxopt = "*"
-jax = "*"
+# For strictrer versioning
+jax = "^0.4"
 robot_descriptions = "1.12"
-jaxlie = "*"
+jaxlie = "^1.4"
 optax = "^0.2"
-
-jax_dataclasses = "1.6.0"
+jax_dataclasses = "^1.6.0"
 
 [tool.poetry.group.dev.dependencies]
 pre-commit = "^3.6.0"
@@ -50,4 +50,3 @@ line-length=120
 
 [tool.ruff.lint.per-file-ignores]
 "__init__.py" = ["F401"]
-

@@ -1,6 +1,6 @@
 """Frame task implementation."""
 
-from typing import Callable, Iterable, Generic, TypeVar
+from typing import Callable, Generic, Iterable, TypeVar
 
 import jax_dataclasses as jdc
 import mujoco as mj
@@ -17,7 +17,7 @@ class JaxBodyBarrier(JaxBarrier):
     body_id: jdc.Static[int]
 
 
-AtomicBodyBarrierType = TypeVar("AtomicBodeBarrierType", bound=JaxBodyBarrier)
+AtomicBodyBarrierType = TypeVar("AtomicBodyBarrierType", bound=JaxBodyBarrier)
 
 
 class BodyBarrier(Generic[AtomicBodyBarrierType], Barrier[AtomicBodyBarrierType]):

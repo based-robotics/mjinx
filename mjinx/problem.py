@@ -29,8 +29,8 @@ class Problem:
     def __init__(self, model: mjx.Model, v_min: ArrayOrFloat, v_max: ArrayOrFloat):
         self.__model = model
         self.__components = {}
-        self.v_min = v_min
-        self.v_max = v_max
+        self.update_v_min(v_min)
+        self.update_v_max(v_max)
 
     @property
     def v_min(self) -> jnp.ndarray:
@@ -38,15 +38,17 @@ class Problem:
 
     @v_min.setter
     def v_min(self, v_min: ArrayOrFloat):
-        if not isinstance(v_min, jnp.ndarray):
-            v_min = jnp.array(v_min)
-        match v_min.ndim:
+        self.update_v_min(v_min)
+
+    def update_v_min(self, v_min: ArrayOrFloat):
+        v_min_jnp: jnp.ndarray = jnp.ndarray(v_min)
+        match v_min_jnp.ndim:
             case 0:
-                self.__v_min = jnp.ones(self.__model.nv) * v_min
+                self.__v_min = jnp.ones(self.__model.nv) * v_min_jnp
             case 1:
-                if v_min.shape != (self.__model.nv,):
-                    raise ValueError(f"invalid v_min shape: expected ({self.__model.nv},) got {v_min.shape}")
-                self.__v_min = v_min
+                if v_min_jnp.shape != (self.__model.nv,):
+                    raise ValueError(f"invalid v_min shape: expected ({self.__model.nv},) got {v_min_jnp.shape}")
+                self.__v_min = v_min_jnp
             case _:
                 raise ValueError("v_min with ndim>1 is not allowed")
 
@@ -56,15 +58,17 @@ class Problem:
 
     @v_max.setter
     def v_max(self, v_max: ArrayOrFloat):
-        if not isinstance(v_max, jnp.ndarray):
-            v_max = jnp.array(v_max)
-        match v_max.ndim:
+        self.update_v_max(v_max)
+
+    def update_v_max(self, v_max: ArrayOrFloat):
+        v_max_jnp: jnp.ndarray = jnp.ndarray(v_max)
+        match v_max_jnp.ndim:
             case 0:
-                self.__v_max = jnp.ones(self.__model.nv) * v_max
+                self.__v_max = jnp.ones(self.__model.nv) * v_max_jnp
             case 1:
-                if v_max.shape != (self.__model.nv,):
-                    raise ValueError(f"invalid v_max shape: expected ({self.__model.nv},) got {v_max.shape}")
-                self.__v_max = v_max
+                if v_max_jnp.shape != (self.__model.nv,):
+                    raise ValueError(f"invalid v_max shape: expected ({self.__model.nv},) got {v_max_jnp.shape}")
+                self.__v_max = v_max_jnp
             case _:
                 raise ValueError("v_max with ndim>1 is not allowed")
 
@@ -96,7 +100,7 @@ class Problem:
             raise ValueError("component is not present in the dictionary")
         if not isinstance(self.__components[name], Task):
             raise ValueError("specified component is not a task")
-        return cast(Barrier, self.__components[name])
+        return cast(Task, self.__components[name])
 
     def barrier(self, name: str) -> Barrier:
         if name not in self.__components:

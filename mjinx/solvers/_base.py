@@ -20,7 +20,7 @@ class SolverSolution:
 
 
 SolverDataType = TypeVar("SolverDataType", bound=SolverData)
-SolverSolutionType = TypeVar("SsolverSolutionType", bound=SolverSolution)
+SolverSolutionType = TypeVar("SolverSolutionType", bound=SolverSolution)
 
 
 class Solver(Generic[SolverDataType, SolverSolutionType], abc.ABC):
@@ -33,15 +33,16 @@ class Solver(Generic[SolverDataType, SolverSolutionType], abc.ABC):
     def solve_from_data(
         self, solver_data: SolverDataType, problem_data: JaxProblemData, model_data: mjx.Data
     ) -> tuple[SolverSolutionType, SolverDataType]:
-        if self.model is None:
-            raise ValueError("model is not provided, solution is unavailable")
+        pass
 
     def solve(
         self, q: jnp.ndarray, solver_data: SolverDataType, problem_data: JaxProblemData
     ) -> tuple[SolverSolutionType, SolverDataType]:
+        if self.model is None:
+            raise ValueError("model is not provided, solution is unavailable")
         model_data = configuration.update(self.model, q)
         return self.solve_from_data(solver_data, problem_data, model_data)
 
     @abc.abstractmethod
-    def init(self) -> SolverDataType:
+    def init(self, q: jnp.ndarray) -> SolverDataType:
         pass

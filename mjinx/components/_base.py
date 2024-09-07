@@ -7,6 +7,7 @@ import jax
 import jax.numpy as jnp
 import jax_dataclasses as jdc
 import mujoco.mjx as mjx
+import numpy as np
 
 from mjinx.configuration import update
 from mjinx.typing import ArrayOrFloat
@@ -47,7 +48,7 @@ class Component(Generic[AtomicComponentType], abc.ABC):
     __jax_component: AtomicComponentType
     __model: mjx.Model | None
     __gain: jnp.ndarray
-    __gain_fn: Callable[[float], float] | None
+    __gain_fn: Callable[[float], float]
     __mask: jnp.ndarray | None
     __mask_idxs: tuple[int, ...]
 
@@ -64,13 +65,13 @@ class Component(Generic[AtomicComponentType], abc.ABC):
         self.__model = None
         self._modified = False
 
-        self.gain = gain
+        self.update_gain(gain)
         self.__gain_fn = gain_fn if gain_fn is not None else lambda x: x
         self._dim = -1
 
         if mask is not None:
             self.__mask = jnp.array(mask)
-            self.__mask_idxs = tuple(*jnp.argwhere(mask).tolist())
+            self.__mask_idxs = tuple(*jnp.argwhere(self.mask).tolist())
         else:
             self.__mask = None
             self.__mask_idxs = ()
@@ -93,6 +94,14 @@ class Component(Generic[AtomicComponentType], abc.ABC):
     def gain(self) -> jnp.ndarray:
         return self.__gain
 
+    @gain.setter
+    def gain(self, value: ArrayOrFloat):
+        self.update_gain(value)
+
+    def update_gain(self, gain: ArrayOrFloat):
+        self._modified = True
+        self.__gain = gain if isinstance(gain, jnp.ndarray) else jnp.array(gain)
+
     @property
     def vector_gain(self) -> jnp.ndarray:
         # scalar -> jnp.ones(self.dim) * scalar
@@ -112,14 +121,6 @@ class Component(Generic[AtomicComponentType], abc.ABC):
                 return self.gain
             case _:
                 raise ValueError("fail to construct vector gain from gain with ndim > 1")
-
-    @gain.setter
-    def gain(self, value: ArrayOrFloat):
-        self.update_gain(value)
-
-    def update_gain(self, gain: ArrayOrFloat):
-        self._modified = True
-        self.__gain = gain if isinstance(gain, jnp.ndarray) else jnp.array(gain)
 
     @property
     def gain_fn(self) -> Callable[[float], float]:
@@ -149,16 +150,17 @@ class Component(Generic[AtomicComponentType], abc.ABC):
         return self.mask
 
     @property
-    def mask_idxs(self) -> jnp.ndarray:
+    def mask_idxs(self) -> tuple[int, ...]:
         return self.__mask_idxs
 
     @abc.abstractmethod
     def _build_component(self) -> AtomicComponentType:
-        if self.__model is None:
-            raise ValueError("model is not provided")
+        pass
 
     @property
     def jax_component(self) -> AtomicComponentType:
+        if self.__model is None:
+            raise ValueError("model is not provided")
         if self._modified:
             self._modified = False
             self.__jax_component: AtomicComponentType = self._build_component()

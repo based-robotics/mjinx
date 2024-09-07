@@ -119,7 +119,7 @@ class LocalIKSolver(Solver[LocalIKData, LocalIKSolution]):
         self,
         problem_data: JaxProblemData,
         model_data: mjx.Data,
-    ) -> tuple[jnp.ndarray, jnp.ndarray]:
+    ) -> tuple[jnp.ndarray, jnp.ndarray, jnp.ndarray, jnp.ndarray]:
         r"""..."""
         H_total = jnp.zeros((self.model.nv, self.model.nv))
         c_total = jnp.zeros(self.model.nv)
@@ -151,8 +151,7 @@ class LocalIKSolver(Solver[LocalIKData, LocalIKSolution]):
         solver_data: LocalIKData,
         problem_data: JaxProblemData,
         model_data: mjx.Data,
-    ) -> LocalIKData:
-        super().solve_from_data(solver_data, problem_data, model_data)
+    ) -> tuple[LocalIKSolution, LocalIKData]:
         P, c, G, h = self.__compute_qp_matrices(problem_data, model_data)
         solution = self._solver.run(
             params_obj=(P, c),
@@ -171,5 +170,5 @@ class LocalIKSolver(Solver[LocalIKData, LocalIKSolution]):
             LocalIKData(v_prev=solution.params.primal),
         )
 
-    def init(self, v_init: jnp.ndarray | None = None) -> LocalIKData:
+    def init(self, q: jnp.ndarray | None = None, v_init: jnp.ndarray | None = None) -> LocalIKData:
         return LocalIKData(v_prev=v_init if v_init is not None else jnp.zeros(self.model.nv))

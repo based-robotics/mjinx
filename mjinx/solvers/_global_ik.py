@@ -48,16 +48,16 @@ class GlobalIKSolver(Solver[GlobalIKData, GlobalIKSolution]):
         for component in problem_data.components.values():
             if isinstance(component, JaxTask):
                 err = component(model_data)
-                loss = loss + component.gain * err.T @ err
+                loss = (loss + component.gain * err.T @ err).item()
             if isinstance(component, JaxBarrier):
                 loss = loss - self.__log_barrier(component(model_data), gain=component.gain)
         return loss
 
     def solve_from_data(
         self,
-        model_data: mjx.Data,
         solver_data: GlobalIKData,
         problem_data: JaxProblemData,
+        model_data: mjx.Data,
     ) -> tuple[GlobalIKSolution, GlobalIKData]:
         return self.solve(model_data.qpos, solver_data=solver_data, problem_data=problem_data)
 
@@ -70,5 +70,5 @@ class GlobalIKSolver(Solver[GlobalIKData, GlobalIKSolution]):
 
         return GlobalIKSolution(q_opt=q + delta_q, v_opt=delta_q / self.__dt), GlobalIKData(optax_state=opt_state)
 
-    def init(self, q: jax.Array) -> GlobalIKData:
+    def init(self, q: jnp.ndarray) -> GlobalIKData:
         return GlobalIKData(optax_state=self._optimizer.init(q))

@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 import warnings
 from enum import Enum
 from typing import Callable, Iterable, final
@@ -96,10 +97,6 @@ class PositionBarrier(BodyBarrier[JaxPositionBarrier]):
     @property
     def limit_type(self) -> PositionLimitType:
         return self.__limit_type
-
-    @property
-    def axes(self) -> str:
-        return self.__axes_str
 
     @property
     def p_min(self) -> jnp.ndarray:

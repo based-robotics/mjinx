@@ -1,12 +1,12 @@
 """Frame task implementation."""
 
-from typing import Callable, Iterable, TypeVar, Generic
+from typing import Callable, Generic, Iterable, TypeVar
 
 import jax_dataclasses as jdc
 import mujoco as mj
 import mujoco.mjx as mjx
 
-from mjinx.components.tasks._base import JaxTask, Task, AtomicTaskType
+from mjinx.components.tasks._base import JaxTask, Task
 from mjinx.typing import ArrayOrFloat
 
 

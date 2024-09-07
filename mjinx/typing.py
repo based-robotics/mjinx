@@ -1,13 +1,13 @@
-from typing import Callable, TypedDict
+from typing import Callable, TypeAlias, TypedDict
 
 import jax.numpy as jnp
 import numpy as np
 
-ndarray = np.ndarray | jnp.ndarray
-ArrayOrFloat = ndarray | float
-ClassKFunctions = Callable[[ndarray], ndarray]
-CallableFromState = Callable[[ndarray, ndarray], ndarray]
-FrictionCallable = Callable[[ndarray, ndarray], ndarray]
+ndarray: TypeAlias = np.ndarray | jnp.ndarray
+ArrayOrFloat: TypeAlias = ndarray | float
+ClassKFunctions: TypeAlias = Callable[[ndarray], ndarray]
+CallableFromState: TypeAlias = Callable[[ndarray, ndarray], ndarray]
+FrictionCallable: TypeAlias = Callable[[ndarray, ndarray], ndarray]
 
 
 class InterfaceVariableParameters(TypedDict, total=False):

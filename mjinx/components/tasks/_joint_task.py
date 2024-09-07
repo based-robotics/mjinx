@@ -17,7 +17,7 @@ class JaxJointTask(JaxTask):
     target_q: jnp.ndarray
 
     @final
-    def compute_error(self, data: mjx.Data) -> jnp.ndarray:
+    def __call__(self, data: mjx.Data) -> jnp.ndarray:
         r"""..."""
         return joint_difference(self.model, data.qpos, self.target_q)[self.mask_idxs]
 
@@ -38,7 +38,7 @@ class JointTask(Task[JaxJointTask]):
         lm_damping: float = 0,
         mask: Iterable | None = None,
     ):
-        super().__init__(name, cost, gain, frame_name, gain_fn, lm_damping, mask)
+        super().__init__(name, cost, gain, gain_fn, lm_damping, mask)
         self.__target_q = None
 
     def update_model(self, model: mjx.Model):
@@ -49,9 +49,8 @@ class JointTask(Task[JaxJointTask]):
         elif len(self.target_q) != self._dim:
             raise ValueError(
                 "provided model is incompatible with target q: "
-                f"{len(self.target_q)} is set, model expects {len(self._dim)}."
+                f"{len(self.target_q)} is set, model expects {self._dim}."
             )
-        self.__joints_mask = self.__generate_mask(self.__include_joints, self.__include_joints)
 
     @property
     def joints_mask(self) -> np.ndarray:
@@ -59,6 +58,8 @@ class JointTask(Task[JaxJointTask]):
 
     @property
     def target_q(self) -> jnp.ndarray:
+        if self.__target_q is None:
+            raise ValueError("target value was neither provided, nor deduced from other arguments (model is missing)")
         return self.__target_q
 
     @target_q.setter

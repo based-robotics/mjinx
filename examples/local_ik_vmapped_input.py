@@ -126,7 +126,7 @@ integrate_jit = jax.jit(jax.vmap(integrate, in_axes=(None, 0, 0, None)), static_
 dt = 1e-2
 ts = np.arange(0, 20, dt)
 
-t_solve_avg = 0
+t_solve_avg = 0.0
 n = 0
 
 for t in ts:
