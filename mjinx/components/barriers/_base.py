@@ -1,4 +1,4 @@
-from typing import Callable, Generic, Iterable, TypeVar
+from typing import Callable, Generic, Sequence, TypeVar
 
 import jax.numpy as jnp
 import jax_dataclasses as jdc
@@ -35,7 +35,7 @@ class Barrier(Generic[AtomicBarrierType], Component[AtomicBarrierType]):
         gain: ArrayOrFloat,
         gain_fn: Callable[[float], float] | None = None,
         safe_displacement_gain: float = 0,
-        mask: Iterable | None = None,
+        mask: Sequence | None = None,
     ):
         super().__init__(name, gain, gain_fn, mask)
         self.safe_displacement_gain = safe_displacement_gain

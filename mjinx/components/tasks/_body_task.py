@@ -1,6 +1,6 @@
 """Frame task implementation."""
 
-from typing import Callable, Generic, Iterable, TypeVar
+from typing import Callable, Generic, Sequence, TypeVar
 
 import jax_dataclasses as jdc
 import mujoco as mj
@@ -32,7 +32,7 @@ class BodyTask(Generic[AtomicBodyTaskType], Task[AtomicBodyTaskType]):
         body_name: str,
         gain_fn: Callable[[float], float] | None = None,
         lm_damping: float = 0,
-        mask: Iterable | None = None,
+        mask: Sequence | None = None,
     ):
         super().__init__(name, cost, gain, gain_fn, lm_damping, mask)
         self.__body_name = body_name

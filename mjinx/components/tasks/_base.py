@@ -1,4 +1,4 @@
-from typing import Callable, Generic, Iterable, TypeVar
+from typing import Callable, Generic, Sequence, TypeVar
 
 import jax.numpy as jnp
 import jax_dataclasses as jdc
@@ -23,7 +23,6 @@ AtomicTaskType = TypeVar("AtomicTaskType", bound=JaxTask)
 class Task(Generic[AtomicTaskType], Component[AtomicTaskType]):
     __lm_damping: float
     __cost: jnp.ndarray
-    __cost_raw: jnp.ndarray
 
     def __init__(
         self,
@@ -32,9 +31,11 @@ class Task(Generic[AtomicTaskType], Component[AtomicTaskType]):
         gain: ArrayOrFloat,
         gain_fn: Callable[[float], float] | None = None,
         lm_damping: float = 0,
-        mask: Iterable | None = None,
+        mask: Sequence | None = None,
     ):
         super().__init__(name, gain, gain_fn, mask)
+        if lm_damping < 0:
+            raise ValueError("lm_damping has to be positive")
         self.__lm_damping = lm_damping
 
         self.update_cost(cost)
@@ -49,7 +50,10 @@ class Task(Generic[AtomicTaskType], Component[AtomicTaskType]):
 
     def update_cost(self, cost: ArrayOrFloat):
         self._modified = True
-        self.__cost = cost if isinstance(cost, jnp.ndarray) else jnp.array(cost)
+        cost = cost if isinstance(cost, jnp.ndarray) else jnp.array(cost)
+        if cost.ndim > 2:
+            raise ValueError(f"the cost.ndim is too high: expected <= 2, got {cost.ndim}")
+        self.__cost = cost
 
     @property
     def matrix_cost(self) -> jnp.ndarray:
@@ -66,18 +70,18 @@ class Task(Generic[AtomicTaskType], Component[AtomicTaskType]):
             case 0:
                 return jnp.eye(self.dim) * self.cost
             case 1:
-                if len(self.gain) != self.dim:
+                if len(self.cost) != self.dim:
                     raise ValueError(
-                        f"fail to construct matrix {self.dim}x{self.dim} from vector of length {self.gain.shape}"
+                        f"fail to construct matrix jnp.diag(({self.dim},)) from vector of length {self.cost.shape}"
                     )
-                return jnp.diag(self.gain)
+                return jnp.diag(self.cost)
             case 2:
-                if self.gain.shape != (
+                if self.cost.shape != (
                     self.dim,
                     self.dim,
                 ):
-                    raise ValueError(f"wrong shape of the gain: {self.gain.shape} != ({self.dim}, {self.dim},)")
-                return self.gain
+                    raise ValueError(f"wrong shape of the cost: {self.cost.shape} != ({self.dim}, {self.dim},)")
+                return self.cost
             case _:
                 raise ValueError("fail to construct matrix cost from cost with ndim > 2")
 

@@ -1,6 +1,6 @@
 """Center of mass task implementation."""
 
-from typing import Callable, Iterable, final
+from typing import Callable, Sequence
 
 import jax.numpy as jnp
 import jax_dataclasses as jdc
@@ -16,10 +16,9 @@ from mjinx.typing import ArrayOrFloat
 class JaxJointTask(JaxTask):
     target_q: jnp.ndarray
 
-    @final
     def __call__(self, data: mjx.Data) -> jnp.ndarray:
         r"""..."""
-        return joint_difference(self.model, data.qpos, self.target_q)[self.mask_idxs]
+        return joint_difference(self.model, data.qpos, self.target_q)[self.mask_idxs,]
 
     # TODO: jacobian of joint task
 
@@ -33,28 +32,30 @@ class JointTask(Task[JaxJointTask]):
         name: str,
         cost: ArrayOrFloat,
         gain: ArrayOrFloat,
-        frame_name: str,
         gain_fn: Callable[[float], float] | None = None,
         lm_damping: float = 0,
-        mask: Iterable | None = None,
+        mask: Sequence | None = None,
     ):
         super().__init__(name, cost, gain, gain_fn, lm_damping, mask)
         self.__target_q = None
 
     def update_model(self, model: mjx.Model):
         super().update_model(model)
-        self._dim = len(self.__joints_mask) if len(self.mask_idxs) == 0 else len(self.mask_idxs)
-        if self.target_q is None:
-            self.target_q = get_joint_zero(model)
+
+        self._dim = model.nq
+        if len(self.mask) != self._dim:
+            raise ValueError("provided mask in invalid for the model")
+        if len(self.mask_idxs) != self._dim:
+            self._dim = len(self.mask_idxs)
+
+        # Validate current target_q, if empty -- set via default value
+        if self.__target_q is None:
+            self.target_q = get_joint_zero(model)[self.mask_idxs,]
         elif len(self.target_q) != self._dim:
             raise ValueError(
                 "provided model is incompatible with target q: "
                 f"{len(self.target_q)} is set, model expects {self._dim}."
             )
-
-    @property
-    def joints_mask(self) -> np.ndarray:
-        return np.ndarray(self.__joints_mask)
 
     @property
     def target_q(self) -> jnp.ndarray:
@@ -63,12 +64,14 @@ class JointTask(Task[JaxJointTask]):
         return self.__target_q
 
     @target_q.setter
-    def target_q(self, value: jnp.ndarray | np.ndarray):
+    def target_q(self, value: Sequence):
         self.update_target_q(value)
 
-    def update_target_q(self, target_q: jnp.ndarray | np.ndarray):
+    def update_target_q(self, target_q: Sequence):
         self._modified = True
-        self.__target_q = target_q if isinstance(target_q, jnp.ndarray) else jnp.array(target_q)
+        if self._dim != -1 and len(target_q) != self._dim:
+            raise ValueError("wrong length ")
+        self.__target_q = jnp.array(target_q)
 
     def _build_component(self) -> JaxJointTask:
         return JaxJointTask(

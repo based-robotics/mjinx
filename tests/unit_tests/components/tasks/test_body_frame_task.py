@@ -1,6 +1,6 @@
 """Frame task implementation."""
 
-from typing import Callable, Sequence, final
+from typing import Callable, Iterable, final
 
 import jax
 import jax.numpy as jnp
@@ -30,9 +30,7 @@ class JaxFrameTask(JaxBodyTask):
                 self.body_id,
             ).inverse()
             @ self.target_frame
-        ).log()[
-            self.mask_idxs,
-        ]
+        ).log()[self.mask_idxs]
 
     @final
     def compute_jacobian(self, data: mjx.Data) -> jnp.ndarray:
@@ -49,7 +47,7 @@ class JaxFrameTask(JaxBodyTask):
         jlog = jax.jacobian(transform_log)(jnp.zeros(self.dim))
 
         # TODO: is indexing correct
-        return (-jlog @ frame_jac.T)[self.mask_idxs,]
+        return (-jlog @ frame_jac.T)[self.mask_idxs]
 
 
 class FrameTask(BodyTask[JaxFrameTask]):

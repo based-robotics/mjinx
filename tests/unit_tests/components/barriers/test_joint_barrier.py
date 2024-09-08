@@ -1,4 +1,4 @@
-from typing import Callable, Sequence
+from typing import Callable, Iterable, final
 
 import jax.numpy as jnp
 import jax_dataclasses as jdc
@@ -21,8 +21,8 @@ class JaxJointBarrier(JaxBarrier):
         # TODO: what the constraint for SO3/SE3 groups is?
         return jnp.concatenate(
             [
-                joint_difference(self.model, data.qpos, self.q_min)[self.mask_idxs,],
-                joint_difference(self.model, self.q_max, data.qpos)[self.mask_idxs,],
+                joint_difference(self.model, data.qpos, self.q_min)[self.mask_idxs],
+                joint_difference(self.model, self.q_max, data.qpos)[self.mask_idxs],
             ]
         )
 
@@ -37,11 +37,13 @@ class JointBarrier(Barrier[JaxJointBarrier]):
         gain: ArrayOrFloat,
         gain_fn: Callable[[float], float] | None = None,
         safe_displacement_gain: float = 0,
-        q_min: Sequence | None = None,
-        q_max: Sequence | None = None,
+        q_min: Iterable | None = None,
+        q_max: Iterable | None = None,
         mask: Sequence | None = None,
     ):
         super().__init__(name, gain, gain_fn, safe_displacement_gain, mask=mask)
+        if len(self.mask_idxs) != 0:
+            self._dim = 2 * len(self.mask_idxs)
         self.__q_min = jnp.array(q_min) if q_min is not None else None
         self.__q_max = jnp.array(q_max) if q_max is not None else None
 
@@ -93,10 +95,10 @@ class JointBarrier(Barrier[JaxJointBarrier]):
             self.__q_min = self.model.jnt_range[:, 0]
         if self.__q_max is None:
             self.__q_max = self.model.jnt_range[:, 1]
+        if self._dim is None:
+            self._dim = 2 * self.model.nv
 
-    def _get_default_mask(self) -> tuple[jnp.ndarray, tuple[int, ...]]:
-        return jnp.ones(self.model.nv), tuple(range(self.model.nv))
-
+    @final
     def _build_component(self) -> JaxJointBarrier:
         return JaxJointBarrier(
             dim=self.dim,

@@ -1,6 +1,6 @@
 """Frame task implementation."""
 
-from typing import Callable, Generic, Iterable, TypeVar
+from typing import Callable, Generic, Sequence, TypeVar
 
 import jax_dataclasses as jdc
 import mujoco as mj
@@ -31,7 +31,7 @@ class BodyBarrier(Generic[AtomicBodyBarrierType], Barrier[AtomicBodyBarrierType]
         body_name: str,
         gain_fn: Callable[[float], float] | None = None,
         safe_displacement_gain: float = 0,
-        mask: Iterable | None = None,
+        mask: Sequence | None = None,
     ):
         super().__init__(name, gain, gain_fn, safe_displacement_gain, mask)
         self.__body_name = body_name
