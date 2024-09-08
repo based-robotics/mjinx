@@ -171,4 +171,4 @@ class LocalIKSolver(Solver[LocalIKData, LocalIKSolution]):
         )
 
     def init(self, q: mjt.ndarray | None = None, v_init: mjt.ndarray | None = None) -> LocalIKData:
-        return LocalIKData(v_prev=jnp.ndarray(v_init) if jnp.ndarray(v_init) is not None else jnp.zeros(self.model.nv))
+        return LocalIKData(v_prev=jnp.array(v_init) if v_init is not None else jnp.zeros(self.model.nv))

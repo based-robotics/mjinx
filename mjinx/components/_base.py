@@ -146,7 +146,7 @@ class Component(Generic[AtomicComponentType], abc.ABC):
             self.__mask = jnp.ones(self.dim)
             self.__mask_idxs = tuple(range(self.dim))
 
-        return self.mask
+        return self.__mask
 
     @property
     def mask_idxs(self) -> tuple[int, ...]:

@@ -41,7 +41,7 @@ class Problem:
         self.update_v_min(v_min)
 
     def update_v_min(self, v_min: ArrayOrFloat):
-        v_min_jnp: jnp.ndarray = jnp.ndarray(v_min)
+        v_min_jnp: jnp.ndarray = jnp.array(v_min)
         match v_min_jnp.ndim:
             case 0:
                 self.__v_min = jnp.ones(self.__model.nv) * v_min_jnp
@@ -61,7 +61,7 @@ class Problem:
         self.update_v_max(v_max)
 
     def update_v_max(self, v_max: ArrayOrFloat):
-        v_max_jnp: jnp.ndarray = jnp.ndarray(v_max)
+        v_max_jnp: jnp.ndarray = jnp.array(v_max)
         match v_max_jnp.ndim:
             case 0:
                 self.__v_max = jnp.ones(self.__model.nv) * v_max_jnp
