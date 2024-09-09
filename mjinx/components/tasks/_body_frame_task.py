@@ -74,23 +74,17 @@ class FrameTask(BodyTask[JaxFrameTask]):
         return self.__target_frame
 
     @target_frame.setter
-    def target_frame(self, value: SE3 | jnp.ndarray | np.ndarray):
+    def target_frame(self, value: SE3 | Sequence):
         self.update_target_frame(value)
 
-    def update_target_frame(self, target_frame: SE3 | jnp.ndarray | np.ndarray):
+    def update_target_frame(self, target_frame: SE3 | Sequence):
         self._modified = True
         if not isinstance(target_frame, SE3):
+            target_frame = jnp.array(target_frame)
             if target_frame.shape[-1] != SE3.parameters_dim:
                 raise ValueError("target frame provided via array must has length 7 (xyz + quaternion (scalar first))")
 
-            target_frame = jnp.array(target_frame)
-            xyz, quat = target_frame[..., :3], target_frame[..., 3:]
-            target_frame = SE3.from_rotation_and_translation(
-                SO3.from_quaternion_xyzw(
-                    quat[..., [1, 2, 3, 0]],
-                ),
-                xyz,
-            )
+            target_frame = SE3(target_frame[..., (3, 4, 5, 6, 0, 1, 2)])
 
         self.__target_frame = target_frame
 

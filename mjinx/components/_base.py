@@ -62,7 +62,7 @@ class Component(Generic[AtomicComponentType], abc.ABC):
     ):
         self.__name = name
         self.__model = None
-        self._modified = False
+        self._modified = True
 
         self.update_gain(gain)
         self.__gain_fn = gain_fn if gain_fn is not None else lambda x: x
@@ -78,6 +78,9 @@ class Component(Generic[AtomicComponentType], abc.ABC):
             self.__mask_idxs = ()
 
     def _get_default_mask(self) -> tuple[jnp.ndarray, tuple[int, ...]]:
+        if self._dim == -1:
+            raise ValueError("failed to construct default mask: dimension is not set")
+
         return jnp.ones(self.dim), tuple(range(self.dim))
 
     @property
@@ -148,19 +151,16 @@ class Component(Generic[AtomicComponentType], abc.ABC):
 
     @property
     def mask(self) -> jnp.ndarray:
-        if self.__mask is None and self._dim == -1:
-            raise ValueError("either mask should be provided explicitly, or dimension should be set")
-        elif self.__mask is None:
+        if self.__mask is None:
             self.__mask, self.__mask_idxs = self._get_default_mask()
 
         return self.__mask
 
     @property
     def mask_idxs(self) -> tuple[int, ...]:
-        if self.__mask is None and self._dim == -1:
-            raise ValueError("either mask should be provided explicitly, or dimension should be set")
-        elif self.__mask is None:
+        if self.__mask is None:
             self.__mask, self.__mask_idxs = self._get_default_mask()
+
         return self.__mask_idxs
 
     @abc.abstractmethod
@@ -169,12 +169,7 @@ class Component(Generic[AtomicComponentType], abc.ABC):
 
     @property
     def jax_component(self) -> AtomicComponentType:
-        if self.__model is None:
-            raise ValueError("model is not provided")
-        if self._dim == -1:
-            raise ValueError("dimension is not specified")
-
         if self._modified:
-            self._modified = False
             self.__jax_component: AtomicComponentType = self._build_component()
+            self._modified = False
         return self.__jax_component

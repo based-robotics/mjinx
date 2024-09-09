@@ -1,67 +1,83 @@
-"""Frame task implementation."""
-
-from typing import Callable, Iterable, final
+import unittest
 
 import jax.numpy as jnp
-import jax_dataclasses as jdc
+import mujoco as mj
 import mujoco.mjx as mjx
 import numpy as np
+from jaxlie import SE3, SO3
 
-from mjinx.components.tasks._body_task import BodyTask, JaxBodyTask
-from mjinx.typing import ArrayOrFloat
-
-
-@jdc.pytree_dataclass
-class JaxPositionTask(JaxBodyTask):
-    target_pos: jnp.ndarray
-
-    def __call__(self, data: mjx.Data) -> jnp.ndarray:
-        r""""""
-        return data.xpos[self.body_id, self.mask_idxs] - self.target_pos
+from mjinx.components.tasks import PositionTask
 
 
-class PositionTask(BodyTask[JaxPositionTask]):
-    __target_pos: jnp.ndarray
-
-    def __init__(
-        self,
-        name: str,
-        cost: ArrayOrFloat,
-        gain: ArrayOrFloat,
-        frame_name: str,
-        gain_fn: Callable[[float], float] | None = None,
-        lm_damping: float = 0,
-        mask: Sequence | None = None,
-    ):
-        super().__init__(name, cost, gain, frame_name, gain_fn, lm_damping, mask)
-        self._dim = 3 if mask is None else len(self.mask_idxs)
-
-    @property
-    def target_pos(self) -> jnp.ndarray:
-        return self.__target_pos
-
-    @target_pos.setter
-    def target_pos(self, value: jnp.ndarray | np.ndarray):
-        self.update_target_pos(value)
-
-    def update_target_pos(self, target_pos: jnp.ndarray | np.ndarray):
-        if len(target_pos) != self._dim:
-            raise ValueError(
-                "invalid dimension of the target positin value: " f"{len(target_pos)} given, expected {self._dim} "
+class TestPositionTask(unittest.TestCase):
+    def set_model(self, task: PositionTask):
+        self.model = mjx.put_model(
+            mj.MjModel.from_xml_string(
+                """
+        <mujoco>
+            <worldbody>
+                <body name="body1">
+                    <joint name="jnt1" type="hinge" axis="1 -1 0"/>
+                    <geom name="box1" size=".3"/>
+                    <geom name="box2" pos=".6 .6 .6" size=".3"/>
+                </body>
+            </worldbody>w
+        </mujoco>
+        """
             )
-        self._modified = True
-        self.__target_pos = target_pos if isinstance(target_pos, jnp.ndarray) else jnp.array(target_pos)
-
-    @final
-    def _build_component(self) -> JaxPositionTask:
-        return JaxPositionTask(
-            dim=self.dim,
-            model=self.model,
-            cost=self.matrix_cost,
-            gain=self.vector_gain,
-            gain_function=self.gain_fn,
-            lm_damping=self.lm_damping,
-            target_pos=self.target_pos,
-            mask_idxs=self.mask_idxs,
-            body_id=self.body_id,
         )
+        task.update_model(self.model)
+
+    def setUp(self):
+        self.pos_task = PositionTask("pos_task", cost=1.0, gain=1.0, body_name="body1")
+
+    def test_task_dim(self):
+        self.assertEqual(self.pos_task.dim, 3)
+
+    def test_update_target_pos(self):
+        new_target = [0, 1, 2]
+        self.pos_task.update_target_pos(new_target)
+        np.testing.assert_array_almost_equal(self.pos_task.target_pos, jnp.array(new_target))
+
+    def test_mask_handling(self):
+        masked_pos_task = PositionTask("masked_pos_task", cost=1.0, gain=1.0, body_name="body1", mask=[0, 0, 1])
+
+        self.assertEqual(masked_pos_task.dim, 1)
+
+    def test_update_target_pos_with_mask(self):
+        masked_pos_task = PositionTask("masked_pos_task", cost=1.0, gain=1.0, body_name="body1", mask=[0, 0, 1])
+
+        with self.assertRaises(ValueError):
+            masked_pos_task.target_pos = [0, 1, 2]
+        masked_pos_task.update_target_pos([1])
+        self.assertEqual(len(masked_pos_task.target_pos), 1)
+
+    def test_build_component(self):
+        pos_task = PositionTask(
+            "pos_task",
+            cost=1.0,
+            gain=2.0,
+            gain_fn=lambda x: 2 * x,
+            lm_damping=0.5,
+            mask=[0, 1, 0],
+            body_name="body1",
+        )
+        self.set_model(pos_task)
+        pos_des = jnp.array([1])
+        pos_task.target_pos = pos_des
+
+        jax_component = pos_task._build_component()
+        self.assertEqual(jax_component.dim, 1)
+        np.testing.assert_array_equal(jax_component.cost, jnp.eye(1))
+        np.testing.assert_array_equal(jax_component.gain, jnp.ones(1) * 2.0)
+        self.assertEqual(jax_component.gain_function(4), 8)
+        self.assertEqual(jax_component.lm_damping, 0.5)
+        np.testing.assert_array_almost_equal(jax_component.target_pos, pos_des)
+        self.assertEqual(jax_component.mask_idxs, (1,))
+
+        data = mjx.fwd_position(self.model, mjx.make_data(self.model))
+        com_value = jax_component(data)
+        np.testing.assert_array_almost_equal(com_value, -1 * jnp.ones(1))
+
+
+unittest.main()

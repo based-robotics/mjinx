@@ -1,107 +1,90 @@
-"""Frame task implementation."""
+import unittest
 
-from typing import Callable, Iterable, final
-
-import jax
 import jax.numpy as jnp
-import jax_dataclasses as jdc
+import mujoco as mj
 import mujoco.mjx as mjx
 import numpy as np
 from jaxlie import SE3, SO3
 
-from mjinx.components.tasks._body_task import BodyTask, JaxBodyTask
-from mjinx.configuration import get_frame_jacobian_local, get_transform_frame_to_world
-from mjinx.typing import ArrayOrFloat
+from mjinx.components.tasks import FrameTask
 
 
-@jdc.pytree_dataclass
-class JaxFrameTask(JaxBodyTask):
-    r""""""
-
-    target_frame: SE3
-
-    @final
-    def __call__(self, data: mjx.Data) -> jnp.ndarray:
-        r""""""
-        return (
-            get_transform_frame_to_world(
-                self.model,
-                data,
-                self.body_id,
-            ).inverse()
-            @ self.target_frame
-        ).log()[self.mask_idxs]
-
-    @final
-    def compute_jacobian(self, data: mjx.Data) -> jnp.ndarray:
-        T_bt = self.target_frame.inverse() @ get_transform_frame_to_world(
-            self.model,
-            data,
-            self.body_id,
-        )
-
-        def transform_log(tau):
-            return (T_bt.multiply(SE3.exp(tau))).log()
-
-        frame_jac = get_frame_jacobian_local(self.model, data, self.body_id)
-        jlog = jax.jacobian(transform_log)(jnp.zeros(self.dim))
-
-        # TODO: is indexing correct
-        return (-jlog @ frame_jac.T)[self.mask_idxs]
-
-
-class FrameTask(BodyTask[JaxFrameTask]):
-    __target_frame: SE3
-
-    def __init__(
-        self,
-        name: str,
-        cost: ArrayOrFloat,
-        gain: ArrayOrFloat,
-        body_name: str,
-        gain_fn: Callable[[float], float] | None = None,
-        lm_damping: float = 0,
-        mask: Sequence | None = None,
-    ):
-        super().__init__(name, cost, gain, body_name, gain_fn, lm_damping, mask)
-        self.target_frame = SE3.identity()
-        self._dim = SE3.tangent_dim if mask is None else len(self.mask_idxs)
-
-    @property
-    def target_frame(self) -> SE3:
-        return self.__target_frame
-
-    @target_frame.setter
-    def target_frame(self, value: SE3 | jnp.ndarray | np.ndarray):
-        self.update_target_frame(value)
-
-    def update_target_frame(self, target_frame: SE3 | jnp.ndarray | np.ndarray):
-        self._modified = True
-        if not isinstance(target_frame, SE3):
-            if target_frame.shape[-1] != SE3.parameters_dim:
-                raise ValueError("target frame provided via array must has length 7 (xyz + quaternion (scalar first))")
-
-            target_frame = jnp.array(target_frame)
-            xyz, quat = target_frame[..., :3], target_frame[..., 3:]
-            target_frame = SE3.from_rotation_and_translation(
-                SO3.from_quaternion_xyzw(
-                    quat[..., [1, 2, 3, 0]],
-                ),
-                xyz,
+class TestFrameTask(unittest.TestCase):
+    def set_model(self, task: FrameTask):
+        self.model = mjx.put_model(
+            mj.MjModel.from_xml_string(
+                """
+        <mujoco>
+            <worldbody>
+                <body name="body1">
+                    <geom name="box1" size=".3"/>
+                    <joint name="jnt1" type="hinge" axis="1 -1 0"/>
+                    <body name="body2">
+                        <joint name="jnt2" type="hinge" axis="1 -1 0"/>
+                        <geom name="box2" pos=".6 .6 .6" size=".3"/>
+                        <body name="body3">
+                            <joint name="jnt3" type="hinge" axis="1 -1 0" pos=".6 .6 .6"/>
+                            <geom name="box3" pos="1.2 1.2 1.2" size=".3"/>
+                        </body>
+                    </body>
+                </body>
+            </worldbody>
+        </mujoco>
+        """
             )
-
-        self.__target_frame = target_frame
-
-    @final
-    def _build_component(self) -> JaxFrameTask:
-        return JaxFrameTask(
-            dim=self.dim,
-            model=self.model,
-            cost=self.matrix_cost,
-            gain=self.vector_gain,
-            gain_function=self.gain_fn,
-            lm_damping=self.lm_damping,
-            body_id=self.body_id,
-            target_frame=self.target_frame,
-            mask_idxs=self.mask_idxs,
         )
+        task.update_model(self.model)
+
+    def setUp(self):
+        self.frame_task = FrameTask("frame_task", cost=1.0, gain=1.0, body_name="body1")
+
+    def test_task_dim(self):
+        self.assertEqual(self.frame_task.dim, 6)
+
+    def test_update_target_frame_from_SE3(self):
+        new_target = SE3.from_rotation_and_translation(SO3.identity(), jnp.array([1.0, 2.0, 3.0]))
+        self.frame_task.update_target_frame(new_target)
+        np.testing.assert_array_almost_equal(self.frame_task.target_frame.wxyz_xyz, new_target.wxyz_xyz)
+
+    def test_update_target_frame_from_sequence(self):
+        new_target = [0, 0, 0, 1.0, 0, 0, 0]
+        new_target_se3 = SE3(np.array(new_target)[[3, 4, 5, 6, 0, 1, 2]])
+        self.frame_task.update_target_frame(new_target)
+        np.testing.assert_array_almost_equal(self.frame_task.target_frame.wxyz_xyz, new_target_se3.wxyz_xyz)
+
+    def test_mask_handling(self):
+        masked_frame_task = FrameTask(
+            "masked_frame_task", cost=1.0, gain=1.0, body_name="body1", mask=[0, 0, 0, 1, 1, 1]
+        )
+
+        self.assertEqual(masked_frame_task.dim, 3)
+
+    def test_build_component(self):
+        frame_task = FrameTask(
+            "com_task",
+            cost=1.0,
+            gain=2.0,
+            gain_fn=lambda x: 2 * x,
+            lm_damping=0.5,
+            mask=[0, 0, 0, 1, 1, 1],
+            body_name="body1",
+        )
+        self.set_model(frame_task)
+        frame_des = jnp.array([0, 0, 0, 1, 0, 0, 0])
+        frame_task.target_frame = frame_des
+
+        jax_component = frame_task._build_component()
+        self.assertEqual(jax_component.dim, 3)
+        np.testing.assert_array_equal(jax_component.cost, jnp.eye(3))
+        np.testing.assert_array_equal(jax_component.gain, jnp.ones(3) * 2.0)
+        self.assertEqual(jax_component.gain_function(4), 8)
+        self.assertEqual(jax_component.lm_damping, 0.5)
+        np.testing.assert_array_almost_equal(jax_component.target_frame.wxyz_xyz, frame_des[(3, 4, 5, 6, 0, 1, 2),])
+        self.assertEqual(jax_component.mask_idxs, (3, 4, 5))
+
+        data = mjx.fwd_position(self.model, mjx.make_data(self.model))
+        com_value = jax_component(data)
+        np.testing.assert_array_almost_equal(com_value, jnp.zeros(3))
+
+
+unittest.main()
