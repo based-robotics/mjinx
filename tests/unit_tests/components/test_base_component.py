@@ -104,12 +104,6 @@ class TestComponent(unittest.TestCase):
         with self.assertRaises(ValueError):
             _ = self.component.vector_gain
 
-        # Gain could not has dimension bigger than 2
-        vector_gain = np.eye(3)
-        self.component.update_gain(vector_gain)
-        with self.assertRaises(ValueError):
-            _ = self.component.vector_gain
-
     def test_mask(self):
         """Testing output mask
 

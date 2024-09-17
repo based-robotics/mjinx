@@ -3,17 +3,21 @@ import unittest
 import jax.numpy as jnp
 import mujoco as mj
 import mujoco.mjx as mjx
-import numpy as np
 
 from mjinx.components.tasks import BodyTask, JaxBodyTask
 
 
-class DummyBodyTask(BodyTask[JaxBodyTask]):
+class DummyJaxBodyTask(JaxBodyTask):
+    def __call__(self, data: mjx.Data) -> jnp.ndarray:
+        return data.xpos[self.body_id]
+
+
+class DummyBodyTask(BodyTask[DummyJaxBodyTask]):
     def set_dim(self, dim: int):
         self._dim = dim
 
-    def _build_component(self) -> JaxBodyTask:
-        return JaxBodyTask(
+    def _build_component(self) -> DummyJaxBodyTask:
+        return DummyJaxBodyTask(
             dim=self.dim,
             model=self.model,
             gain=self.gain,
@@ -50,6 +54,3 @@ class TestBodyTask(unittest.TestCase):
         body_task = DummyBodyTask("body_task", cost=1.0, gain=1.0, body_name="body3")
         with self.assertRaises(ValueError):
             self.set_model(body_task)
-
-
-unittest.main()
