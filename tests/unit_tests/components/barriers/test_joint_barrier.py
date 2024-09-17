@@ -1,112 +1,111 @@
-from typing import Callable, Sequence, final
+"""Center of mass task implementation."""
+
+import unittest
 
 import jax.numpy as jnp
-import jax_dataclasses as jdc
+import mujoco as mj
 import mujoco.mjx as mjx
 import numpy as np
 
-from mjinx.components.barriers._base import Barrier, JaxBarrier
-from mjinx.configuration import joint_difference
-from mjinx.typing import ArrayOrFloat
+from mjinx.components.barriers import JointBarrier
 
 
-@jdc.pytree_dataclass
-class JaxJointBarrier(JaxBarrier):
-    r"""..."""
-
-    q_min: jnp.ndarray
-    q_max: jnp.ndarray
-
-    def __call__(self, data: mjx.Data) -> jnp.ndarray:
-        # TODO: what the constraint for SO3/SE3 groups is?
-        return jnp.concatenate(
-            [
-                joint_difference(self.model, data.qpos, self.q_min)[self.mask_idxs],
-                joint_difference(self.model, self.q_max, data.qpos)[self.mask_idxs],
-            ]
+class TestJointTask(unittest.TestCase):
+    def set_model(self, barrier: JointBarrier):
+        self.model = mjx.put_model(
+            mj.MjModel.from_xml_string(
+                """
+        <mujoco>
+            <worldbody>
+                <body name="body1">
+                    <geom name="box1" size=".3"/>
+                    <joint name="jnt1" type="hinge" axis="1 -1 0"/>
+                    <body name="body2">
+                        <joint name="jnt2" type="hinge" axis="1 -1 0"/>
+                        <geom name="box2" pos=".6 .6 .6" size=".3"/>
+                        <body name="body3">
+                            <joint name="jnt3" type="hinge" axis="1 -1 0" pos=".6 .6 .6"/>
+                            <geom name="box3" pos="1.2 1.2 1.2" size=".3"/>
+                        </body>
+                    </body>
+                </body>
+            </worldbody>
+        </mujoco>
+        """
+            )
         )
+        barrier.update_model(self.model)
 
+    def test_set_model_no_mask(self):
+        """Check the effect of setting the model for the task without mask"""
+        jnt_task = JointBarrier("jnt_barrier", 1.0)
+        with self.assertRaises(ValueError):
+            _ = jnt_task.dim
+        with self.assertRaises(ValueError):
+            _ = jnt_task.target_q
 
-class JointBarrier(Barrier[JaxJointBarrier]):
-    __q_min: jnp.ndarray | None
-    __q_max: jnp.ndarray | None
+        self.set_model(jnt_task)
 
-    def __init__(
-        self,
-        name: str,
-        gain: ArrayOrFloat,
-        gain_fn: Callable[[float], float] | None = None,
-        safe_displacement_gain: float = 0,
-        q_min: Sequence | None = None,
-        q_max: Sequence | None = None,
-        mask: Sequence | None = None,
-    ):
-        super().__init__(name, gain, gain_fn, safe_displacement_gain, mask=mask)
-        if len(self.mask_idxs) != 0:
-            self._dim = 2 * len(self.mask_idxs)
-        self.__q_min = jnp.array(q_min) if q_min is not None else None
-        self.__q_max = jnp.array(q_max) if q_max is not None else None
+        self.assertEqual(jnt_task.dim, self.model.nq)
+        np.testing.assert_array_equal(jnt_task.target_q, jnp.zeros(self.model.nq))
+        jnt_task.update_target_q(jnp.ones(self.model.nq))
+        with self.assertRaises(ValueError):
+            jnt_task.update_target_q(jnp.ones(self.model.nq + 1))
 
-    @property
-    def q_min(self) -> jnp.ndarray:
-        if self.__q_min is None:
-            raise ValueError(
-                "q_min is not yet defined. Either provide it explicitly, or provide an instance of a model"
-            )
-        return self.__q_min
+    def test_set_model_with_mask(self):
+        """Check the effect of setting the model for the task with mask"""
+        jnt_task = JointTask("jnt_task", 1.0, 1.0, mask=[True, True, False])
+        self.set_model(jnt_task)
 
-    @q_min.setter
-    def q_min(self, value: np.ndarray | jnp.ndarray):
-        self.update_q_min(value)
+        self.assertEqual(jnt_task.dim, 2)
+        self.assertEqual(len(jnt_task.target_q), 2)
 
-    def update_q_min(self, q_min: np.ndarray | jnp.ndarray):
-        if q_min.shape[-1] != self.model.nv:
-            raise ValueError(
-                f"[JointBarrier] wrong dimension of q_min: expected {len(self.model.nv)}, got {q_min.shape[-1]}"
-            )
+        jnt_task.update_target_q(jnp.ones(2))
+        with self.assertRaises(ValueError):
+            jnt_task.update_target_q(jnp.ones(self.model.nq))
 
-        self._modified = True
-        self.__q_min = q_min if isinstance(q_min, jnp.ndarray) else jnp.array(q_min)
+        jnt_task_wrong_mask = JointTask("jnt_task", 1.0, 1.0, mask=[True, False])
+        with self.assertRaises(ValueError):
+            self.set_model(jnt_task_wrong_mask)
 
-    @property
-    def q_max(self) -> jnp.ndarray:
-        if self.__q_max is None:
-            raise ValueError(
-                "q_max is not yet defined. Either provide it explicitly, or provide an instance of a model"
-            )
-        return self.__q_max
+    def test_update_target_q(self):
+        jnt_task = JointTask("jnt_task", 1.0, 1.0)
+        new_target = [1.0, 2.0, 3.0]
+        jnt_task.update_target_q(new_target)
+        np.testing.assert_array_equal(jnt_task.target_q, new_target)
 
-    @q_max.setter
-    def q_max(self, value: np.ndarray | jnp.ndarray):
-        self.update_q_max(value)
+        # Setting wrong task target
+        # Note that this could be detected only upon setting the model
+        bad_target = [1.0, 2.0]
+        jnt_task.update_target_q(bad_target)
+        with self.assertRaises(ValueError):
+            self.set_model(jnt_task)
 
-    def update_q_max(self, q_max: np.ndarray | jnp.ndarray):
-        if q_max.shape[-1] != self.model.nv:
-            raise ValueError(
-                f"[JointBarrier] wrong dimension of q_max: expected {len(self.model.nv)}, got {q_max.shape[-1]}"
-            )
-        self._modified = True
-        self.__q_max = q_max if isinstance(q_max, jnp.ndarray) else jnp.array(q_max)
+        # Setting task target with mask
+        jnt_task_masked = JointTask("jnt_task", 1.0, 1.0, mask=[True, True, False])
+        jnt_task_masked.update_target_q(bad_target)
+        self.set_model(jnt_task_masked)
 
-    def update_model(self, model: mjx.Model):
-        super().update_model(model)
-        self._dim = 2 * self.model.nv
-        if self.__q_min is None:
-            self.__q_min = self.model.jnt_range[:, 0]
-        if self.__q_max is None:
-            self.__q_max = self.model.jnt_range[:, 1]
-        if self._dim is None:
-            self._dim = 2 * self.model.nv
-
-    @final
-    def _build_component(self) -> JaxJointBarrier:
-        return JaxJointBarrier(
-            dim=self.dim,
-            model=self.model,
-            gain=self.vector_gain,
-            gain_function=self.gain_fn,
-            safe_displacement_gain=self.safe_displacement_gain,
-            q_min=self.q_min,
-            q_max=self.q_max,
-            mask_idxs=self.mask_idxs,
+    def test_build_component(self):
+        jnt_task = JointTask(
+            "jnt_task", cost=1.0, gain=2.0, gain_fn=lambda x: 2 * x, lm_damping=0.5, mask=[True, False, True]
         )
+        self.set_model(jnt_task)
+        jnt_des = jnp.array((-0.2, 0.4))
+        jnt_task.target_q = jnt_des
+
+        jax_component = jnt_task._build_component()
+        self.assertEqual(jax_component.dim, 2)
+        np.testing.assert_array_equal(jax_component.cost, jnp.eye(2))
+        np.testing.assert_array_equal(jax_component.gain, jnp.ones(2) * 2.0)
+        self.assertEqual(jax_component.gain_function(4), 8)
+        self.assertEqual(jax_component.lm_damping, 0.5)
+        np.testing.assert_array_equal(jax_component.target_q, jnt_des)
+        self.assertEqual(jax_component.mask_idxs, (0, 2))
+
+        data = mjx.fwd_position(self.model, mjx.make_data(self.model))
+        com_value = jax_component(data)
+        np.testing.assert_array_equal(com_value, jnp.array([0.2, -0.4]))
+
+
+unittest.main()
