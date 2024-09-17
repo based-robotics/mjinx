@@ -1,107 +1,97 @@
-# """Frame task implementation."""
+"""Center of mass task implementation."""
 
-# from typing import Callable, Iterable, final
+import unittest
 
-# import jax
-# import jax.numpy as jnp
-# import jax_dataclasses as jdc
-# import mujoco.mjx as mjx
-# import numpy as np
-# from jaxlie import SE3, SO3
+import jax.numpy as jnp
+import mujoco as mj
+import mujoco.mjx as mjx
+import numpy as np
+from jaxlie import SE3
 
-# from mjinx.components.tasks._body_task import BodyTask, JaxBodyTask
-# from mjinx.configuration import get_frame_jacobian_local, get_transform_frame_to_world
-# from mjinx.typing import ArrayOrFloat
+from mjinx.components.tasks import FrameTask, JaxFrameTask
 
 
-# @jdc.pytree_dataclass
-# class JaxFrameTask(JaxBodyTask):
-#     r""""""
+class TestBodyFrameTask(unittest.TestCase):
 
-#     target_frame: SE3
+    def setUp(self):
+        self.to_wxyz_xyz: jnp.array = jnp.array([3, 4, 5, 6, 0, 1, 2])
 
-#     @final
-#     def __call__(self, data: mjx.Data) -> jnp.ndarray:
-#         r""""""
-#         return (
-#             get_transform_frame_to_world(
-#                 self.model,
-#                 data,
-#                 self.body_id,
-#             ).inverse()
-#             @ self.target_frame
-#         ).log()[self.mask_idxs]
+    def set_model(self, task: FrameTask):
+        self.model = mjx.put_model(
+            mj.MjModel.from_xml_string(
+                """
+        <mujoco>
+            <worldbody>
+                <body name="body1">
+                    <geom name="box1" size=".3"/>
+                    <joint name="jnt1" type="hinge" axis="1 -1 0"/>
+                    <body name="body2">
+                        <joint name="jnt2" type="hinge" axis="1 -1 0"/>
+                        <geom name="box2" pos=".6 .6 .6" size=".3"/>
+                        <body name="body3">
+                            <joint name="jnt3" type="hinge" axis="1 -1 0" pos=".6 .6 .6"/>
+                            <geom name="box3" pos="1.2 1.2 1.2" size=".3"/>
+                        </body>
+                    </body>
+                </body>
+            </worldbody>
+        </mujoco>
+        """
+            )
+        )
+        task.update_model(self.model)
 
-#     @final
-#     def compute_jacobian(self, data: mjx.Data) -> jnp.ndarray:
-#         T_bt = self.target_frame.inverse() @ get_transform_frame_to_world(
-#             self.model,
-#             data,
-#             self.body_id,
-#         )
+    def test_target_frame(self):
+        """Testing manipulations with target frame"""
+        frame_task = FrameTask("frame_task", cost=1.0, gain=2.0, body_name="body3")
+        # By default, it has to be identity
+        np.testing.assert_array_almost_equal(SE3.identity().wxyz_xyz, frame_task.target_frame.wxyz_xyz)
 
-#         def transform_log(tau):
-#             return (T_bt.multiply(SE3.exp(tau))).log()
+        # Setting with SE3 object
+        test_se3 = SE3(jnp.array([0.1, 0.2, -0.1, 0, 1, 0, 0]))
+        frame_task.target_frame = test_se3
+        np.testing.assert_array_almost_equal(test_se3.wxyz_xyz, frame_task.target_frame.wxyz_xyz)
 
-#         frame_jac = get_frame_jacobian_local(self.model, data, self.body_id)
-#         jlog = jax.jacobian(transform_log)(jnp.zeros(self.dim))
+        # Setting with sequence
+        test_se3_seq = (-1, 0, 1, 0, 0, 1, 0)
+        frame_task.target_frame = test_se3_seq
+        np.testing.assert_array_almost_equal(
+            jnp.array(test_se3_seq)[self.to_wxyz_xyz], frame_task.target_frame.wxyz_xyz
+        )
 
-#         # TODO: is indexing correct
-#         return (-jlog @ frame_jac.T)[self.mask_idxs]
+    def test_build_component(self):
+        frame_task = FrameTask(
+            "frame_task",
+            cost=1.0,
+            gain=2.0,
+            body_name="body3",
+            gain_fn=lambda x: 2 * x,
+            lm_damping=0.5,
+            mask=[True, False, True, True, False, True],
+        )
+        self.set_model(frame_task)
+        frame_des = jnp.array([0.1, 0, -0.1, 1, 0, 0, 0])
+        frame_task.target_frame = frame_des
+
+        jax_component = frame_task.jax_component
+
+        self.assertEqual(jax_component.dim, 4)
+        np.testing.assert_array_equal(jax_component.cost, jnp.eye(jax_component.dim))
+        np.testing.assert_array_equal(jax_component.gain, jnp.ones(jax_component.dim) * 2.0)
+        self.assertEqual(jax_component.gain_function(4), 8)
+        self.assertEqual(jax_component.lm_damping, 0.5)
+        np.testing.assert_array_almost_equal(jax_component.target_frame.wxyz_xyz, frame_des[self.to_wxyz_xyz])
+
+        self.assertEqual(jax_component.mask_idxs, (0, 2, 3, 5))
+
+        data = mjx.fwd_position(self.model, mjx.make_data(self.model))
+        com_value = jax_component(data)
+        np.testing.assert_array_equal(com_value, jnp.array([0.1, -0.1, 0.0, 0.0]))
+
+        # Testing component jacobian
+        jac = jax_component.compute_jacobian(mjx.make_data(self.model))
+
+        self.assertEqual(jac.shape, (jax_component.dim, self.model.nv))
 
 
-# class FrameTask(BodyTask[JaxFrameTask]):
-#     __target_frame: SE3
-
-#     def __init__(
-#         self,
-#         name: str,
-#         cost: ArrayOrFloat,
-#         gain: ArrayOrFloat,
-#         body_name: str,
-#         gain_fn: Callable[[float], float] | None = None,
-#         lm_damping: float = 0,
-#         mask: Sequence | None = None,
-#     ):
-#         super().__init__(name, cost, gain, body_name, gain_fn, lm_damping, mask)
-#         self.target_frame = SE3.identity()
-#         self._dim = SE3.tangent_dim if mask is None else len(self.mask_idxs)
-
-#     @property
-#     def target_frame(self) -> SE3:
-#         return self.__target_frame
-
-#     @target_frame.setter
-#     def target_frame(self, value: SE3 | jnp.ndarray | np.ndarray):
-#         self.update_target_frame(value)
-
-#     def update_target_frame(self, target_frame: SE3 | jnp.ndarray | np.ndarray):
-#         self._modified = True
-#         if not isinstance(target_frame, SE3):
-#             if target_frame.shape[-1] != SE3.parameters_dim:
-#                 raise ValueError("target frame provided via array must has length 7 (xyz + quaternion (scalar first))")
-
-#             target_frame = jnp.array(target_frame)
-#             xyz, quat = target_frame[..., :3], target_frame[..., 3:]
-#             target_frame = SE3.from_rotation_and_translation(
-#                 SO3.from_quaternion_xyzw(
-#                     quat[..., [1, 2, 3, 0]],
-#                 ),
-#                 xyz,
-#             )
-
-#         self.__target_frame = target_frame
-
-#     @final
-#     def _build_component(self) -> JaxFrameTask:
-#         return JaxFrameTask(
-#             dim=self.dim,
-#             model=self.model,
-#             cost=self.matrix_cost,
-#             gain=self.vector_gain,
-#             gain_function=self.gain_fn,
-#             lm_damping=self.lm_damping,
-#             body_id=self.body_id,
-#             target_frame=self.target_frame,
-#             mask_idxs=self.mask_idxs,
-#         )
+unittest.main()

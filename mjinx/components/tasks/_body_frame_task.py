@@ -6,7 +6,6 @@ import jax
 import jax.numpy as jnp
 import jax_dataclasses as jdc
 import mujoco.mjx as mjx
-import numpy as np
 from jaxlie import SE3, SO3
 
 from mjinx.components.tasks._body_task import BodyTask, JaxBodyTask
@@ -46,9 +45,7 @@ class JaxFrameTask(JaxBodyTask):
             return (T_bt.multiply(SE3.exp(tau))).log()
 
         frame_jac = get_frame_jacobian_local(self.model, data, self.body_id)
-        jlog = jax.jacobian(transform_log)(jnp.zeros(self.dim))
-
-        # TODO: is indexing correct
+        jlog = jax.jacobian(transform_log)(jnp.zeros(SE3.tangent_dim))
         return (-jlog @ frame_jac.T)[self.mask_idxs,]
 
 
@@ -74,25 +71,26 @@ class FrameTask(BodyTask[JaxFrameTask]):
         return self.__target_frame
 
     @target_frame.setter
-    def target_frame(self, value: SE3 | jnp.ndarray | np.ndarray):
+    def target_frame(self, value: SE3 | Sequence):
         self.update_target_frame(value)
 
-    def update_target_frame(self, target_frame: SE3 | jnp.ndarray | np.ndarray):
+    def update_target_frame(self, target_frame: SE3 | Sequence):
         self._modified = True
         if not isinstance(target_frame, SE3):
-            if target_frame.shape[-1] != SE3.parameters_dim:
+            target_frame_jnp = jnp.array(target_frame)
+            if target_frame_jnp.shape[-1] != SE3.parameters_dim:
                 raise ValueError("target frame provided via array must has length 7 (xyz + quaternion (scalar first))")
 
-            target_frame = jnp.array(target_frame)
-            xyz, quat = target_frame[..., :3], target_frame[..., 3:]
-            target_frame = SE3.from_rotation_and_translation(
+            xyz, quat = target_frame_jnp[..., :3], target_frame_jnp[..., 3:]
+            target_frame_se3 = SE3.from_rotation_and_translation(
                 SO3.from_quaternion_xyzw(
                     quat[..., [1, 2, 3, 0]],
                 ),
                 xyz,
             )
-
-        self.__target_frame = target_frame
+        else:
+            target_frame_se3 = target_frame
+        self.__target_frame = target_frame_se3
 
     @final
     def _build_component(self) -> JaxFrameTask:
