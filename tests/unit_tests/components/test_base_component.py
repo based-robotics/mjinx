@@ -56,7 +56,7 @@ class TestComponent(unittest.TestCase):
         else:
             component.define_dim(self.dummy_dim)
 
-    def __set_gain_and_check(self, gain: ArrayOrFloat):
+    def set_gain_and_check(self, gain: ArrayOrFloat):
         """Checking that gain is transformed into jnp.ndarray, and values are correct"""
         self.component.update_gain(gain)
         np.testing.assert_array_equal(self.component.gain, gain)
@@ -64,24 +64,24 @@ class TestComponent(unittest.TestCase):
     def test_update_gain(self):
         """Testing setting up different gains dimensions"""
         # Test scalar gain assignment
-        self.__set_gain_and_check(1.0)
-        self.__set_gain_and_check(np.array(2.0))
-        self.__set_gain_and_check(jnp.array(3.0))
+        self.set_gain_and_check(1.0)
+        self.set_gain_and_check(np.array(2.0))
+        self.set_gain_and_check(jnp.array(3.0))
 
         # Test vector gain assignment
-        self.__set_gain_and_check(np.zeros(self.dummy_dim))
-        self.__set_gain_and_check(jnp.ones(self.dummy_dim))
+        self.set_gain_and_check(np.zeros(self.dummy_dim))
+        self.set_gain_and_check(jnp.ones(self.dummy_dim))
 
         # Test assigning gain with other dimension
         self.set_dim()
-        gain = np.eye(self.component.dim + 1)
+        gain = np.eye(self.component.dim)
         with self.assertRaises(ValueError):
             self.component.update_gain(gain)
 
     def test_vector_gain(self):
         """Testing proper convertation of gain to vector form"""
         # Vector gain could not be constucted till dimension is specified
-        self.component.update_gain(1.0)
+        self.component.gain = 1.0
         with self.assertRaises(ValueError):
             _ = self.component.vector_gain
 
@@ -100,6 +100,12 @@ class TestComponent(unittest.TestCase):
         # Note that error would be raised only when vector_gain is accessed, even if model is already
         # provided
         vector_gain = jnp.ones(self.component.dim + 1)
+        self.component.update_gain(vector_gain)
+        with self.assertRaises(ValueError):
+            _ = self.component.vector_gain
+
+        # Gain could not has dimension bigger than 2
+        vector_gain = np.eye(3)
         self.component.update_gain(vector_gain)
         with self.assertRaises(ValueError):
             _ = self.component.vector_gain
@@ -161,5 +167,18 @@ class TestComponent(unittest.TestCase):
         # Those conditions should always be enough to build jax component
         _ = self.component.jax_component
 
+    def test_copy_and_set(self):
+        """Test Component's method for copying and setting"""
+        self.set_model()
+        self.set_dim()
+        jax_component = self.component.jax_component
 
-unittest.main()
+        updated_jax_component = jax_component.copy_and_set(gain=jnp.array(1))
+
+        init_component_dict = jax_component.__dict__
+        updated_component_dict = updated_jax_component.__dict__
+
+        self.assertNotEqual(init_component_dict["gain"], updated_component_dict["gain"])
+        init_component_dict.pop("gain")
+        updated_component_dict.pop("gain")
+        self.assertEqual(init_component_dict, updated_component_dict)

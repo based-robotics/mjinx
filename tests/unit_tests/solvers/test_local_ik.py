@@ -97,6 +97,3 @@ class TestLocalIK(unittest.TestCase):
         )
 
         np.testing.assert_almost_equal(new_solution.v_opt, new_solution_from_data.v_opt, decimal=3)
-
-
-unittest.main()

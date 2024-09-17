@@ -170,7 +170,7 @@ class LocalIKSolver(Solver[LocalIKData, LocalIKSolution]):
             LocalIKData(v_prev=solution.params.primal),
         )
 
-    def init(self, v_init: mjt.ndarray | None = None, q: mjt.ndarray | None = None) -> LocalIKData:
+    def init(self, v_init: mjt.ndarray | None = None) -> LocalIKData:
         v_init_jnp = jnp.array(v_init) if v_init is not None else jnp.zeros(self.model.nv)
 
         if v_init_jnp.shape != (self.model.nv,):

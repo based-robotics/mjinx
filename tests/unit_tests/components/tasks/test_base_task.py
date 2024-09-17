@@ -112,6 +112,3 @@ class TestTask(unittest.TestCase):
 
         with self.assertRaises(ValueError):
             _ = DummyTask("negative_lm_task", 1.0, 1.0, lm_damping=-5.0)
-
-
-unittest.main()

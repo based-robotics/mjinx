@@ -1,156 +1,174 @@
-#!/usr/bin/env python3
+# import unittest
 
-"""..."""
+# import jax
+# import jax.numpy as jnp
+# import jaxlie
+# import mujoco as mj
+# from jaxlie import SE3, SO3
+# from mujoco import mjx
 
-import jax
-import jax.numpy as jnp
-import jaxlie
-import mujoco as mj
-from jaxlie import SE3, SO3
-from mujoco import mjx
-
-
-def update(model: mjx.Model, q: jnp.ndarray) -> mjx.Data:
-    """..."""
-    data = mjx.make_data(model)
-    data = data.replace(qpos=q)
-    data = mjx.fwd_position(model, data)
-    data = mjx.com_pos(model, data)
-
-    return data
-
-
-def check_limits(model: mjx.Model, data: mjx.Data) -> bool:
-    """..."""
-    return jnp.all(model.jnt_range[:, 0] < data.qpos < model.jnt_range[:, 1]).item()
+# # Import the functions to be tested
+# from mjinx.configuration import (
+#     check_limits,
+#     get_configuration_limit,
+#     get_frame_jacobian_local,
+#     get_frame_jacobian_world_aligned,
+#     get_joint_zero,
+#     get_transform,
+#     get_transform_frame_to_world,
+#     integrate,
+#     joint_difference,
+#     update,
+# )
 
 
-def get_frame_jacobian_world_aligned(model: mjx.Model, data: mjx.Data, body_id: int) -> jnp.ndarray:
-    """Compute pair of (NV, 3) Jacobians of global point attached to body."""
+# class TestConfiguration(unittest.TestCase):
+#     def setUp(self):
+#         # Create a simple MuJoCo model for testing
+#         self.model = mjx.Model.from_xml(
+#             """
+#         <mujoco>
+#           <worldbody>
+#             <body name="body1" pos="0 0 0">
+#               <joint name="joint1" type="hinge"/>
+#               <geom size="1"/>
+#             </body>
+#           </worldbody>
+#         </mujoco>
+#         """
+#         )
+#         self.q = jnp.array([0.5])  # Example joint position
 
-    def fn(carry, b):
-        return b if carry is None else b + carry
+#     def test_update(self):
+#         data = update(self.model, self.q)
+#         self.assertIsInstance(data, mjx.Data)
+#         self.assertTrue(jnp.allclose(data.qpos, self.q))
 
-    mask = (jnp.arange(model.nbody) == body_id) * 1
-    # Puts 1 for all parent links of specified body.
-    mask = mjx._src.scan.body_tree(model, fn, "b", "b", mask, reverse=True)
-    # From all parent links, select only those which add degree of freedoms?..
-    mask = mask[jnp.array(model.dof_bodyid)] > 0
+#     def test_check_limits(self):
+#         data = update(self.model, self.q)
+#         result = check_limits(self.model, data)
+#         self.assertIsInstance(result, bool)
 
-    # Subtree_com is the center of mass of the subtree.
-    offset = data.xpos[body_id] - data.subtree_com[jnp.array(model.body_rootid)[body_id]]
-    # vmap over all degrees of freedom of the subtree.
-    jacp = jax.vmap(lambda a, b=offset: a[3:] + jnp.cross(a[:3], b))(data.cdof)
-    jacp = jax.vmap(jnp.multiply)(jacp, mask)
-    jacr = jax.vmap(jnp.multiply)(data.cdof[:, :3], mask)
+#     def test_get_frame_jacobian_world_aligned(self):
+#         data = update(self.model, self.q)
+#         jacobian = get_frame_jacobian_world_aligned(self.model, data, 1)
+#         self.assertEqual(jacobian.shape, (self.model.nv, 6))
 
-    return jnp.vstack((jacp.T, jacr.T)).T
+#     def test_get_frame_jacobian_local(self):
+#         data = update(self.model, self.q)
+#         jacobian = get_frame_jacobian_local(self.model, data, 1)
+#         self.assertEqual(jacobian.shape, (self.model.nv, 6))
+
+#     def test_get_transform_frame_to_world(self):
+#         data = update(self.model, self.q)
+#         transform = get_transform_frame_to_world(self.model, data, 1)
+#         self.assertIsInstance(transform, SE3)
+
+#     def test_get_transform(self):
+#         data = update(self.model, self.q)
+#         transform = get_transform(self.model, data, 0, 1)
+#         self.assertIsInstance(transform, SE3)
+
+#     def test_integrate(self):
+#         velocity = jnp.array([0.1])
+#         dt = jnp.array(0.1)
+#         q_new = integrate(self.model, self.q, velocity, dt)
+#         self.assertEqual(q_new.shape, self.q.shape)
+
+#     def test_get_configuration_limit(self):
+#         limit = 1.0
+#         A, b = get_configuration_limit(self.model, limit)
+#         self.assertEqual(A.shape, (2 * self.model.nv, self.model.nv))
+#         self.assertEqual(b.shape, (2 * self.model.nv,))
+
+#     def test_get_joint_zero(self):
+#         zero_config = get_joint_zero(self.model)
+#         self.assertEqual(zero_config.shape, (self.model.nq,))
+
+#     def test_joint_difference(self):
+#         q1 = jnp.array([0.5])
+#         q2 = jnp.array([0.7])
+#         diff = joint_difference(self.model, q1, q2)
+#         self.assertEqual(diff.shape, (self.model.nv,))
+
+#     # Additional tests for edge cases and different joint types
+#     def test_get_joint_zero_complex_model(self):
+#         complex_model = mjx.Model.from_xml(
+#             """
+#         <mujoco>
+#           <worldbody>
+#             <body name="body1" pos="0 0 0">
+#               <joint name="free_joint" type="free"/>
+#               <body name="body2">
+#                 <joint name="ball_joint" type="ball"/>
+#                 <body name="body3">
+#                   <joint name="hinge_joint" type="hinge"/>
+#                   <body name="body4">
+#                     <joint name="slide_joint" type="slide"/>
+#                   </body>
+#                 </body>
+#               </body>
+#             </body>
+#           </worldbody>
+#         </mujoco>
+#         """
+#         )
+#         zero_config = get_joint_zero(complex_model)
+#         expected_length = 7 + 4 + 1 + 1  # free + ball + hinge + slide
+#         self.assertEqual(zero_config.shape, (expected_length,))
+
+#     def test_joint_difference_complex_model(self):
+#         complex_model = mjx.Model.from_xml(
+#             """
+#         <mujoco>
+#           <worldbody>
+#             <body name="body1" pos="0 0 0">
+#               <joint name="free_joint" type="free"/>
+#               <body name="body2">
+#                 <joint name="ball_joint" type="ball"/>
+#                 <body name="body3">
+#                   <joint name="hinge_joint" type="hinge"/>
+#                   <body name="body4">
+#                     <joint name="slide_joint" type="slide"/>
+#                   </body>
+#                 </body>
+#               </body>
+#             </body>
+#           </worldbody>
+#         </mujoco>
+#         """
+#         )
+#         q1 = jnp.array(
+#             [0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0.5, 0.2]  # free joint  # ball joint  # hinge joint
+#         )  # slide joint
+#         q2 = jnp.array([1, 1, 1, 0, 1, 0, 0, 0, 1, 0, 0, 0.7, 0.3])
+#         diff = joint_difference(complex_model, q1, q2)
+#         expected_length = 6 + 3 + 1 + 1  # free + ball + hinge + slide
+#         self.assertEqual(diff.shape, (expected_length,))
+
+#     def test_get_configuration_limit_array(self):
+#         limit_array = jnp.array([0.5, 1.0, 1.5])
+#         model = mjx.Model.from_xml(
+#             """
+#         <mujoco>
+#           <worldbody>
+#             <body name="body1">
+#               <joint name="joint1" type="slide"/>
+#             </body>
+#             <body name="body2">
+#               <joint name="joint2" type="hinge"/>
+#             </body>
+#             <body name="body3">
+#               <joint name="joint3" type="ball"/>
+#             </body>
+#           </worldbody>
+#         </mujoco>
+#         """
+#         )
+#         A, b = get_configuration_limit(model, limit_array)
+#         self.assertEqual(A.shape, (6, 3))
+#         self.assertTrue(jnp.allclose(b, jnp.array([0.5, 1.0, 1.5, 0.5, 1.0, 1.5])))
 
 
-def get_frame_jacobian_local(model: mjx.Model, data: mjx.Data, body_id: int) -> jax.Array:
-    """Compute pair of (NV, 3) Jacobians of global point attached to body."""
-
-    def fn(carry, b):
-        return b if carry is None else b + carry
-
-    mask = (jnp.arange(model.nbody) == body_id) * 1
-    # Puts 1 for all parent links of specified body.
-    mask = mjx._src.scan.body_tree(model, fn, "b", "b", mask, reverse=True)
-    # From all parent links, select only those which add degree of freedoms?..
-    mask = mask[jnp.array(model.dof_bodyid)] > 0
-
-    # Subtree_com is the center of mass of the subtree.
-    offset = data.xpos[body_id] - data.subtree_com[jnp.array(model.body_rootid)[body_id]]
-
-    # Get rotation matrix, which describes rotation of local frame
-    R_inv = data.xmat[body_id].reshape(3, 3).T
-
-    # vmap over all degrees of freedom of the subtree.
-    jacp = jax.vmap(lambda a, b=offset, R=R_inv: R @ (a[3:] + jnp.cross(a[:3], b)))(data.cdof)
-    jacp = jax.vmap(jnp.multiply)(jacp, mask)
-    jacr = jax.vmap(jnp.multiply)(data.cdof[:, :3] @ R_inv.T, mask)
-
-    return jnp.vstack((jacp.T, jacr.T)).T
-
-
-def get_transform_frame_to_world(model: mjx.Model, data: mjx.Data, frame_id: int) -> SE3:
-    """..."""
-    return SE3.from_rotation_and_translation(
-        SO3.from_quaternion_xyzw(data.xquat[frame_id, [1, 2, 3, 0]]),
-        data.xpos[frame_id],
-    )
-
-
-def get_transform(model: mjx.Model, data: mjx.Data, source_id: int, dest_id: int) -> SE3:
-    """..."""
-    return get_transform_frame_to_world(model, data, dest_id) @ get_transform_frame_to_world(model, data, source_id)
-
-
-def integrate(model: mjx.Model, q0: jnp.ndarray, velocity: jnp.ndarray, dt: jnp.ndarray) -> jnp.ndarray:
-    """..."""
-    return mjx._src.forward._integrate_pos(model.jnt_type, q0, velocity, dt)
-
-
-def get_configuration_limit(model: mjx.Model, limit: jnp.ndarray | float) -> tuple[jnp.ndarray, jnp.ndarray]:
-    """..."""
-    # -limit <= v <- limit
-    limit_array = jnp.ones(model.nv) * limit if isinstance(limit, float) else limit
-
-    return (
-        jnp.vstack((-1 * jnp.eye(model.nv), jnp.eye(model.nv))),
-        jnp.concatenate((limit_array, limit_array)),
-    )
-
-
-def get_joint_zero(model: mjx.Model) -> jnp.ndarray:
-    """..."""
-    jnts = []
-
-    for jnt_id in range(model.njnt):
-        jnt_type = model.jnt_type[jnt_id]
-        match jnt_type:
-            case mj.mjtJoint.mjJNT_FREE:
-                jnts.append(jnp.array([0, 0, 0, 1, 0, 0, 0]))
-            case mj.mjtJoint.mjJNT_BALL:
-                jnts.append(jnp.array([0, 0, 0, 1]))
-            case mj.mjtJoint.mjJNT_HINGE | mj.jntType.mjJNT_SLIDE:
-                jnts.append(jnp.zeros(1))
-
-    return jnp.concatenate(jnts)
-
-
-def joint_difference(model: mjx.Model, q1: jnp.ndarray, q2: jnp.ndarray) -> jnp.ndarray:
-    jnt_diff = []
-    idx = 0
-    for jnt_id in range(model.njnt):
-        jnt_type = model.jnt_type[jnt_id]
-        match jnt_type:
-            case mj.mjtJoint.mjJNT_FREE:
-                q1_pos, q1_quat = q1[idx : idx + 3], q1[idx + 3 : idx + 7]
-                q2_pos, q2_quat = q2[idx : idx + 3], q2[idx + 3 : idx + 7]
-
-                frame1_SE3: SE3 = SE3.from_rotation_and_translation(
-                    SO3.from_quaternion_xyzw(q1_quat[[1, 2, 3, 0]]),
-                    q1_pos,
-                )
-                frame2_SE3: SE3 = SE3.from_rotation_and_translation(
-                    SO3.from_quaternion_xyzw(q2_quat[[1, 2, 3, 0]]),
-                    q2_pos,
-                )
-
-                jnt_diff.append(jaxlie.manifold.rminus(frame1_SE3, frame2_SE3))
-                idx += 7
-            case mj.mjtJoint.mjJNT_BALL:
-                q1_quat = q1[idx : idx + 4]
-                q2_quat = q2[idx : idx + 4]
-
-                frame1_SO3: SO3 = SO3.from_quaternion_xyzw(q1_quat[[1, 2, 3, 0]])
-                frame2_SO3: SO3 = SO3.from_quaternion_xyzw(q2_quat[[1, 2, 3, 0]])
-
-                jnt_diff.append(jaxlie.manifold.rminus(frame1_SO3, frame2_SO3))
-                idx += 4
-            case mj.mjtJoint.mjJNT_HINGE | mj.mjtJoint.mjJNT_SLIDE:
-                jnt_diff.append(q1[idx : idx + 1] - q2[idx : idx + 1])
-                idx += 1
-
-    return jnp.concatenate(jnt_diff)
+# if __name__ == "__main__":
+#

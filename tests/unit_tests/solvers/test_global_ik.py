@@ -9,7 +9,6 @@ from mjinx.components.barriers import JointBarrier
 from mjinx.components.tasks import ComTask
 from mjinx.problem import Problem
 from mjinx.solvers import GlobalIKSolver
-from mjinx.solvers._local_ik import OSQPParameters
 
 
 class TestGlobalIK(unittest.TestCase):
@@ -90,6 +89,3 @@ class TestGlobalIK(unittest.TestCase):
         )
 
         np.testing.assert_almost_equal(new_solution.v_opt, new_solution_from_data.v_opt, decimal=3)
-
-
-unittest.main()

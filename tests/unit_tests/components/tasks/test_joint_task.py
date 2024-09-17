@@ -106,6 +106,3 @@ class TestJointTask(unittest.TestCase):
         data = mjx.fwd_position(self.model, mjx.make_data(self.model))
         com_value = jax_component(data)
         np.testing.assert_array_equal(com_value, jnp.array([0.2, -0.4]))
-
-
-unittest.main()

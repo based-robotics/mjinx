@@ -21,7 +21,7 @@ class JaxComponent(abc.ABC):
     mask_idxs: jdc.Static[tuple[int, ...]]
 
     @abc.abstractmethod
-    def __call__(self, data: mjx.Data) -> jnp.ndarray:
+    def __call__(self, data: mjx.Data) -> jnp.ndarray:  # pragma: no cover
         pass
 
     def copy_and_set(self, **kwargs) -> JaxComponent:
@@ -82,8 +82,6 @@ class Component(Generic[AtomicComponentType], abc.ABC):
 
     @property
     def model(self) -> mjx.Model:
-        if self.__model is None:
-            raise ValueError("model is not provided yet")
         return self.__model
 
     @model.setter
@@ -126,7 +124,7 @@ class Component(Generic[AtomicComponentType], abc.ABC):
                 if len(self.gain) != self.dim:
                     raise ValueError(f"invalid gain size: {self.gain.shape} != {self.dim}")
                 return self.gain
-            case _:
+            case _:  # pragma: no cover
                 raise ValueError("fail to construct vector gain from gain with ndim > 1")
 
     @property
@@ -164,7 +162,7 @@ class Component(Generic[AtomicComponentType], abc.ABC):
         return self.__mask_idxs
 
     @abc.abstractmethod
-    def _build_component(self) -> AtomicComponentType:
+    def _build_component(self) -> AtomicComponentType:  # pragma: no cover
         pass
 
     @property

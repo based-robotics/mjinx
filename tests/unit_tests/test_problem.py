@@ -107,6 +107,3 @@ class TestProblem(unittest.TestCase):
 
         jax_problem_data = self.problem.compile()
         self.assertEqual(len(jax_problem_data.components), 0)
-
-
-unittest.main()
