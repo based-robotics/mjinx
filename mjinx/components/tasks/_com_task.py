@@ -54,9 +54,9 @@ class ComTask(Task[JaxComTask]):
         self.update_target_com(value)
 
     def update_target_com(self, target_com: Sequence):
-        if len(target_com) != self._dim:
+        if target_com.shape[-1] != self._dim:
             raise ValueError(
-                "invalid dimension of the target CoM value: " f"{len(target_com)} given, expected {self._dim} "
+                "invalid last dimension of target CoM : " f"{target_com.shape[-1]} given, expected {self._dim} "
             )
         self._modified = True
         self.__target_com = jnp.array(target_com)

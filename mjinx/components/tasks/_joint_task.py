@@ -51,7 +51,7 @@ class JointTask(Task[JaxJointTask]):
         # Validate current target_q, if empty -- set via default value
         if self.__target_q is None:
             self.target_q = get_joint_zero(model)[self.mask_idxs,]
-        elif len(self.target_q) != self._dim:
+        elif self.target_q.shape[-1] != self._dim:
             raise ValueError(
                 "provided model is incompatible with target q: "
                 f"{len(self.target_q)} is set, model expects {self._dim}."
@@ -69,9 +69,12 @@ class JointTask(Task[JaxJointTask]):
 
     def update_target_q(self, target_q: Sequence):
         self._modified = True
-        if self._dim != -1 and len(target_q) != self._dim:
-            raise ValueError("wrong length ")
-        self.__target_q = jnp.array(target_q)
+        target_q_jnp = jnp.array(target_q)
+        if self._dim != -1 and target_q_jnp.shape[-1] != self._dim:
+            raise ValueError(
+                f"dimension mismatch: expected last dimension to be {self._dim}, got{target_q_jnp.shape[-1]}"
+            )
+        self.__target_q = target_q_jnp
 
     def _build_component(self) -> JaxJointTask:
         return JaxJointTask(
