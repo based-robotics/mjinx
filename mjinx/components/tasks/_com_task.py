@@ -64,7 +64,7 @@ class ComTask(Task[JaxComTask]):
     @final
     def _build_component(self) -> JaxComTask:
         return JaxComTask(
-            dim=self._dim,
+            dim=self.dim,
             model=self.model,
             cost=self.matrix_cost,
             gain=self.vector_gain,

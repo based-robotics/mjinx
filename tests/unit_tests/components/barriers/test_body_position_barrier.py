@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import warnings
 from enum import Enum
-from typing import Callable, Iterable, final
+from typing import Callable, Sequence, final
 
 import jax.numpy as jnp
 import jax_dataclasses as jdc

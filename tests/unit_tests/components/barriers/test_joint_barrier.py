@@ -1,4 +1,4 @@
-from typing import Callable, Iterable, final
+from typing import Callable, Sequence, final
 
 import jax.numpy as jnp
 import jax_dataclasses as jdc
@@ -37,8 +37,8 @@ class JointBarrier(Barrier[JaxJointBarrier]):
         gain: ArrayOrFloat,
         gain_fn: Callable[[float], float] | None = None,
         safe_displacement_gain: float = 0,
-        q_min: Iterable | None = None,
-        q_max: Iterable | None = None,
+        q_min: Sequence | None = None,
+        q_max: Sequence | None = None,
         mask: Sequence | None = None,
     ):
         super().__init__(name, gain, gain_fn, safe_displacement_gain, mask=mask)

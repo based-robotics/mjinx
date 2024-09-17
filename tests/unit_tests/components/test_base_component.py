@@ -20,7 +20,7 @@ class DummyComponent(Component[DummyJaxComponent]):
 
     def _build_component(self) -> DummyJaxComponent:
         return DummyJaxComponent(
-            dim=self._dim,
+            dim=self.dim,
             model=self.model,
             gain=self.gain,
             gain_function=self.gain_fn,

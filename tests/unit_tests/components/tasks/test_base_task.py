@@ -21,7 +21,7 @@ class DummyTask(Task[DummyJaxTask]):
 
     def _build_component(self) -> DummyJaxTask:
         return DummyJaxTask(
-            dim=self._dim,
+            dim=self.dim,
             model=self.model,
             cost=self.cost,
             gain=self.gain,
