@@ -8,7 +8,7 @@ import mujoco.mjx as mjx
 import numpy as np
 from jaxlie import SE3
 
-from mjinx.components.tasks import FrameTask, JaxFrameTask
+from mjinx.components.tasks import FrameTask
 
 
 class TestBodyFrameTask(unittest.TestCase):
@@ -78,6 +78,7 @@ class TestBodyFrameTask(unittest.TestCase):
         self.assertEqual(jax_component.dim, 4)
         np.testing.assert_array_equal(jax_component.cost, jnp.eye(jax_component.dim))
         np.testing.assert_array_equal(jax_component.gain, jnp.ones(jax_component.dim) * 2.0)
+        np.testing.assert_array_equal(jax_component.body_id, frame_task.body_id)
         self.assertEqual(jax_component.gain_function(4), 8)
         self.assertEqual(jax_component.lm_damping, 0.5)
         np.testing.assert_array_almost_equal(jax_component.target_frame.wxyz_xyz, frame_des[self.to_wxyz_xyz])
@@ -85,8 +86,8 @@ class TestBodyFrameTask(unittest.TestCase):
         self.assertEqual(jax_component.mask_idxs, (0, 2, 3, 5))
 
         data = mjx.fwd_position(self.model, mjx.make_data(self.model))
-        com_value = jax_component(data)
-        np.testing.assert_array_equal(com_value, jnp.array([0.1, -0.1, 0.0, 0.0]))
+        error = jax_component(data)
+        np.testing.assert_array_equal(error, jnp.array([0.1, -0.1, 0.0, 0.0]))
 
         # Testing component jacobian
         jac = jax_component.compute_jacobian(mjx.make_data(self.model))
