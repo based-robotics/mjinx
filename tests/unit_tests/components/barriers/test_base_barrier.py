@@ -12,9 +12,6 @@ class DummyJaxBarrier(JaxBarrier):
 
 
 class DummyBarrier(Barrier[DummyJaxBarrier]):
-    def set_dim(self, dim: int):
-        self._dim = dim
-
     def _build_component(self) -> DummyJaxBarrier:
         return DummyJaxBarrier(
             dim=self.dim,

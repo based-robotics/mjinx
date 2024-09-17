@@ -33,7 +33,7 @@ class Solver(Generic[SolverDataType, SolverSolutionType], abc.ABC):
     @abc.abstractmethod
     def solve_from_data(
         self, solver_data: SolverDataType, problem_data: JaxProblemData, model_data: mjx.Data
-    ) -> tuple[SolverSolutionType, SolverDataType]:
+    ) -> tuple[SolverSolutionType, SolverDataType]:  # pragma: no cover
         pass
 
     def solve(
@@ -45,5 +45,5 @@ class Solver(Generic[SolverDataType, SolverSolutionType], abc.ABC):
         return self.solve_from_data(solver_data, problem_data, model_data)
 
     @abc.abstractmethod
-    def init(self, q: mjt.ndarray) -> SolverDataType:
+    def init(self, q: mjt.ndarray) -> SolverDataType:  # pragma: no cover
         pass
