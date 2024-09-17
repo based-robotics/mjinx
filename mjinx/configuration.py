@@ -4,8 +4,8 @@
 
 import jax
 import jax.numpy as jnp
-import mujoco as mj
 import jaxlie
+import mujoco as mj
 from jaxlie import SE3, SO3
 from mujoco import mjx
 
@@ -20,12 +20,13 @@ def update(model: mjx.Model, q: jnp.ndarray) -> mjx.Data:
     return data
 
 
-def check_limits(model: mjx.Model, data: mjx.Data) -> jnp.bool:
-    """..."""
-    return jnp.all(model.jnt_range[:, 0] < data.qpos < model.jnt_range[:, 1])
+# TODO: not working
+# def check_limits(model: mjx.Model, data: mjx.Data) -> bool:
+#     """..."""
+#     return (model.jnt_range[:, 0] < data.qpos < model.jnt_range[:, 1]).all().item()
 
 
-def get_frame_jacobian_world_aligned(model: mjx.Model, data: mjx.Data, body_id: int) -> jnp.array:
+def get_frame_jacobian_world_aligned(model: mjx.Model, data: mjx.Data, body_id: int) -> jnp.ndarray:
     """Compute pair of (NV, 3) Jacobians of global point attached to body."""
 
     def fn(carry, b):
@@ -47,7 +48,7 @@ def get_frame_jacobian_world_aligned(model: mjx.Model, data: mjx.Data, body_id: 
     return jnp.vstack((jacp.T, jacr.T)).T
 
 
-def get_frame_jacobian_local(model: mjx.Model, data: mjx.Data, body_id: jax.Array) -> tuple[jax.Array, jax.Array]:
+def get_frame_jacobian_local(model: mjx.Model, data: mjx.Data, body_id: int) -> jax.Array:
     """Compute pair of (NV, 3) Jacobians of global point attached to body."""
 
     def fn(carry, b):
@@ -83,18 +84,12 @@ def get_transform_frame_to_world(model: mjx.Model, data: mjx.Data, frame_id: int
 
 def get_transform(model: mjx.Model, data: mjx.Data, source_id: int, dest_id: int) -> SE3:
     """..."""
-    return get_transform_frame_to_world(data, dest_id) @ get_transform_frame_to_world(data, source_id)
+    return get_transform_frame_to_world(model, data, dest_id) @ get_transform_frame_to_world(model, data, source_id)
 
 
-def integrate(model: mjx.Model, data: mjx.Data, velocity: jnp.ndarray, dt: jnp.ndarray) -> jnp.array:
+def integrate(model: mjx.Model, q0: jnp.ndarray, velocity: jnp.ndarray, dt: jnp.ndarray) -> jnp.ndarray:
     """..."""
-    data = data.replace(qvel=velocity)
-    return mjx._src.forward._integrate_pos(model.jnt_type, data.qpos, velocity, dt)
-
-
-def integrate_inplace(model: mjx.Model, data: mjx.Data, velocity: jnp.ndarray, dt: jnp.ndarray) -> mjx.Data:
-    """..."""
-    return data.replace(qpos=integrate(model, data, velocity, dt))
+    return mjx._src.forward._integrate_pos(model.jnt_type, q0, velocity, dt)
 
 
 def get_configuration_limit(model: mjx.Model, limit: jnp.ndarray | float) -> tuple[jnp.ndarray, jnp.ndarray]:
@@ -118,8 +113,8 @@ def get_joint_zero(model: mjx.Model) -> jnp.ndarray:
             case mj.mjtJoint.mjJNT_FREE:
                 jnts.append(jnp.array([0, 0, 0, 1, 0, 0, 0]))
             case mj.mjtJoint.mjJNT_BALL:
-                jnts.append(jnp.array([0, 0, 0, 1]))
-            case mj.mjtJoint.mjJNT_HINGE | mj.jntType.mjJNT_SLIDE:
+                jnts.append(jnp.array([1, 0, 0, 0]))
+            case mj.mjtJoint.mjJNT_HINGE | mj.mjtJoint.mjJNT_SLIDE:
                 jnts.append(jnp.zeros(1))
 
     return jnp.concatenate(jnts)
@@ -134,26 +129,28 @@ def joint_difference(model: mjx.Model, q1: jnp.ndarray, q2: jnp.ndarray) -> jnp.
             case mj.mjtJoint.mjJNT_FREE:
                 q1_pos, q1_quat = q1[idx : idx + 3], q1[idx + 3 : idx + 7]
                 q2_pos, q2_quat = q2[idx : idx + 3], q2[idx + 3 : idx + 7]
+                indices = jnp.array([1, 2, 3, 0])
 
-                frame1 = SE3.from_rotation_and_translation(
-                    SO3.from_quaternion_xyzw(q1_quat[[1, 2, 3, 0]]),
+                frame1_SE3: SE3 = SE3.from_rotation_and_translation(
+                    SO3.from_quaternion_xyzw(q1_quat[indices]),
                     q1_pos,
                 )
-                frame2 = SE3.from_rotation_and_translation(
-                    SO3.from_quaternion_xyzw(q2_quat[[1, 2, 3, 0]]),
+                frame2_SE3: SE3 = SE3.from_rotation_and_translation(
+                    SO3.from_quaternion_xyzw(q2_quat[indices]),
                     q2_pos,
                 )
 
-                jnt_diff.append(jaxlie.manifold.rminus(frame1, frame2))
+                jnt_diff.append(jaxlie.manifold.rminus(frame1_SE3, frame2_SE3))
                 idx += 7
             case mj.mjtJoint.mjJNT_BALL:
                 q1_quat = q1[idx : idx + 4]
                 q2_quat = q2[idx : idx + 4]
+                indices = jnp.array([1, 2, 3, 0])
 
-                frame1 = SO3.from_quaternion_xyzw(q1_quat[[1, 2, 3, 0]])
-                frame2 = SO3.from_quaternion_xyzw(q2_quat[[1, 2, 3, 0]])
+                frame1_SO3: SO3 = SO3.from_quaternion_xyzw(q1_quat[indices])
+                frame2_SO3: SO3 = SO3.from_quaternion_xyzw(q2_quat[indices])
 
-                jnt_diff.append(jaxlie.manifold.rminus(frame1, frame2))
+                jnt_diff.append(jaxlie.manifold.rminus(frame1_SO3, frame2_SO3))
                 idx += 4
             case mj.mjtJoint.mjJNT_HINGE | mj.mjtJoint.mjJNT_SLIDE:
                 jnt_diff.append(q1[idx : idx + 1] - q2[idx : idx + 1])
