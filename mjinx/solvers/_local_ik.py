@@ -170,5 +170,10 @@ class LocalIKSolver(Solver[LocalIKData, LocalIKSolution]):
             LocalIKData(v_prev=solution.params.primal),
         )
 
-    def init(self, q: mjt.ndarray | None = None, v_init: mjt.ndarray | None = None) -> LocalIKData:
-        return LocalIKData(v_prev=jnp.array(v_init) if v_init is not None else jnp.zeros(self.model.nv))
+    def init(self, v_init: mjt.ndarray | None = None, q: mjt.ndarray | None = None) -> LocalIKData:
+        v_init_jnp = jnp.array(v_init) if v_init is not None else jnp.zeros(self.model.nv)
+
+        if v_init_jnp.shape != (self.model.nv,):
+            raise ValueError(f"Invalid dimension of the velocity: expected ({self.model.nv}, ), got {v_init_jnp.shape}")
+
+        return LocalIKData(v_prev=v_init_jnp)

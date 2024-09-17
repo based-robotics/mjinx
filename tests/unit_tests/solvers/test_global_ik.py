@@ -1,74 +1,95 @@
-from typing import Callable
+import unittest
 
-import jax
-import jax.numpy as jnp
-import jax_dataclasses as jdc
+import mujoco as mj
 import mujoco.mjx as mjx
+import numpy as np
 import optax
 
-import mjinx.typing as mjt
-from mjinx import configuration
-from mjinx.components.barriers._base import JaxBarrier
-from mjinx.components.tasks._base import JaxTask
-from mjinx.problem import JaxProblemData
-from mjinx.solvers._base import Solver, SolverData, SolverSolution
+from mjinx.components.barriers import JointBarrier
+from mjinx.components.tasks import ComTask
+from mjinx.problem import Problem
+from mjinx.solvers import GlobalIKSolver
+from mjinx.solvers._local_ik import OSQPParameters
 
 
-@jdc.pytree_dataclass
-class GlobalIKData(SolverData):
-    optax_state: optax.OptState
+class TestGlobalIK(unittest.TestCase):
+    def setUp(self):
+        """Setting up basic model, components, and problem data."""
 
-
-@jdc.pytree_dataclass
-class GlobalIKSolution(SolverSolution):
-    q_opt: jnp.ndarray
-
-
-class GlobalIKSolver(Solver[GlobalIKData, GlobalIKSolution]):
-    _optimizer: optax.GradientTransformation
-    __dt: float
-    __grad_fn: Callable[[jnp.ndarray, JaxProblemData], float]
-
-    def __init__(self, model: mjx.Model, optimizer: optax.GradientTransformation, dt: float = 1e-2):
-        super().__init__(model)
-        self._optimizer = optimizer
-        self.grad_fn = jax.grad(
-            self.loss_fn,
-            argnums=0,
+        self.model = mjx.put_model(
+            mj.MjModel.from_xml_string(
+                """
+        <mujoco>
+            <worldbody>
+                <body name="body1">
+                    <joint name="jnt1" type="hinge" axis="1 -1 0"/>
+                    <geom name="box1" size=".3"/>
+                    <geom name="box2" pos=".6 .6 .6" size=".3"/>
+                </body>
+            </worldbody>
+        </mujoco>
+        """
+            )
         )
-        self.__dt = dt
+        self.dummy_task = ComTask("com_task", cost=1.0, gain=1.0)
+        self.dummy_barrier = JointBarrier("joint_barrier", gain=1.0)
+        self.problem = Problem(
+            self.model,
+            v_min=0,
+            v_max=0,
+        )
+        self.problem.add_component(self.dummy_task)
+        self.problem.add_component(self.dummy_barrier)
 
-    def __log_barrier(self, x: jnp.ndarray, gain: jnp.ndarray):
-        return jnp.sum(gain * jax.lax.map(jnp.log, x))
+        self.problem_data = self.problem.compile()
 
-    def loss_fn(self, q: jnp.ndarray, problem_data: JaxProblemData) -> float:
-        model_data = configuration.update(problem_data.model, q)
-        loss = 0
+    def test_init(self):
+        """Testing planner initialization"""
 
-        for component in problem_data.components.values():
-            if isinstance(component, JaxTask):
-                err = component(model_data)
-                loss = (loss + component.gain * err.T @ err).item()
-            if isinstance(component, JaxBarrier):
-                loss = loss - self.__log_barrier(component(model_data), gain=component.gain)
-        return loss
+        solver = GlobalIKSolver(model=self.model, optimizer=optax.adam(learning_rate=1e-3))
 
-    def solve_from_data(
-        self,
-        solver_data: GlobalIKData,
-        problem_data: JaxProblemData,
-        model_data: mjx.Data,
-    ) -> tuple[GlobalIKSolution, GlobalIKData]:
-        return self.solve(model_data.qpos, solver_data=solver_data, problem_data=problem_data)
+        with self.assertRaises(ValueError):
+            _ = solver.init(q=np.arange(self.model.nq + 1))
 
-    def solve(
-        self, q: jnp.ndarray, solver_data: GlobalIKData, problem_data: JaxProblemData
-    ) -> tuple[GlobalIKSolution, GlobalIKData]:
-        grad = self.grad_fn(q, problem_data)
+        data = solver.init(q=np.arange(self.model.nq))
 
-        delta_q, opt_state = self._optimizer.update(grad, solver_data.optax_state)
+        # Check that it correctly initialized for chosen optimizer
+        self.assertIsInstance(data.optax_state[0], optax.ScaleByAdamState)
+        self.assertIsInstance(data.optax_state[1], optax.EmptyState)
 
-        return GlobalIKSolution(q_opt=q + delta_q, v_opt=delta_q / self.__dt), GlobalIKData(optax_state=opt_state)
+    def test_loss_fn(self):
+        self.problem.remove_component(self.dummy_barrier.name)
+        self.dummy_task.target_com = [0.3, 0.3, 0.3]
+        new_problem_data = self.problem.compile()
 
-    def init(self, q: mjt.ndarray) -> GlobalIKData:
-        return GlobalIKData(optax_state=self._optimizer.init(q))
+        solver = GlobalIKSolver(model=self.model, optimizer=optax.adam(learning_rate=1e-3))
+        loss = solver.loss_fn(np.zeros(self.model.nq), problem_data=new_problem_data)
+
+        self.assertEqual(loss, 0)
+
+    def test_loss_grad(self):
+        solver = GlobalIKSolver(model=self.model, optimizer=optax.adam(learning_rate=1e-3))
+        grad = solver.grad_fn(np.zeros(self.model.nq), problem_data=self.problem_data)
+
+        self.assertEqual(grad.shape, (self.model.nv,))
+
+    def test_solve(self):
+        """Testing solving functions"""
+        solver = GlobalIKSolver(model=self.model, optimizer=optax.adam(learning_rate=1e-2), dt=1e-3)
+        solver_data = solver.init(q=np.ones(self.model.nq))
+
+        with self.assertRaises(ValueError):
+            solver.solve(np.ones(self.model.nq + 1), solver_data, self.problem_data)
+
+        new_solution, _ = solver.solve(np.ones(self.model.nq), solver_data, self.problem_data)
+
+        new_solution_from_data, _ = solver.solve_from_data(
+            solver_data,
+            self.problem_data,
+            mjx.make_data(self.model).replace(qpos=np.ones(self.model.nq)),
+        )
+
+        np.testing.assert_almost_equal(new_solution.v_opt, new_solution_from_data.v_opt, decimal=3)
+
+
+unittest.main()

@@ -62,7 +62,7 @@ class Component(Generic[AtomicComponentType], abc.ABC):
     ):
         self.__name = name
         self.__model = None
-        self._modified = False
+        self._modified = True
 
         self.update_gain(gain)
         self.__gain_fn = gain_fn if gain_fn is not None else lambda x: x

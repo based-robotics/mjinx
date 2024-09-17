@@ -64,6 +64,8 @@ class GlobalIKSolver(Solver[GlobalIKData, GlobalIKSolution]):
     def solve(
         self, q: jnp.ndarray, solver_data: GlobalIKData, problem_data: JaxProblemData
     ) -> tuple[GlobalIKSolution, GlobalIKData]:
+        if q.shape != (self.model.nq,):
+            raise ValueError(f"wrong dimension of the state: expected ({self.model.nq}, ), got {q.shape}")
         grad = self.grad_fn(q, problem_data)
 
         delta_q, opt_state = self._optimizer.update(grad, solver_data.optax_state)
@@ -71,4 +73,7 @@ class GlobalIKSolver(Solver[GlobalIKData, GlobalIKSolution]):
         return GlobalIKSolution(q_opt=q + delta_q, v_opt=delta_q / self.__dt), GlobalIKData(optax_state=opt_state)
 
     def init(self, q: mjt.ndarray) -> GlobalIKData:
+        if q.shape != (self.model.nq,):
+            raise ValueError(f"Invalid dimension of the velocity: expected ({self.model.nq}, ), got {q.shape}")
+
         return GlobalIKData(optax_state=self._optimizer.init(q))

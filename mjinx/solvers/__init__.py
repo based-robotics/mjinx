@@ -1,3 +1,3 @@
 from ._base import Solver, SolverData
-from ._global_ik import GlobalIKSolver, GlobalIKData
-from ._local_ik import LocalIKSolver, LocalIKData
+from ._global_ik import GlobalIKData, GlobalIKSolution, GlobalIKSolver
+from ._local_ik import LocalIKData, LocalIKSolution, LocalIKSolver

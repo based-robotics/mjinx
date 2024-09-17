@@ -27,7 +27,7 @@ SolverSolutionType = TypeVar("SolverSolutionType", bound=SolverSolution)
 class Solver(Generic[SolverDataType, SolverSolutionType], abc.ABC):
     model: mjx.Model
 
-    def __init__(self, model: mjx.Model | None = None):
+    def __init__(self, model: mjx.Model):
         self.model = model
 
     @abc.abstractmethod
@@ -39,8 +39,8 @@ class Solver(Generic[SolverDataType, SolverSolutionType], abc.ABC):
     def solve(
         self, q: jnp.ndarray, solver_data: SolverDataType, problem_data: JaxProblemData
     ) -> tuple[SolverSolutionType, SolverDataType]:
-        if self.model is None:
-            raise ValueError("model is not provided, solution is unavailable")
+        if q.shape != (self.model.nq,):
+            raise ValueError(f"wrong dimension of the state: expected ({self.model.nq}, ), got {q.shape}")
         model_data = configuration.update(self.model, q)
         return self.solve_from_data(solver_data, problem_data, model_data)
 
