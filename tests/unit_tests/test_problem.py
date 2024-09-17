@@ -59,6 +59,9 @@ class TestProblem(unittest.TestCase):
         self.assertIsInstance(jax_problem_data.v_min, jnp.ndarray)
         np.testing.assert_array_equal(jax_problem_data.v_min, jnp.arange(self.model.nv))
 
+        with self.assertRaises(ValueError):
+            self.problem.v_min = jnp.eye(self.model.nv)
+
     def test_v_max(self):
         """Testing proper v upper limit"""
 
@@ -76,6 +79,9 @@ class TestProblem(unittest.TestCase):
         jax_problem_data = self.problem.compile()
         self.assertIsInstance(jax_problem_data.v_max, jnp.ndarray)
         np.testing.assert_array_equal(jax_problem_data.v_max, jnp.arange(self.model.nv))
+
+        with self.assertRaises(ValueError):
+            self.problem.v_max = jnp.eye(self.model.nv)
 
     def test_add_component(self):
         """Testing adding component"""
@@ -107,3 +113,66 @@ class TestProblem(unittest.TestCase):
 
         jax_problem_data = self.problem.compile()
         self.assertEqual(len(jax_problem_data.components), 0)
+
+    def test_components_access(self):
+        """Test componnets access interface"""
+
+        component = ComTask("test_component", 1.0, 1.0)
+
+        self.problem.add_component(component)
+
+        self.assertIsInstance(self.problem.component("test_component"), ComTask)
+
+        with self.assertRaises(ValueError):
+            _ = self.problem.component("non_existens_component")
+
+    def test_tasks_access(self):
+        """Test tasks access interface"""
+
+        task = ComTask("test_task", 1.0, 1.0)
+        barrier = JointBarrier("test_barrier", 1.0)
+
+        self.problem.add_component(task)
+        self.problem.add_component(barrier)
+
+        self.assertIsInstance(self.problem.task("test_task"), ComTask)
+
+        with self.assertRaises(ValueError):
+            _ = self.problem.task("test_barrier")
+
+        with self.assertRaises(ValueError):
+            _ = self.problem.task("non_existent_task")
+
+    def test_barriers_access(self):
+        """Test barriers access interface"""
+
+        task = ComTask("test_task", 1.0, 1.0)
+        barrier = JointBarrier("test_barrier", 1.0)
+
+        self.problem.add_component(task)
+        self.problem.add_component(barrier)
+
+        self.assertIsInstance(self.problem.barrier("test_barrier"), JointBarrier)
+
+        with self.assertRaises(ValueError):
+            _ = self.problem.barrier("test_task")
+
+        with self.assertRaises(ValueError):
+            _ = self.problem.barrier("non_existent_task")
+
+    def test_setting_vmap_dimension(self):
+        """Testing context manager for vmapping the dimensions"""
+
+        task = ComTask("test_task", 1.0, 1.0)
+        barrier = JointBarrier("test_barrier", 1.0)
+
+        self.problem.add_component(task)
+        self.problem.add_component(barrier)
+
+        with self.problem.set_vmap_dimension() as empty_problem_data:
+            empty_problem_data.components["test_task"].target_com = 0
+
+        self.assertEqual(empty_problem_data.v_min, None)
+        self.assertEqual(empty_problem_data.v_max, None)
+
+        self.assertEqual(empty_problem_data.components["test_task"].target_com, 0)

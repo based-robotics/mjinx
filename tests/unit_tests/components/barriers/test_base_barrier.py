@@ -31,6 +31,3 @@ class TestBarrier(unittest.TestCase):
         self.component = DummyBarrier("test_component", gain=2.0)
         self.component.safe_displacement_gain = 5.0
         self.assertEqual(self.component.safe_displacement_gain, 5.0)
-
-
-unittest.main()

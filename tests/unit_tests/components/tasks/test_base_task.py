@@ -36,7 +36,19 @@ class TestTask(unittest.TestCase):
 
     def setUp(self):
         self.model = mjx.put_model(
-            mj.MjModel.from_xml_string("<mujoco><worldbody><body name='body1'/></worldbody></mujoco>")
+            mj.MjModel.from_xml_string(
+                """
+        <mujoco>
+            <worldbody>
+                <body name="body1">
+                    <geom name="box1" size=".3"/>
+                    <joint name="jnt1" type="hinge" axis="1 -1 0"/>
+                    <body name="body2"/>
+                </body>
+            </worldbody>
+        </mujoco>
+        """
+            )
         )
         self.task = DummyTask("test_task", cost=2.0, gain=1.0)
         self.task.update_model(self.model)
@@ -72,7 +84,7 @@ class TestTask(unittest.TestCase):
     def test_matrix_cost(self):
         """Testing proper convertation of cost to matrix form"""
         # Matrix could not be constucted till dimension is specified
-        self.task.update_cost(1.0)
+        self.task.cost = 1.0
         with self.assertRaises(ValueError):
             _ = self.task.matrix_cost
 
@@ -112,3 +124,9 @@ class TestTask(unittest.TestCase):
 
         with self.assertRaises(ValueError):
             _ = DummyTask("negative_lm_task", 1.0, 1.0, lm_damping=-5.0)
+
+    def test_error(self):
+        self.set_dim()
+        jax_task = self.task.jax_component
+        data = mjx.fwd_position(self.model, mjx.make_data(self.model))
+        np.testing.assert_array_almost_equal(jax_task(data), jax_task.compute_error(data))

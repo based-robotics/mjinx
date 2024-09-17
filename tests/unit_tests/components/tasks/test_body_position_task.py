@@ -79,6 +79,3 @@ class TestBodyPositionTask(unittest.TestCase):
         data = mjx.fwd_position(self.model, mjx.make_data(self.model))
         error = jax_component(data)
         np.testing.assert_array_equal(error, jnp.array([-0.1, 0.1]))
-
-
-unittest.main()

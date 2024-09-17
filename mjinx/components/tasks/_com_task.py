@@ -54,12 +54,13 @@ class ComTask(Task[JaxComTask]):
         self.update_target_com(value)
 
     def update_target_com(self, target_com: Sequence):
-        if target_com.shape[-1] != self._dim:
+        target_com_jnp = jnp.array(target_com)
+        if target_com_jnp.shape[-1] != self._dim:
             raise ValueError(
-                "invalid last dimension of target CoM : " f"{target_com.shape[-1]} given, expected {self._dim} "
+                "invalid last dimension of target CoM : " f"{target_com_jnp.shape[-1]} given, expected {self._dim} "
             )
         self._modified = True
-        self.__target_com = jnp.array(target_com)
+        self.__target_com = target_com_jnp
 
     @final
     def _build_component(self) -> JaxComTask:

@@ -82,7 +82,7 @@ class Task(Generic[AtomicTaskType], Component[AtomicTaskType]):
                 ):
                     raise ValueError(f"wrong shape of the cost: {self.cost.shape} != ({self.dim}, {self.dim},)")
                 return self.cost
-            case _:
+            case _:  # pragma: no cover
                 raise ValueError("fail to construct matrix cost from cost with ndim > 2")
 
     @property

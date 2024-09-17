@@ -59,6 +59,10 @@ class TestBodyFrameTask(unittest.TestCase):
             jnp.array(test_se3_seq)[self.to_wxyz_xyz], frame_task.target_frame.wxyz_xyz
         )
 
+        # Setting with sequence of wrong length
+        with self.assertRaises(ValueError):
+            frame_task.target_frame = (-1, 0, 1, 0, 0, 1, 0, 1)
+
     def test_build_component(self):
         frame_task = FrameTask(
             "frame_task",
@@ -93,6 +97,3 @@ class TestBodyFrameTask(unittest.TestCase):
         jac = jax_component.compute_jacobian(mjx.make_data(self.model))
 
         self.assertEqual(jac.shape, (jax_component.dim, self.model.nv))
-
-
-unittest.main()
