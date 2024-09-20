@@ -82,7 +82,7 @@ class Component(Generic[AtomicComponentType], abc.ABC):
     def __setattr__(self, name: str, value: Any) -> None:
         super().__setattr__(name, value)
         if name != "_Component__modified":
-            self.__dict__["_Component__modified"] = True
+            self.__modified = True
 
     @property
     def modified(self) -> bool:
