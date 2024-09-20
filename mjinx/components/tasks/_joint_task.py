@@ -5,7 +5,6 @@ from typing import Callable, Sequence
 import jax.numpy as jnp
 import jax_dataclasses as jdc
 import mujoco.mjx as mjx
-import numpy as np
 
 from mjinx.components.tasks._base import JaxTask, Task
 from mjinx.configuration import get_joint_zero, joint_difference
@@ -25,7 +24,6 @@ class JaxJointTask(JaxTask):
 
 class JointTask(Task[JaxJointTask]):
     __target_q: jnp.ndarray | None
-    __joints_mask: tuple[int, ...]
 
     def __init__(
         self,
@@ -68,7 +66,6 @@ class JointTask(Task[JaxJointTask]):
         self.update_target_q(value)
 
     def update_target_q(self, target_q: Sequence):
-        self._modified = True
         target_q_jnp = jnp.array(target_q)
         if self._dim != -1 and target_q_jnp.shape[-1] != self._dim:
             raise ValueError(

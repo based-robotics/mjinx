@@ -75,7 +75,6 @@ class FrameTask(BodyTask[JaxFrameTask]):
         self.update_target_frame(value)
 
     def update_target_frame(self, target_frame: SE3 | Sequence):
-        self._modified = True
         if not isinstance(target_frame, SE3):
             target_frame_jnp = jnp.array(target_frame)
             if target_frame_jnp.shape[-1] != SE3.parameters_dim:

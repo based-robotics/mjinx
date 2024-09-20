@@ -121,7 +121,6 @@ class PositionBarrier(BodyBarrier[JaxPositionBarrier]):
             )
             return
 
-        self._modified = True
         self.__p_min = p_min if isinstance(p_min, jnp.ndarray) else jnp.array(p_min)
 
     @property
@@ -146,7 +145,6 @@ class PositionBarrier(BodyBarrier[JaxPositionBarrier]):
                 stacklevel=2,
             )
             return
-        self._modified = True
         self.__p_max = p_max if isinstance(p_max, jnp.ndarray) else jnp.array(p_max)
 
     def _build_component(self) -> JaxPositionBarrier:

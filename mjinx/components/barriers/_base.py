@@ -27,7 +27,7 @@ AtomicBarrierType = TypeVar("AtomicBarrierType", bound=JaxBarrier)
 
 
 class Barrier(Generic[AtomicBarrierType], Component[AtomicBarrierType]):
-    __safe_displacement_gain: float
+    safe_displacement_gain: float
 
     def __init__(
         self,
@@ -39,15 +39,3 @@ class Barrier(Generic[AtomicBarrierType], Component[AtomicBarrierType]):
     ):
         super().__init__(name, gain, gain_fn, mask)
         self.safe_displacement_gain = safe_displacement_gain
-
-    @property
-    def safe_displacement_gain(self) -> float:
-        return self.__safe_displacement_gain
-
-    @safe_displacement_gain.setter
-    def safe_displacement_gain(self, value: float):
-        self.update_safe_displacement_gain(value)
-
-    def update_safe_displacement_gain(self, safe_displacement_gain: float):
-        self._modified = True
-        self.__safe_displacement_gain = safe_displacement_gain

@@ -5,7 +5,6 @@ from typing import Callable, Sequence, final
 import jax.numpy as jnp
 import jax_dataclasses as jdc
 import mujoco.mjx as mjx
-import numpy as np
 
 from mjinx.components.tasks._body_task import BodyTask, JaxBodyTask
 from mjinx.typing import ArrayOrFloat
@@ -51,7 +50,6 @@ class PositionTask(BodyTask[JaxPositionTask]):
             raise ValueError(
                 "invalid dimension of the target positin value: " f"{len(target_pos)} given, expected {self._dim} "
             )
-        self._modified = True
         self.__target_pos = target_pos
 
     @final
