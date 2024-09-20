@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import abc
-from typing import Callable, Generic, Sequence, TypeVar
+from typing import Any, Callable, Generic, Sequence, TypeVar
 
 import jax
 import jax.numpy as jnp
@@ -51,7 +51,7 @@ class Component(Generic[AtomicComponentType], abc.ABC):
     __mask: jnp.ndarray | None
     __mask_idxs: tuple[int, ...]
 
-    _modified: bool
+    __modified: bool
 
     def __init__(
         self,
@@ -62,7 +62,6 @@ class Component(Generic[AtomicComponentType], abc.ABC):
     ):
         self.__name = name
         self.__model = None
-        self._modified = True
 
         self.update_gain(gain)
         self.__gain_fn = gain_fn if gain_fn is not None else lambda x: x
@@ -80,6 +79,15 @@ class Component(Generic[AtomicComponentType], abc.ABC):
     def _get_default_mask(self) -> tuple[jnp.ndarray, tuple[int, ...]]:
         return jnp.ones(self.dim), tuple(range(self.dim))
 
+    def __setattr__(self, name: str, value: Any) -> None:
+        super().__setattr__(name, value)
+        if name != "_Component__modified":
+            self.__modified = True
+
+    @property
+    def modified(self) -> bool:
+        return self.__modified
+
     @property
     def model(self) -> mjx.Model:
         return self.__model
@@ -89,7 +97,6 @@ class Component(Generic[AtomicComponentType], abc.ABC):
         self.update_model(value)
 
     def update_model(self, model: mjx.Model):
-        self._modified = True
         self.__model = model
 
     @property
@@ -104,7 +111,6 @@ class Component(Generic[AtomicComponentType], abc.ABC):
         gain = jnp.array(gain)
         if not isinstance(gain, float) and gain.ndim > 1:
             raise ValueError(f"gain ndim is too high: expected <= 1, got {gain.ndim}")
-        self._modified = True
         self.__gain = gain
 
     @property
@@ -172,7 +178,7 @@ class Component(Generic[AtomicComponentType], abc.ABC):
         if self._dim == -1:
             raise ValueError("dimension is not specified")
 
-        if self._modified:
-            self._modified = False
+        if self.__modified:
             self.__jax_component: AtomicComponentType = self._build_component()
+            self.__modified = False
         return self.__jax_component

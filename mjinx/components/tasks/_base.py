@@ -21,7 +21,7 @@ AtomicTaskType = TypeVar("AtomicTaskType", bound=JaxTask)
 
 
 class Task(Generic[AtomicTaskType], Component[AtomicTaskType]):
-    __lm_damping: float
+    lm_damping: float
     __cost: jnp.ndarray
 
     def __init__(
@@ -36,7 +36,7 @@ class Task(Generic[AtomicTaskType], Component[AtomicTaskType]):
         super().__init__(name, gain, gain_fn, mask)
         if lm_damping < 0:
             raise ValueError("lm_damping has to be positive")
-        self.__lm_damping = lm_damping
+        self.lm_damping = lm_damping
 
         self.update_cost(cost)
 
@@ -49,7 +49,6 @@ class Task(Generic[AtomicTaskType], Component[AtomicTaskType]):
         self.update_cost(value)
 
     def update_cost(self, cost: ArrayOrFloat):
-        self._modified = True
         cost = cost if isinstance(cost, jnp.ndarray) else jnp.array(cost)
         if cost.ndim > 2:
             raise ValueError(f"the cost.ndim is too high: expected <= 2, got {cost.ndim}")
@@ -84,7 +83,3 @@ class Task(Generic[AtomicTaskType], Component[AtomicTaskType]):
                 return self.cost
             case _:  # pragma: no cover
                 raise ValueError("fail to construct matrix cost from cost with ndim > 2")
-
-    @property
-    def lm_damping(self) -> float:
-        return self.__lm_damping

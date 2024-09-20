@@ -95,7 +95,7 @@ class TestProblem(unittest.TestCase):
         jax_problem_data = self.problem.compile()
 
         # False -> component was compiled as well
-        self.assertFalse(component._modified)
+        self.assertFalse(component.modified)
         self.assertEqual(len(jax_problem_data.components), 1)
         self.assertIsInstance(jax_problem_data.components["test_component"], JaxComTask)
 
