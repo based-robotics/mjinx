@@ -74,7 +74,7 @@ class PositionBarrier(BodyBarrier[JaxPositionBarrier]):
         limit_type: str = "both",
         gain_fn: Callable[[float], float] | None = None,
         safe_displacement_gain: float = 0,
-        mask: Sequence | None = None,
+        mask: Sequence[int] | None = None,
     ):
         mask = mask if mask is not None else jnp.array([1, 1, 1])
         super().__init__(name, gain, body_name, gain_fn, safe_displacement_gain, mask)

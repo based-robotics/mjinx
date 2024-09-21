@@ -33,7 +33,7 @@ class BodyTask(Generic[AtomicBodyTaskType], Task[AtomicBodyTaskType]):
         body_name: str,
         gain_fn: Callable[[float], float] | None = None,
         lm_damping: float = 0,
-        mask: Sequence | None = None,
+        mask: Sequence[int] | None = None,
     ):
         super().__init__(name, cost, gain, gain_fn, lm_damping, mask)
         self.__body_name = body_name

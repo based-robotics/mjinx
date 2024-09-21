@@ -40,7 +40,7 @@ class JointBarrier(Barrier[JaxJointBarrier]):
         safe_displacement_gain: float = 0,
         q_min: Sequence | None = None,
         q_max: Sequence | None = None,
-        mask: Sequence | None = None,
+        mask: Sequence[int] | None = None,
     ):
         super().__init__(name, gain, gain_fn, safe_displacement_gain, mask=mask)
         self.__q_min = jnp.array(q_min) if q_min is not None else None

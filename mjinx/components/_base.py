@@ -60,7 +60,7 @@ class Component(Generic[AtomicComponentType], abc.ABC):
         name: str,
         gain: ArrayOrFloat,
         gain_fn: Callable[[float], float] | None = None,
-        mask: Sequence | None = None,
+        mask: Sequence[int] | None = None,
     ):
         self.__name = name
         self.__model = None
