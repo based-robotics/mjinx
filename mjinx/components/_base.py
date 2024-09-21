@@ -169,10 +169,6 @@ class Component(Generic[AtomicComponentType], abc.ABC):
             self.__mask, self.__mask_idxs = self._get_default_mask()
         return self.__mask_idxs
 
-    def _build_component(self) -> AtomicComponentType:  # pragma: no cover
-        component_attributes = self.JaxComponentType.__dataclass_fields__.keys()
-        return self.JaxComponentType(**{attr: self.__getattribute__(attr) for attr in component_attributes})
-
     @property
     def jax_component(self) -> AtomicComponentType:
         if self.__model is None:
@@ -181,6 +177,9 @@ class Component(Generic[AtomicComponentType], abc.ABC):
             raise ValueError("dimension is not specified")
 
         if self.__modified:
-            self.__jax_component: AtomicComponentType = self._build_component()
+            component_attributes = self.JaxComponentType.__dataclass_fields__.keys()
+            self.__jax_component: AtomicComponentType = self.JaxComponentType(
+                **{attr: self.__getattribute__(attr) for attr in component_attributes}
+            )
             self.__modified = False
         return self.__jax_component

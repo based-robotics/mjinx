@@ -69,14 +69,3 @@ class SelfCollisionBarrier(Barrier[JaxSelfCollisionBarrier]):
                 return self.d_min
             case _:  # pragma: no cover
                 raise ValueError("fail to construct vector from d_min with ndim > 1")
-
-    def _build_component(self) -> JaxSelfCollisionBarrier:
-        return JaxSelfCollisionBarrier(
-            dim=self.dim,
-            model=self.model,
-            vector_gain=self.gain,
-            gain_fn=self.gain_fn,
-            mask_idxs=self.mask_idxs,
-            safe_displacement_gain=self.safe_displacement_gain,
-            d_min_vec=self.d_min_vec,
-        )

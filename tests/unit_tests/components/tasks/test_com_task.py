@@ -59,7 +59,7 @@ class TestComTask(unittest.TestCase):
         com_des = jnp.array((-0.3, 0.3))
         com_task.target_com = com_des
 
-        jax_component = com_task._build_component()
+        jax_component = com_task.jax_component
         self.assertEqual(jax_component.dim, 2)
         np.testing.assert_array_equal(jax_component.matrix_cost, jnp.eye(2))
         np.testing.assert_array_equal(jax_component.vector_gain, jnp.ones(2) * 2.0)

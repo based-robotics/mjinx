@@ -91,17 +91,3 @@ class FrameTask(BodyTask[JaxFrameTask]):
         else:
             target_frame_se3 = target_frame
         self.__target_frame = target_frame_se3
-
-    @final
-    def _build_component(self) -> JaxFrameTask:
-        return JaxFrameTask(
-            dim=self.dim,
-            model=self.model,
-            matrix_cost=self.matrix_cost,
-            vector_gain=self.vector_gain,
-            gain_fn=self.gain_fn,
-            lm_damping=self.lm_damping,
-            body_id=self.body_id,
-            target_frame=self.target_frame,
-            mask_idxs=self.mask_idxs,
-        )

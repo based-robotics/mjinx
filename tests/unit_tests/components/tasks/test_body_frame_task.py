@@ -13,8 +13,8 @@ from mjinx.components.tasks import FrameTask
 
 class TestBodyFrameTask(unittest.TestCase):
 
-    def setUp(self):
-        self.to_wxyz_xyz: jnp.array = jnp.array([3, 4, 5, 6, 0, 1, 2])
+    def setUp(self) -> None:
+        self.to_wxyz_xyz: jnp.ndarray = jnp.array([3, 4, 5, 6, 0, 1, 2])
 
     def set_model(self, task: FrameTask):
         self.model = mjx.put_model(

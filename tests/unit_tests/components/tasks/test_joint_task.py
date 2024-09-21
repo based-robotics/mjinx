@@ -94,7 +94,7 @@ class TestJointTask(unittest.TestCase):
         jnt_des = jnp.array((-0.2, 0.4))
         jnt_task.target_q = jnt_des
 
-        jax_component = jnt_task._build_component()
+        jax_component = jnt_task.jax_component
         self.assertEqual(jax_component.dim, 2)
         np.testing.assert_array_equal(jax_component.matrix_cost, jnp.eye(2))
         np.testing.assert_array_equal(jax_component.vector_gain, jnp.ones(2) * 2.0)

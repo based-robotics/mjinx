@@ -52,17 +52,3 @@ class PositionTask(BodyTask[JaxPositionTask]):
                 "invalid dimension of the target positin value: " f"{len(target_pos)} given, expected {self._dim} "
             )
         self.__target_pos = target_pos
-
-    @final
-    def _build_component(self) -> JaxPositionTask:
-        return JaxPositionTask(
-            dim=self.dim,
-            model=self.model,
-            matrix_cost=self.matrix_cost,
-            vector_gain=self.vector_gain,
-            gain_fn=self.gain_fn,
-            lm_damping=self.lm_damping,
-            target_pos=self.target_pos,
-            mask_idxs=self.mask_idxs,
-            body_id=self.body_id,
-        )

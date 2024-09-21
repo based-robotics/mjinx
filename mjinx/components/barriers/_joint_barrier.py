@@ -28,6 +28,7 @@ class JaxJointBarrier(JaxBarrier):
 
 
 class JointBarrier(Barrier[JaxJointBarrier]):
+    JaxComponentType: type = JaxJointBarrier
     __q_min: jnp.ndarray | None
     __q_max: jnp.ndarray | None
 
@@ -94,15 +95,3 @@ class JointBarrier(Barrier[JaxJointBarrier]):
 
     def _get_default_mask(self) -> tuple[jnp.ndarray, tuple[int, ...]]:
         return jnp.ones(self.model.nv), tuple(range(self.model.nv))
-
-    def _build_component(self) -> JaxJointBarrier:
-        return JaxJointBarrier(
-            dim=self.dim,
-            model=self.model,
-            vector_gain=self.vector_gain,
-            gain_fn=self.gain_fn,
-            safe_displacement_gain=self.safe_displacement_gain,
-            q_min=self.q_min,
-            q_max=self.q_max,
-            mask_idxs=self.mask_idxs,
-        )
