@@ -50,6 +50,7 @@ class JaxFrameTask(JaxBodyTask):
 
 
 class FrameTask(BodyTask[JaxFrameTask]):
+    JaxComponentType: type = JaxFrameTask
     __target_frame: SE3
 
     def __init__(
@@ -96,9 +97,9 @@ class FrameTask(BodyTask[JaxFrameTask]):
         return JaxFrameTask(
             dim=self.dim,
             model=self.model,
-            cost=self.matrix_cost,
-            gain=self.vector_gain,
-            gain_function=self.gain_fn,
+            matrix_cost=self.matrix_cost,
+            vector_gain=self.vector_gain,
+            gain_fn=self.gain_fn,
             lm_damping=self.lm_damping,
             body_id=self.body_id,
             target_frame=self.target_frame,

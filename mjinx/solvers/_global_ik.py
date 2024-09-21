@@ -48,9 +48,9 @@ class GlobalIKSolver(Solver[GlobalIKData, GlobalIKSolution]):
         for component in problem_data.components.values():
             if isinstance(component, JaxTask):
                 err = component(model_data)
-                loss = loss + component.gain * err.T @ err
+                loss = loss + component.vector_gain * err.T @ err
             if isinstance(component, JaxBarrier):
-                loss = loss - self.__log_barrier(component(model_data), gain=component.gain)
+                loss = loss - self.__log_barrier(component(model_data), gain=component.vector_gain)
         return loss
 
     def solve_from_data(

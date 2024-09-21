@@ -58,6 +58,7 @@ class JaxPositionBarrier(JaxBodyBarrier):
 
 
 class PositionBarrier(BodyBarrier[JaxPositionBarrier]):
+    JaxComponentType: type = JaxPositionBarrier
     __p_min: jnp.ndarray
     __p_max: jnp.ndarray
 
@@ -146,16 +147,3 @@ class PositionBarrier(BodyBarrier[JaxPositionBarrier]):
             )
             return
         self.__p_max = p_max if isinstance(p_max, jnp.ndarray) else jnp.array(p_max)
-
-    def _build_component(self) -> JaxPositionBarrier:
-        return JaxPositionBarrier(
-            dim=self.dim,
-            model=self.model,
-            gain=self.vector_gain,
-            gain_function=self.gain_fn,
-            safe_displacement_gain=self.safe_displacement_gain,
-            body_id=self.body_id,
-            p_min=self.p_min,
-            p_max=self.p_max,
-            mask_idxs=self.mask_idxs,
-        )

@@ -15,17 +15,19 @@ class DummyJaxComponent(JaxComponent):
 
 
 class DummyComponent(Component[DummyJaxComponent]):
+    JaxComponentType: type = DummyJaxComponent
+
     def define_dim(self, dim: int):
         self._dim = dim
 
-    def _build_component(self) -> DummyJaxComponent:
-        return DummyJaxComponent(
-            dim=self.dim,
-            model=self.model,
-            gain=self.gain,
-            gain_function=self.gain_fn,
-            mask_idxs=self.mask_idxs,
-        )
+    # def _build_component(self) -> DummyJaxComponent:
+    #     return DummyJaxComponent(
+    #         dim=self.dim,
+    #         model=self.model,
+    #         gain=self.gain,
+    #         gain_function=self.gain_fn,
+    #         mask_idxs=self.mask_idxs,
+    #     )
 
 
 class TestComponent(unittest.TestCase):
@@ -167,12 +169,12 @@ class TestComponent(unittest.TestCase):
         self.set_dim()
         jax_component = self.component.jax_component
 
-        updated_jax_component = jax_component.copy_and_set(gain=jnp.array(1))
+        updated_jax_component = jax_component.copy_and_set(vector_gain=jnp.ones(self.component.dim))
 
         init_component_dict = jax_component.__dict__
         updated_component_dict = updated_jax_component.__dict__
 
-        self.assertNotEqual(init_component_dict["gain"], updated_component_dict["gain"])
-        init_component_dict.pop("gain")
-        updated_component_dict.pop("gain")
+        self.assertTrue(np.any(init_component_dict["vector_gain"] != updated_component_dict["vector_gain"]))
+        init_component_dict.pop("vector_gain")
+        updated_component_dict.pop("vector_gain")
         self.assertEqual(init_component_dict, updated_component_dict)

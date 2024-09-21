@@ -96,9 +96,9 @@ class TestJointTask(unittest.TestCase):
 
         jax_component = jnt_task._build_component()
         self.assertEqual(jax_component.dim, 2)
-        np.testing.assert_array_equal(jax_component.cost, jnp.eye(2))
-        np.testing.assert_array_equal(jax_component.gain, jnp.ones(2) * 2.0)
-        self.assertEqual(jax_component.gain_function(4), 8)
+        np.testing.assert_array_equal(jax_component.matrix_cost, jnp.eye(2))
+        np.testing.assert_array_equal(jax_component.vector_gain, jnp.ones(2) * 2.0)
+        self.assertEqual(jax_component.gain_fn(4), 8)
         self.assertEqual(jax_component.lm_damping, 0.5)
         np.testing.assert_array_equal(jax_component.target_q, jnt_des)
         self.assertEqual(jax_component.mask_idxs, (0, 2))

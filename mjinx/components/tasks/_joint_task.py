@@ -23,6 +23,7 @@ class JaxJointTask(JaxTask):
 
 
 class JointTask(Task[JaxJointTask]):
+    JaxComponentType: type = JaxJointTask
     __target_q: jnp.ndarray | None
 
     def __init__(
@@ -77,9 +78,9 @@ class JointTask(Task[JaxJointTask]):
         return JaxJointTask(
             dim=self.dim,
             model=self.model,
-            cost=self.matrix_cost,
-            gain=self.vector_gain,
-            gain_function=self.gain_fn,
+            matrix_cost=self.matrix_cost,
+            vector_gain=self.vector_gain,
+            gain_fn=self.gain_fn,
             lm_damping=self.lm_damping,
             target_q=self.target_q,
             mask_idxs=self.mask_idxs,

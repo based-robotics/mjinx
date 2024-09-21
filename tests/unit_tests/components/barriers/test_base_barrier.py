@@ -12,15 +12,7 @@ class DummyJaxBarrier(JaxBarrier):
 
 
 class DummyBarrier(Barrier[DummyJaxBarrier]):
-    def _build_component(self) -> DummyJaxBarrier:
-        return DummyJaxBarrier(
-            dim=self.dim,
-            model=self.model,
-            gain=self.gain,
-            mask_idxs=self.mask_idxs,
-            safe_displacement_gain=self.safe_displacement_gain,
-            gain_function=self.gain_fn,
-        )
+    JaxComponentType: type = DummyJaxBarrier
 
 
 class TestBarrier(unittest.TestCase):

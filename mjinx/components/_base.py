@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import abc
-from typing import Any, Callable, Generic, Sequence, TypeVar
+from typing import Any, Callable, Generic, Sequence, TypeVar, Self
 
 import jax
 import jax.numpy as jnp
@@ -16,8 +16,8 @@ from mjinx.typing import ArrayOrFloat
 class JaxComponent(abc.ABC):
     dim: jdc.Static[int]
     model: mjx.Model
-    gain: jnp.ndarray
-    gain_function: jdc.Static[Callable[[float], float]]
+    vector_gain: jnp.ndarray
+    gain_fn: jdc.Static[Callable[[float], float]]
     mask_idxs: jdc.Static[tuple[int, ...]]
 
     @abc.abstractmethod
@@ -42,6 +42,8 @@ AtomicComponentType = TypeVar("AtomicComponentType", bound=JaxComponent)
 
 
 class Component(Generic[AtomicComponentType], abc.ABC):
+    JaxComponentType: type
+
     _dim: int
     __name: str
     __jax_component: AtomicComponentType
@@ -167,9 +169,9 @@ class Component(Generic[AtomicComponentType], abc.ABC):
             self.__mask, self.__mask_idxs = self._get_default_mask()
         return self.__mask_idxs
 
-    @abc.abstractmethod
     def _build_component(self) -> AtomicComponentType:  # pragma: no cover
-        pass
+        component_attributes = self.JaxComponentType.__dataclass_fields__.keys()
+        return self.JaxComponentType(**{attr: self.__getattribute__(attr) for attr in component_attributes})
 
     @property
     def jax_component(self) -> AtomicComponentType:

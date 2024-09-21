@@ -16,19 +16,10 @@ class DummyJaxTask(JaxTask):
 
 
 class DummyTask(Task[DummyJaxTask]):
+    JaxComponentType: type = DummyJaxTask
+
     def define_dim(self, dim: int):
         self._dim = dim
-
-    def _build_component(self) -> DummyJaxTask:
-        return DummyJaxTask(
-            dim=self.dim,
-            model=self.model,
-            cost=self.cost,
-            gain=self.gain,
-            lm_damping=self.lm_damping,
-            gain_function=self.gain_fn,
-            mask_idxs=self.mask_idxs,
-        )
 
 
 class TestTask(unittest.TestCase):

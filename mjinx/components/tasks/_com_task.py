@@ -28,6 +28,7 @@ class JaxComTask(JaxTask):
 
 
 class ComTask(Task[JaxComTask]):
+    JaxComponentType: type = JaxComTask
     __target_com: jnp.ndarray
 
     def __init__(
@@ -66,9 +67,9 @@ class ComTask(Task[JaxComTask]):
         return JaxComTask(
             dim=self.dim,
             model=self.model,
-            cost=self.matrix_cost,
-            gain=self.vector_gain,
-            gain_function=self.gain_fn,
+            matrix_cost=self.matrix_cost,
+            vector_gain=self.vector_gain,
+            gain_fn=self.gain_fn,
             lm_damping=self.lm_damping,
             target_com=self.target_com,
             mask_idxs=self.mask_idxs,

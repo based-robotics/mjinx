@@ -99,8 +99,8 @@ class JointBarrier(Barrier[JaxJointBarrier]):
         return JaxJointBarrier(
             dim=self.dim,
             model=self.model,
-            gain=self.vector_gain,
-            gain_function=self.gain_fn,
+            vector_gain=self.vector_gain,
+            gain_fn=self.gain_fn,
             safe_displacement_gain=self.safe_displacement_gain,
             q_min=self.q_min,
             q_max=self.q_max,

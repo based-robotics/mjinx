@@ -70,10 +70,10 @@ class LocalIKSolver(Solver[LocalIKData, LocalIKSolution]):
     ) -> tuple[jnp.ndarray, jnp.ndarray]:
         if isinstance(component, JaxTask):
             jacobian = component.compute_jacobian(model_data)
-            minus_gain_error = -component.gain * jax.lax.map(component.gain_function, component(model_data))
+            minus_gain_error = -component.vector_gain * jax.lax.map(component.gain_fn, component(model_data))
 
-            weighted_jacobian = component.cost @ jacobian  # [cost]
-            weighted_error = component.cost @ minus_gain_error  # [cost]
+            weighted_jacobian = component.matrix_cost @ jacobian  # [cost]
+            weighted_error = component.matrix_cost @ minus_gain_error  # [cost]
 
             mu = component.lm_damping * weighted_error @ weighted_error  # [cost]^2
             # TODO: nv is a dimension of the tangent space, right?..
@@ -110,7 +110,7 @@ class LocalIKSolver(Solver[LocalIKData, LocalIKSolution]):
 
             return (
                 -component.compute_jacobian(model_data),
-                component.gain * jax.lax.map(component.gain_function, barrier),
+                component.vector_gain * jax.lax.map(component.gain_fn, barrier),
             )
         else:
             return jnp.empty((0, model.nq)), jnp.empty(0)

@@ -20,6 +20,7 @@ class JaxPositionTask(JaxBodyTask):
 
 
 class PositionTask(BodyTask[JaxPositionTask]):
+    JaxComponentType: type = JaxPositionTask
     __target_pos: jnp.ndarray
 
     def __init__(
@@ -57,9 +58,9 @@ class PositionTask(BodyTask[JaxPositionTask]):
         return JaxPositionTask(
             dim=self.dim,
             model=self.model,
-            cost=self.matrix_cost,
-            gain=self.vector_gain,
-            gain_function=self.gain_fn,
+            matrix_cost=self.matrix_cost,
+            vector_gain=self.vector_gain,
+            gain_fn=self.gain_fn,
             lm_damping=self.lm_damping,
             target_pos=self.target_pos,
             mask_idxs=self.mask_idxs,

@@ -21,6 +21,7 @@ AtomicBodyTaskType = TypeVar("AtomicBodyTaskType", bound=JaxBodyTask)
 
 
 class BodyTask(Generic[AtomicBodyTaskType], Task[AtomicBodyTaskType]):
+    JaxComponentType: type = JaxBodyTask
     __body_name: str
     __body_id: int
 
