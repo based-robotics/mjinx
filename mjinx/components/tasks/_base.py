@@ -10,7 +10,7 @@ from mjinx.typing import ArrayOrFloat
 
 @jdc.pytree_dataclass
 class JaxTask(JaxComponent):
-    cost: jnp.ndarray
+    matrix_cost: jnp.ndarray
     lm_damping: jdc.Static[float]
 
     def compute_error(self, data: mjx.Data) -> jnp.ndarray:

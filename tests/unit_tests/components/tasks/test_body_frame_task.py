@@ -13,8 +13,8 @@ from mjinx.components.tasks import FrameTask
 
 class TestBodyFrameTask(unittest.TestCase):
 
-    def setUp(self):
-        self.to_wxyz_xyz: jnp.array = jnp.array([3, 4, 5, 6, 0, 1, 2])
+    def setUp(self) -> None:
+        self.to_wxyz_xyz: jnp.ndarray = jnp.array([3, 4, 5, 6, 0, 1, 2])
 
     def set_model(self, task: FrameTask):
         self.model = mjx.put_model(
@@ -80,10 +80,10 @@ class TestBodyFrameTask(unittest.TestCase):
         jax_component = frame_task.jax_component
 
         self.assertEqual(jax_component.dim, 4)
-        np.testing.assert_array_equal(jax_component.cost, jnp.eye(jax_component.dim))
-        np.testing.assert_array_equal(jax_component.gain, jnp.ones(jax_component.dim) * 2.0)
+        np.testing.assert_array_equal(jax_component.matrix_cost, jnp.eye(jax_component.dim))
+        np.testing.assert_array_equal(jax_component.vector_gain, jnp.ones(jax_component.dim) * 2.0)
         np.testing.assert_array_equal(jax_component.body_id, frame_task.body_id)
-        self.assertEqual(jax_component.gain_function(4), 8)
+        self.assertEqual(jax_component.gain_fn(4), 8)
         self.assertEqual(jax_component.lm_damping, 0.5)
         np.testing.assert_array_almost_equal(jax_component.target_frame.wxyz_xyz, frame_des[self.to_wxyz_xyz])
 

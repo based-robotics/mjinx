@@ -28,6 +28,7 @@ class JaxComTask(JaxTask):
 
 
 class ComTask(Task[JaxComTask]):
+    JaxComponentType: type = JaxComTask
     __target_com: jnp.ndarray
 
     def __init__(
@@ -60,16 +61,3 @@ class ComTask(Task[JaxComTask]):
                 "invalid last dimension of target CoM : " f"{target_com_jnp.shape[-1]} given, expected {self._dim} "
             )
         self.__target_com = target_com_jnp
-
-    @final
-    def _build_component(self) -> JaxComTask:
-        return JaxComTask(
-            dim=self.dim,
-            model=self.model,
-            cost=self.matrix_cost,
-            gain=self.vector_gain,
-            gain_function=self.gain_fn,
-            lm_damping=self.lm_damping,
-            target_com=self.target_com,
-            mask_idxs=self.mask_idxs,
-        )

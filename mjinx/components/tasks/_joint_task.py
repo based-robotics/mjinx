@@ -23,6 +23,7 @@ class JaxJointTask(JaxTask):
 
 
 class JointTask(Task[JaxJointTask]):
+    JaxComponentType: type = JaxJointTask
     __target_q: jnp.ndarray | None
 
     def __init__(
@@ -72,15 +73,3 @@ class JointTask(Task[JaxJointTask]):
                 f"dimension mismatch: expected last dimension to be {self._dim}, got{target_q_jnp.shape[-1]}"
             )
         self.__target_q = target_q_jnp
-
-    def _build_component(self) -> JaxJointTask:
-        return JaxJointTask(
-            dim=self.dim,
-            model=self.model,
-            cost=self.matrix_cost,
-            gain=self.vector_gain,
-            gain_function=self.gain_fn,
-            lm_damping=self.lm_damping,
-            target_q=self.target_q,
-            mask_idxs=self.mask_idxs,
-        )

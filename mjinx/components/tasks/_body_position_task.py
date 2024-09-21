@@ -20,6 +20,7 @@ class JaxPositionTask(JaxBodyTask):
 
 
 class PositionTask(BodyTask[JaxPositionTask]):
+    JaxComponentType: type = JaxPositionTask
     __target_pos: jnp.ndarray
 
     def __init__(
@@ -51,17 +52,3 @@ class PositionTask(BodyTask[JaxPositionTask]):
                 "invalid dimension of the target positin value: " f"{len(target_pos)} given, expected {self._dim} "
             )
         self.__target_pos = target_pos
-
-    @final
-    def _build_component(self) -> JaxPositionTask:
-        return JaxPositionTask(
-            dim=self.dim,
-            model=self.model,
-            cost=self.matrix_cost,
-            gain=self.vector_gain,
-            gain_function=self.gain_fn,
-            lm_damping=self.lm_damping,
-            target_pos=self.target_pos,
-            mask_idxs=self.mask_idxs,
-            body_id=self.body_id,
-        )

@@ -16,18 +16,6 @@ class DummyBodyTask(BodyTask[DummyJaxBodyTask]):
     def set_dim(self, dim: int):
         self._dim = dim
 
-    def _build_component(self) -> DummyJaxBodyTask:
-        return DummyJaxBodyTask(
-            dim=self.dim,
-            model=self.model,
-            gain=self.gain,
-            gain_function=self.gain_fn,
-            mask_idxs=self.mask_idxs,
-            cost=self.cost,
-            lm_damping=self.lm_damping,
-            body_id=self.body_id,
-        )
-
 
 class TestBodyTask(unittest.TestCase):
     def set_model(self, task: DummyBodyTask):
