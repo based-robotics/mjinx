@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import abc
-from typing import Any, Callable, Generic, Sequence, TypeVar, Self
+from typing import Any, Callable, Generic, Sequence, TypeVar
 
 import jax
 import jax.numpy as jnp
