@@ -69,7 +69,7 @@ position_barrier = PositionBarrier(
 joints_barrier = JointBarrier("jnt_range", gain=0.1)
 self_collision_barrier = SelfCollisionBarrier(
     "self_collision_barrier",
-    0.01,
+    gain=0.01,
     d_min=0.01,
 )
 
