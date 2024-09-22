@@ -8,6 +8,7 @@ from jaxlie import SE3
 from mujoco import mjx
 
 # Import the functions to be tested
+from mjinx.typing import CollisionPair
 from mjinx.configuration import (
     get_configuration_limit,
     get_frame_jacobian_local,
@@ -18,6 +19,7 @@ from mjinx.configuration import (
     integrate,
     joint_difference,
     update,
+    get_distance,
 )
 
 
@@ -188,3 +190,90 @@ class TestConfiguration(unittest.TestCase):
         A, b = get_configuration_limit(model, limit_array)
         self.assertEqual(A.shape, (10, 5))
         self.assertTrue(jnp.allclose(b, jnp.array([0.5, 1.0, 1.5, 0.5, 1.0, 1.5])))
+
+    def test_get_distance(self) -> None:
+        self.model = mj.MjModel.from_xml_string(
+            """
+       <mujoco>
+           <worldbody>
+               <geom name="floor" pos="0 0 0" size="5 5 0.1" type="plane"/>
+               <body name="body1" pos="0 0 1">
+                   <joint type="free"/>
+                   <geom name="sphere1" pos="0 0 0" size="0.1" type="sphere"/>
+               </body>
+               <body name="body2" pos="1 0 1">
+                   <joint type="free"/>
+                   <geom name="box1" pos="0 0 0" size="0.1 0.1 0.1" type="box"/>
+               </body>
+               <body name="body3" pos="0 1 1">
+                   <joint type="free"/>
+                   <geom name="capsule1" pos="0 0 0" size="0.1 0.2" type="capsule"/>
+               </body>
+           </worldbody>
+       </mujoco>
+       """
+        )
+        self.data = mjx.make_data(self.model)
+        self.q = jnp.zeros(self.model.nq, dtype=jnp.float32)
+        self.data = mjx.make_data(self.model)
+        self.data = self.data.replace(qpos=self.q)
+        self.data = mjx.kinematics(self.model, self.data)
+
+        # Define collision pairs
+        collision_pairs: list[CollisionPair] = [
+            (1, 2),  # sphere and box
+            (1, 3),  # sphere and capsule
+            (2, 3),  # box and capsule
+            (0, 1),  # floor and sphere
+            (0, 2),  # floor and box
+            (0, 3),  # floor and capsule
+        ]
+
+        # Get distances
+        distances = get_distance(self.model, self.data, collision_pairs)
+
+        # Check if the output is a jax array
+        self.assertIsInstance(distances, jax.Array)
+
+        # Check if the number of distances matches the number of collision pairs
+        self.assertEqual(len(distances), len(collision_pairs))
+
+        # Check if all distances are non-negative
+        self.assertTrue(jnp.all(distances >= 0))
+
+        # Check specific distances (approximate values based on the model setup)
+        self.assertAlmostEqual(distances[0], 0.8, delta=0.1)  # sphere to box
+        self.assertAlmostEqual(distances[1], 0.8, delta=0.1)  # sphere to capsule
+        self.assertAlmostEqual(distances[2], jnp.sqrt(2) - 0.2, delta=0.1)  # box to capsule
+        self.assertAlmostEqual(distances[3], 0.9, delta=0.1)  # floor to sphere
+        self.assertAlmostEqual(distances[4], 0.9, delta=0.1)  # floor to box
+        self.assertAlmostEqual(distances[5], 0.8, delta=0.1)  # floor to capsule
+
+    def test_get_distance_with_hfield(self) -> None:
+        hfield_model = mj.MjModel.from_xml_string(
+            """
+       <mujoco>
+           <asset>
+               <hfield name="hf" nrow="10" ncol="10" size="1 1 0.1 0.1"/>
+           </asset>
+           <worldbody>
+               <geom name="hfield" pos="0 0 0" size="1 1 0.1" type="hfield" hfield="hf"/>
+               <body name="body1" pos="0 0 1">
+                   <joint type="free"/>
+                   <geom name="sphere1" pos="0 0 0" size="0.1" type="sphere"/>
+               </body>
+           </worldbody>
+       </mujoco>
+       """
+        )
+        hfield_data = mjx.make_data(hfield_model)
+        hfield_data = mjx.kinematics(hfield_model, hfield_data)
+
+        collision_pairs: list[CollisionPair] = [(0, 1)]  # hfield and sphere
+
+        distances = get_distance(hfield_model, hfield_data, collision_pairs)
+
+        self.assertIsInstance(distances, jax.Array)
+        self.assertEqual(len(distances), 1)
+        self.assertTrue(jnp.all(distances >= 0))
+        self.assertAlmostEqual(distances[0], 0.9, delta=0.1)  # hfield to sphere
