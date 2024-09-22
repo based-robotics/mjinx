@@ -8,7 +8,7 @@ import numpy as np
 from mujoco import viewer
 from robot_descriptions.iiwa14_mj_description import MJCF_PATH
 
-from mjinx.components.barriers import JointBarrier, PositionBarrier
+from mjinx.components.barriers import JointBarrier, PositionBarrier, SelfCollisionBarrier
 from mjinx.components.tasks import FrameTask
 from mjinx.configuration import integrate
 from mjinx.problem import Problem
@@ -66,10 +66,16 @@ position_barrier = PositionBarrier(
     mask=[1, 0, 0],
 )
 joints_barrier = JointBarrier("jnt_range", gain=10)
+self_collision_barrier = SelfCollisionBarrier(
+    "self_collision_barrier",
+    1.0,
+    d_min=0.01,
+)
 
 problem.add_component(frame_task)
 problem.add_component(position_barrier)
 problem.add_component(joints_barrier)
+problem.add_component(self_collision_barrier)
 
 # Compiling the problem upon any parameters update
 problem_data = problem.compile()
