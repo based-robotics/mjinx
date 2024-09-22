@@ -2,7 +2,6 @@
 
 """..."""
 
-from typing import Sequence
 import jax
 import jax.numpy as jnp
 import jaxlie
@@ -169,6 +168,8 @@ def sorted_pair(x: int, y: int) -> tuple[int, int]:
 def get_distance(model: mjx.Model, data: mjx.Data, collision_pairs: list[CollisionPair]):
     dists = []
     for g1, g2 in collision_pairs:
+        if model.geom_type[g1] > model.geom_type[g2]:
+            g1, g2 = g2, g1
         types = model.geom_type[g1], model.geom_type[g2]
         data_ids = model.geom_dataid[g1], model.geom_dataid[g2]
         if model.geom_priority[g1] > model.geom_priority[g2]:
@@ -193,6 +194,15 @@ def get_distance(model: mjx.Model, data: mjx.Data, collision_pairs: list[Collisi
             key = mjx._src.collision_types.FunctionKey(types, data_ids, condim)
 
         collision_fn = mjx._src.collision_driver._COLLISION_FUNC[sorted_pair(*types)]
-        dists.append(collision_fn(model, data, key, jnp.array((g1, g2)).reshape(1, -1))[0])
-
+        dists.append(
+            collision_fn(
+                model,
+                data,
+                key,
+                jnp.array(
+                    (g1, g2) if types[0] > types[1] else (g2, g1),
+                ).reshape(1, -1),
+            )[0].min()
+        )
+    print(dists)
     return jnp.array(dists).ravel()
