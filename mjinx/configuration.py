@@ -204,5 +204,4 @@ def get_distance(model: mjx.Model, data: mjx.Data, collision_pairs: list[Collisi
                 ).reshape(1, -1),
             )[0].min()
         )
-    print(dists)
     return jnp.array(dists).ravel()
