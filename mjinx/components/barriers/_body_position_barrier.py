@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import warnings
-from enum import Enum
 from typing import Callable, Sequence, final
 
 import jax.numpy as jnp
@@ -9,35 +8,7 @@ import jax_dataclasses as jdc
 import mujoco.mjx as mjx
 
 from mjinx.components.barriers._body_barrier import BodyBarrier, JaxBodyBarrier
-from mjinx.typing import ArrayOrFloat
-
-
-class PositionLimitType(Enum):
-    MIN = 0
-    MAX = 1
-    BOTH = 2
-
-    @staticmethod
-    def from_str(type: str) -> PositionLimitType:
-        match type.lower():
-            case "min":
-                return PositionLimitType.MIN
-            case "max":
-                return PositionLimitType.MAX
-            case "both":
-                return PositionLimitType.BOTH
-            case _:
-                raise ValueError(
-                    f"[PositionLimitType] invalid position limit type: {type}. " f"Expected {{'min', 'max', 'both'}}"
-                )
-
-    @staticmethod
-    def includes_min(type: PositionLimitType) -> bool:
-        return type == PositionLimitType.MIN or type == PositionLimitType.BOTH
-
-    @staticmethod
-    def includes_max(type: PositionLimitType) -> bool:
-        return type == PositionLimitType.MAX or type == PositionLimitType.BOTH
+from mjinx.typing import ArrayOrFloat, PositionLimitType
 
 
 @jdc.pytree_dataclass
@@ -74,7 +45,7 @@ class PositionBarrier(BodyBarrier[JaxPositionBarrier]):
         limit_type: str = "both",
         gain_fn: Callable[[float], float] | None = None,
         safe_displacement_gain: float = 0,
-        mask: Sequence | None = None,
+        mask: Sequence[int] | None = None,
     ):
         mask = mask if mask is not None else jnp.array([1, 1, 1])
         super().__init__(name, gain, body_name, gain_fn, safe_displacement_gain, mask)

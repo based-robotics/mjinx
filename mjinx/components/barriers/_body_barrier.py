@@ -31,7 +31,7 @@ class BodyBarrier(Generic[AtomicBodyBarrierType], Barrier[AtomicBodyBarrierType]
         body_name: str,
         gain_fn: Callable[[float], float] | None = None,
         safe_displacement_gain: float = 0,
-        mask: Sequence | None = None,
+        mask: Sequence[int] | None = None,
     ):
         super().__init__(name, gain, gain_fn, safe_displacement_gain, mask)
         self.__body_name = body_name

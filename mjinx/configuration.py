@@ -9,6 +9,8 @@ import mujoco as mj
 from jaxlie import SE3, SO3
 from mujoco import mjx
 
+from mjinx.typing import CollisionPair
+
 
 def update(model: mjx.Model, q: jnp.ndarray) -> mjx.Data:
     """..."""
@@ -157,3 +159,49 @@ def joint_difference(model: mjx.Model, q1: jnp.ndarray, q2: jnp.ndarray) -> jnp.
                 idx += 1
 
     return jnp.concatenate(jnt_diff)
+
+
+def sorted_pair(x: int, y: int) -> tuple[int, int]:
+    return (min(x, y), max(x, y))
+
+
+def get_distance(model: mjx.Model, data: mjx.Data, collision_pairs: list[CollisionPair]):
+    dists = []
+    for g1, g2 in collision_pairs:
+        if model.geom_type[g1] > model.geom_type[g2]:
+            g1, g2 = g2, g1
+        types = model.geom_type[g1], model.geom_type[g2]
+        data_ids = model.geom_dataid[g1], model.geom_dataid[g2]
+        if model.geom_priority[g1] > model.geom_priority[g2]:
+            condim = model.geom_condim[g1]
+        elif model.geom_priority[g1] < model.geom_priority[g2]:
+            condim = model.geom_condim[g2]
+        else:
+            condim = max(model.geom_condim[g1], model.geom_condim[g2])
+
+        if types[0] == mj.mjtGeom.mjGEOM_HFIELD:
+            # add static grid bounds to the grouping key for hfield collisions
+            geom_rbound_hfield = model.geom_rbound
+            nrow, ncol = model.hfield_nrow[data_ids[0]], model.hfield_ncol[data_ids[0]]
+            xsize, ysize = model.hfield_size[data_ids[0]][:2]
+            xtick, ytick = (2 * xsize) / (ncol - 1), (2 * ysize) / (nrow - 1)
+            xbound = int(jnp.ceil(2 * geom_rbound_hfield[g2] / xtick)) + 1
+            xbound = min(xbound, ncol)
+            ybound = int(jnp.ceil(2 * geom_rbound_hfield[g2] / ytick)) + 1
+            ybound = min(ybound, nrow)
+            key = mjx._src.collision_types.FunctionKey(types, data_ids, condim, (xbound, ybound))
+        else:
+            key = mjx._src.collision_types.FunctionKey(types, data_ids, condim)
+
+        collision_fn = mjx._src.collision_driver._COLLISION_FUNC[sorted_pair(*types)]
+        dists.append(
+            collision_fn(
+                model,
+                data,
+                key,
+                jnp.array(
+                    (g1, g2) if types[0] > types[1] else (g2, g1),
+                ).reshape(1, -1),
+            )[0].min()
+        )
+    return jnp.array(dists).ravel()

@@ -61,7 +61,7 @@ class FrameTask(BodyTask[JaxFrameTask]):
         body_name: str,
         gain_fn: Callable[[float], float] | None = None,
         lm_damping: float = 0,
-        mask: Sequence | None = None,
+        mask: Sequence[int] | None = None,
     ):
         super().__init__(name, cost, gain, body_name, gain_fn, lm_damping, mask)
         self.target_frame = SE3.identity()

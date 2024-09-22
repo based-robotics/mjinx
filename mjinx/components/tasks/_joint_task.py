@@ -33,7 +33,7 @@ class JointTask(Task[JaxJointTask]):
         gain: ArrayOrFloat,
         gain_fn: Callable[[float], float] | None = None,
         lm_damping: float = 0,
-        mask: Sequence | None = None,
+        mask: Sequence[int] | None = None,
     ):
         super().__init__(name, cost, gain, gain_fn, lm_damping, mask)
         self.__target_q = None

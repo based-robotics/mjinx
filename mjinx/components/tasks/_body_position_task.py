@@ -31,7 +31,7 @@ class PositionTask(BodyTask[JaxPositionTask]):
         body_name: str,
         gain_fn: Callable[[float], float] | None = None,
         lm_damping: float = 0,
-        mask: Sequence | None = None,
+        mask: Sequence[int] | None = None,
     ):
         super().__init__(name, cost, gain, body_name, gain_fn, lm_damping, mask)
         self._dim = 3 if mask is None else len(self.mask_idxs)

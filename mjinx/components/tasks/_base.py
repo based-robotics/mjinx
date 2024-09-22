@@ -31,7 +31,7 @@ class Task(Generic[AtomicTaskType], Component[AtomicTaskType]):
         gain: ArrayOrFloat,
         gain_fn: Callable[[float], float] | None = None,
         lm_damping: float = 0,
-        mask: Sequence | None = None,
+        mask: Sequence[int] | None = None,
     ):
         super().__init__(name, gain, gain_fn, mask)
         if lm_damping < 0:

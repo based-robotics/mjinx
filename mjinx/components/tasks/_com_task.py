@@ -38,7 +38,7 @@ class ComTask(Task[JaxComTask]):
         gain: ArrayOrFloat,
         gain_fn: Callable[[float], float] | None = None,
         lm_damping: float = 0,
-        mask: Sequence | None = None,
+        mask: Sequence[int] | None = None,
     ):
         if mask is not None and len(mask) != 3:
             raise ValueError("provided mask is too large, expected 1D vector of length 3")
