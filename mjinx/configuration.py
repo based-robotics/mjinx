@@ -181,27 +181,16 @@ def get_distance(model: mjx.Model, data: mjx.Data, collision_pairs: list[Collisi
 
         if types[0] == mj.mjtGeom.mjGEOM_HFIELD:
             # add static grid bounds to the grouping key for hfield collisions
-            geom_rbound_hfield = model.geom_rbound
-            nrow, ncol = model.hfield_nrow[data_ids[0]], model.hfield_ncol[data_ids[0]]
-            xsize, ysize = model.hfield_size[data_ids[0]][:2]
-            xtick, ytick = (2 * xsize) / (ncol - 1), (2 * ysize) / (nrow - 1)
-            xbound = int(jnp.ceil(2 * geom_rbound_hfield[g2] / xtick)) + 1
-            xbound = min(xbound, ncol)
-            ybound = int(jnp.ceil(2 * geom_rbound_hfield[g2] / ytick)) + 1
-            ybound = min(ybound, nrow)
-            key = mjx._src.collision_types.FunctionKey(types, data_ids, condim, (xbound, ybound))
-        else:
-            key = mjx._src.collision_types.FunctionKey(types, data_ids, condim)
+            raise NotImplementedError("Height field is not yet supported for collision detection")
+        key = mjx._src.collision_types.FunctionKey(types, data_ids, condim)
 
-        collision_fn = mjx._src.collision_driver._COLLISION_FUNC[sorted_pair(*types)]
+        collision_fn = mjx._src.collision_driver._COLLISION_FUNC[types]
         dists.append(
             collision_fn(
                 model,
                 data,
                 key,
-                jnp.array(
-                    (g1, g2) if types[0] > types[1] else (g2, g1),
-                ).reshape(1, -1),
+                jnp.array((g1, g2)).reshape(1, -1),
             )[0].min()
         )
     return jnp.array(dists).ravel()
