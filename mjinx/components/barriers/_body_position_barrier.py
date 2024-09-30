@@ -79,7 +79,8 @@ class PositionBarrier(BodyBarrier[JaxPositionBarrier]):
         self.update_p_min(value)
 
     def update_p_min(self, p_min: ArrayOrFloat, ignore_warnings: bool = False):
-        if isinstance(p_min, float):
+        p_min = jnp.array(p_min)
+        if p_min.ndim == 0:
             p_min = jnp.ones(len(self.mask_idxs)) * p_min
 
         if p_min.shape[-1] != len(self.mask_idxs):
@@ -93,7 +94,7 @@ class PositionBarrier(BodyBarrier[JaxPositionBarrier]):
             )
             return
 
-        self.__p_min = p_min if isinstance(p_min, jnp.ndarray) else jnp.array(p_min)
+        self.__p_min = jnp.array(p_min)
 
     @property
     def p_max(self) -> jnp.ndarray:
@@ -104,6 +105,7 @@ class PositionBarrier(BodyBarrier[JaxPositionBarrier]):
         self.update_p_max(value)
 
     def update_p_max(self, p_max: ArrayOrFloat, ignore_warnings: bool = False):
+        p_max = jnp.array(p_max)
         if isinstance(p_max, float):
             p_max = jnp.ones(len(self.mask_idxs)) * p_max
 
@@ -117,4 +119,5 @@ class PositionBarrier(BodyBarrier[JaxPositionBarrier]):
                 stacklevel=2,
             )
             return
-        self.__p_max = p_max if isinstance(p_max, jnp.ndarray) else jnp.array(p_max)
+
+        self.__p_max = jnp.array(p_max)
