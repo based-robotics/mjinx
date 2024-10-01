@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-import warnings
-from enum import Enum
 from typing import Callable, Sequence, final
 
 import jax.numpy as jnp
