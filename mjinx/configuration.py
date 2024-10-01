@@ -1,6 +1,4 @@
-#!/usr/bin/env python3
-
-"""..."""
+"""Helper functions to work with MuJoCo models."""
 
 import jax
 import jax.numpy as jnp
@@ -13,19 +11,12 @@ from mjinx.typing import CollisionPair
 
 
 def update(model: mjx.Model, q: jnp.ndarray) -> mjx.Data:
-    """..."""
     data = mjx.make_data(model)
     data = data.replace(qpos=q)
     data = mjx.fwd_position(model, data)
     data = mjx.com_pos(model, data)
 
     return data
-
-
-# TODO: not working
-# def check_limits(model: mjx.Model, data: mjx.Data) -> bool:
-#     """..."""
-#     return (model.jnt_range[:, 0] < data.qpos < model.jnt_range[:, 1]).all().item()
 
 
 def get_frame_jacobian_world_aligned(model: mjx.Model, data: mjx.Data, body_id: int) -> jnp.ndarray:
