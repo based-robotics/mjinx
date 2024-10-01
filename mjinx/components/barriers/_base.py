@@ -10,12 +10,26 @@ from mjinx.typing import ArrayOrFloat
 
 @jdc.pytree_dataclass
 class JaxBarrier(JaxComponent):
-    r"""..."""
+    """
+    A base class for implementing barrier functions in JAX.
+
+    This class provides a framework for creating barrier functions that can be used
+    in optimization problems, particularly for constraint handling in robotics applications.
+
+    Note: barrier is a function h(x) >= 0.
+
+    :param safe_displacement_gain: The gain for computing safe displacements.
+    """
 
     safe_displacement_gain: float
 
     def compute_barrier(self, data: mjx.Data) -> jnp.ndarray:
-        # h(q) > 0!
+        """
+        Compute the barrier function value.
+
+        :param data: The MuJoCo simulation data.
+        :return: The computed barrier value.
+        """
         return self.__call__(data)
 
     def compute_safe_displacement(self, data: mjx.Data) -> jnp.ndarray:
@@ -27,15 +41,26 @@ AtomicBarrierType = TypeVar("AtomicBarrierType", bound=JaxBarrier)
 
 
 class Barrier(Generic[AtomicBarrierType], Component[AtomicBarrierType]):
+    """
+    A generic barrier class that wraps atomic barrier implementations.
+
+    This class provides a high-level interface for barrier functions, allowing
+    for easy integration into optimization problems.
+
+    :param safe_displacement_gain: The gain for computing safe displacements.
+    """
+
     safe_displacement_gain: float
 
-    def __init__(
-        self,
-        name: str,
-        gain: ArrayOrFloat,
-        gain_fn: Callable[[float], float] | None = None,
-        safe_displacement_gain: float = 0,
-        mask: Sequence[int] | None = None,
-    ):
+    def __init__(self, name, gain, gain_fn=None, safe_displacement_gain=0, mask=None):
+        """
+        Initialize the Barrier object.
+
+        :param name: The name of the barrier.
+        :param gain: The gain for the barrier function.
+        :param gain_fn: A function to compute the gain dynamically.
+        :param safe_displacement_gain: The gain for computing safe displacements.
+        :param mask: A sequence of integers to mask certain dimensions.
+        """
         super().__init__(name, gain, gain_fn, mask)
         self.safe_displacement_gain = safe_displacement_gain

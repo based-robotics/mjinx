@@ -7,7 +7,7 @@ import numpy as np
 
 from mjinx.components.barriers._base import Barrier, JaxBarrier
 from mjinx.configuration import joint_difference
-from mjinx.typing import ArrayOrFloat
+from mjinx.typing import ArrayOrFloat, ndarray
 
 
 @jdc.pytree_dataclass
@@ -55,10 +55,10 @@ class JointBarrier(Barrier[JaxJointBarrier]):
         return self.__q_min
 
     @q_min.setter
-    def q_min(self, value: np.ndarray | jnp.ndarray):
+    def q_min(self, value: ndarray):
         self.update_q_min(value)
 
-    def update_q_min(self, q_min: np.ndarray | jnp.ndarray):
+    def update_q_min(self, q_min: ndarray):
         if q_min.shape[-1] != self.model.nv:
             raise ValueError(
                 f"[JointBarrier] wrong dimension of q_min: expected {self.model.nv}, got {q_min.shape[-1]}"
@@ -75,10 +75,10 @@ class JointBarrier(Barrier[JaxJointBarrier]):
         return self.__q_max
 
     @q_max.setter
-    def q_max(self, value: np.ndarray | jnp.ndarray):
+    def q_max(self, value: ndarray):
         self.update_q_max(value)
 
-    def update_q_max(self, q_max: np.ndarray | jnp.ndarray):
+    def update_q_max(self, q_max: ndarray):
         if q_max.shape[-1] != self.model.nv:
             raise ValueError(
                 f"[JointBarrier] wrong dimension of q_max: expected {self.model.nv}, got {q_max.shape[-1]}"
