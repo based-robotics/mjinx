@@ -61,7 +61,7 @@ class JointBarrier(Barrier[JaxJointBarrier]):
     def update_q_min(self, q_min: np.ndarray | jnp.ndarray):
         if q_min.shape[-1] != self.model.nv:
             raise ValueError(
-                f"[JointBarrier] wrong dimension of q_min: expected {len(self.model.nv)}, got {q_min.shape[-1]}"
+                f"[JointBarrier] wrong dimension of q_min: expected {self.model.nv}, got {q_min.shape[-1]}"
             )
 
         self.__q_min = q_min if isinstance(q_min, jnp.ndarray) else jnp.array(q_min)
@@ -81,7 +81,7 @@ class JointBarrier(Barrier[JaxJointBarrier]):
     def update_q_max(self, q_max: np.ndarray | jnp.ndarray):
         if q_max.shape[-1] != self.model.nv:
             raise ValueError(
-                f"[JointBarrier] wrong dimension of q_max: expected {len(self.model.nv)}, got {q_max.shape[-1]}"
+                f"[JointBarrier] wrong dimension of q_max: expected {self.model.nv}, got {q_max.shape[-1]}"
             )
         self.__q_max = q_max if isinstance(q_max, jnp.ndarray) else jnp.array(q_max)
 

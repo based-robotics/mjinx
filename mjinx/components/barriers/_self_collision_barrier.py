@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-import warnings
-from enum import Enum
 from typing import Callable, Sequence, final
 
 import jax.numpy as jnp
@@ -49,7 +47,7 @@ class SelfCollisionBarrier(Barrier[JaxSelfCollisionBarrier]):
         super().__init__(name, gain, gain_fn, safe_displacement_gain)
         self.d_min = d_min
 
-    def __validate_body_pair(self, body1_id: int, body2_id: int) -> bool:
+    def validate_body_pair(self, body1_id: int, body2_id: int) -> bool:
         # body_weldid is the ID of the body's weld.
         body_weldid1 = self.model.body_weldid[body1_id]
         body_weldid2 = self.model.body_weldid[body2_id]
@@ -71,14 +69,14 @@ class SelfCollisionBarrier(Barrier[JaxSelfCollisionBarrier]):
 
         return not (is_parent_child or is_welded)
 
-    def __validate_geom_pair(self, geom1_id: int, geom2_id: int) -> bool:
+    def validate_geom_pair(self, geom1_id: int, geom2_id: int) -> bool:
         # ref: https://mujoco.readthedocs.io/en/stable/computation/index.html#selection
         return (
             self.model.geom_contype[geom1_id] & self.model.geom_conaffinity[geom2_id]
             or self.model.geom_contype[geom2_id] & self.model.geom_conaffinity[geom1_id]
         )
 
-    def __body2id(self, body: CollisionBody):
+    def body2id(self, body: CollisionBody):
         if isinstance(body, int):
             return body
         elif isinstance(body, str):
@@ -98,13 +96,13 @@ class SelfCollisionBarrier(Barrier[JaxSelfCollisionBarrier]):
         collision_pairs: set[CollisionPair] = set()
         for i in range(len(collision_bodies)):
             for k in range(i + 1, len(collision_bodies)):
-                body1_id = self.__body2id(collision_bodies[i])
-                body2_id = self.__body2id(collision_bodies[k])
+                body1_id = self.body2id(collision_bodies[i])
+                body2_id = self.body2id(collision_bodies[k])
 
                 if (
                     body1_id == body2_id  # If bodies are the same (somehow),
                     or sorted_pair(body1_id, body2_id) in excluded_collisions  # or body pair is excluded,
-                    or not self.__validate_body_pair(body1_id, body2_id)  # or body pair is not valid for other reason
+                    or not self.validate_body_pair(body1_id, body2_id)  # or body pair is not valid for other reason
                 ):
                     # then skip
                     continue
@@ -117,7 +115,7 @@ class SelfCollisionBarrier(Barrier[JaxSelfCollisionBarrier]):
 
                 for body1_geom_i in range(body1_geom_start, body1_geom_end):
                     for body2_geom_i in range(body2_geom_start, body2_geom_end):
-                        if self.__validate_geom_pair(body1_geom_i, body2_geom_i):
+                        if self.validate_geom_pair(body1_geom_i, body2_geom_i):
                             collision_pairs.add(sorted_pair(body1_geom_i, body2_geom_i))
 
         return list(collision_pairs)
@@ -129,8 +127,8 @@ class SelfCollisionBarrier(Barrier[JaxSelfCollisionBarrier]):
 
         self.exclude_collisions: set[CollisionPair] = {
             sorted_pair(
-                self.__body2id(body1),
-                self.__body2id(body2),
+                self.body2id(body1),
+                self.body2id(body2),
             )
             for body1, body2 in self.__exclude_collisions_raw
         }
