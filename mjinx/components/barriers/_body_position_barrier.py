@@ -83,7 +83,7 @@ class PositionBarrier(BodyBarrier[JaxPositionBarrier]):
         if p_min.ndim == 0:
             p_min = jnp.ones(len(self.mask_idxs)) * p_min
 
-        if p_min.shape[-1] != len(self.mask_idxs):
+        elif p_min.shape[-1] != len(self.mask_idxs):
             raise ValueError(
                 f"[PositionBarrier] wrong dimension of p_min: expected {len(self.mask_idxs)}, got {p_min.shape[-1]}"
             )
@@ -106,10 +106,10 @@ class PositionBarrier(BodyBarrier[JaxPositionBarrier]):
 
     def update_p_max(self, p_max: ArrayOrFloat, ignore_warnings: bool = False):
         p_max = jnp.array(p_max)
-        if isinstance(p_max, float):
+        if p_max.ndim == 0:
             p_max = jnp.ones(len(self.mask_idxs)) * p_max
 
-        if p_max.shape[-1] != len(self.mask_idxs):
+        elif p_max.shape[-1] != len(self.mask_idxs):
             raise ValueError(
                 f"[PositionBarrier] wrong dimension of p_max: expected {len(self.mask_idxs)}, got {p_max.shape[-1]}"
             )
