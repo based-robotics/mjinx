@@ -52,7 +52,7 @@ class TestPositionBarrier(unittest.TestCase):
             gain=1.0,
             body_name="body1",
             p_min=[-1.0, -1.0, -1.0],
-            p_max=[1.0, 1.0, 1.0],
+            limit_type="min",
         )
 
         barrier.update_p_min([-2.0, -2.0, -2.0])
@@ -61,14 +61,17 @@ class TestPositionBarrier(unittest.TestCase):
         with self.assertRaises(ValueError):
             barrier.update_p_min([-2.0, -2.0])
 
+        with self.assertWarns(Warning):
+            barrier.p_max = [1.0, 1.0, 1.0]
+
     def test_update_p_max(self):
         """Testing maximal position updates"""
         barrier = PositionBarrier(
             name="test_barrier",
             gain=1.0,
             body_name="body1",
-            p_min=[-1.0, -1.0, -1.0],
             p_max=[1.0, 1.0, 1.0],
+            limit_type="max",
         )
 
         barrier.update_p_max([2.0, 2.0, 2.0])
@@ -76,6 +79,9 @@ class TestPositionBarrier(unittest.TestCase):
 
         with self.assertRaises(ValueError):
             barrier.update_p_max([2.0, 2.0])
+
+        with self.assertWarns(Warning):
+            barrier.p_min = [1.0, 1.0, 1.0]
 
     def test_limit_type_and_dimension(self):
         """Test limit type detection and dimension of the barrier"""

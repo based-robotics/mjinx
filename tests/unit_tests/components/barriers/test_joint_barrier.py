@@ -76,6 +76,12 @@ class TestJointBarrier(unittest.TestCase):
             name="test_barrier",
             gain=1.0,
         )
+        with self.assertRaises(ValueError):
+            _ = barrier.q_min
+
+        with self.assertRaises(ValueError):
+            _ = barrier.q_max
+
         barrier.update_model(self.model)
         np.testing.assert_array_equal(barrier.q_min, self.model.jnt_range[:, 0])
         np.testing.assert_array_equal(barrier.q_max, self.model.jnt_range[:, 1])

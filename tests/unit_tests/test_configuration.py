@@ -231,7 +231,6 @@ class TestConfiguration(unittest.TestCase):
 
         # Get distances
         distances = get_distance(self.model, self.data, collision_pairs)
-        print(distances)
 
         # Check if the output is a jax array
         self.assertIsInstance(distances, jax.Array)
