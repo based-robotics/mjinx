@@ -104,6 +104,7 @@ class TestJointBarrier(unittest.TestCase):
         np.testing.assert_array_equal(jax_component.q_max, jnp.array([1.0]))
 
     def test_call(self):
+        """Test jax component actual computation"""
         barrier = JaxJointBarrier(
             dim=2,
             model=self.model,

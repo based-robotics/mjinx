@@ -55,6 +55,7 @@ class TestSelfCollisionBarrier(unittest.TestCase):
         self.assertEqual(barrier.exclude_collisions, {sorted_pair(1, 2)})
 
     def test_generate_collision_pairs(self):
+        """Test straight-away collision pair generation"""
         barrier = SelfCollisionBarrier(
             name="test_barrier",
             gain=1.0,
@@ -66,6 +67,7 @@ class TestSelfCollisionBarrier(unittest.TestCase):
         self.assertEqual(barrier.collision_pairs, expected_pairs)
 
     def test_generate_collision_pairs_with_exclusion(self):
+        """Test exclusion of collision pairs"""
         barrier = SelfCollisionBarrier(
             name="test_barrier",
             gain=1.0,
@@ -85,13 +87,14 @@ class TestSelfCollisionBarrier(unittest.TestCase):
         )
         barrier.update_model(self.model)
 
-        self.assertEqual(barrier._SelfCollisionBarrier__body2id("body1"), 1)
-        self.assertEqual(barrier._SelfCollisionBarrier__body2id(1), 1)
+        self.assertEqual(barrier.body2id("body1"), 1)
+        self.assertEqual(barrier.body2id(1), 1)
 
         with self.assertRaises(ValueError):
-            barrier._SelfCollisionBarrier__body2id(1.5)
+            barrier.body2id(1.5)
 
     def test_validate_body_pair(self):
+        """Test body pairs validation"""
         barrier = SelfCollisionBarrier(
             name="test_barrier",
             gain=1.0,
@@ -99,14 +102,17 @@ class TestSelfCollisionBarrier(unittest.TestCase):
         )
         barrier.update_model(self.model)
 
-        self.assertTrue(barrier._SelfCollisionBarrier__validate_body_pair(1, 2))
-        self.assertTrue(barrier._SelfCollisionBarrier__validate_body_pair(1, 3))
-        self.assertTrue(barrier._SelfCollisionBarrier__validate_body_pair(2, 4))
+        # Valid body pairs
+        self.assertTrue(barrier.validate_body_pair(1, 2))
+        self.assertTrue(barrier.validate_body_pair(1, 3))
+        self.assertTrue(barrier.validate_body_pair(2, 4))
 
-        self.assertFalse(barrier._SelfCollisionBarrier__validate_body_pair(2, 3))
-        self.assertFalse(barrier._SelfCollisionBarrier__validate_body_pair(3, 4))
+        # Invalid pairs: consequitive pairs
+        self.assertFalse(barrier.validate_body_pair(2, 3))
+        self.assertFalse(barrier.validate_body_pair(3, 4))
 
     def test_validate_geom_pair(self):
+        """Test geometry pairs validation"""
         barrier = SelfCollisionBarrier(
             name="test_barrier",
             gain=1.0,
@@ -114,12 +120,13 @@ class TestSelfCollisionBarrier(unittest.TestCase):
         )
         barrier.update_model(self.model)
 
-        self.assertTrue(barrier._SelfCollisionBarrier__validate_geom_pair(0, 1))
-        self.assertTrue(barrier._SelfCollisionBarrier__validate_geom_pair(0, 2))
-        self.assertTrue(barrier._SelfCollisionBarrier__validate_geom_pair(1, 2))
+        # Valid geom pairs
+        self.assertTrue(barrier.validate_geom_pair(0, 1))
+        self.assertTrue(barrier.validate_geom_pair(0, 2))
+        self.assertTrue(barrier.validate_geom_pair(1, 2))
 
         for i in range(self.model.ngeom - 1):
-            self.assertFalse(barrier._SelfCollisionBarrier__validate_geom_pair(3, i))
+            self.assertFalse(barrier.validate_geom_pair(3, i))  # Invalid geom pairs: condyn-affinity contradict.
 
     def test_d_min_vec(self):
         barrier = SelfCollisionBarrier(
@@ -148,6 +155,7 @@ class TestSelfCollisionBarrier(unittest.TestCase):
         self.assertEqual(len(jax_component.collision_pairs), jax_component.dim)
 
     def test_call(self):
+        """Test jax component actual computation"""
         collision_pairs = [(0, 1)]
         barrier = JaxSelfCollisionBarrier(
             dim=1,
