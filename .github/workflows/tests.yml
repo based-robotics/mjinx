@@ -2,9 +2,9 @@ name: tests
 
 on:
   push:
-      branches: [ main, feature/cicd ]
+      branches: [ main ]
   pull_request:
-    branches: [master]
+    branches: [ main ]
 
 jobs:
   unit-tests:
