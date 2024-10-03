@@ -156,7 +156,7 @@ def sorted_pair(x: int, y: int) -> tuple[int, int]:
     return (min(x, y), max(x, y))
 
 
-def get_distance(model: mjx.Model, data: mjx.Data, collision_pairs: list[CollisionPair]):
+def get_distance(model: mjx.Model, data: mjx.Data, collision_pairs: list[CollisionPair]) -> jnp.ndarray:
     dists = []
     for g1, g2 in collision_pairs:
         if model.geom_type[g1] > model.geom_type[g2]:

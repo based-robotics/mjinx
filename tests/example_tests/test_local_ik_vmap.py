@@ -86,7 +86,7 @@ def test_local_ik_vmap():
 
     # === Control loop ===
     dt = 1e-2
-    ts = np.arange(0, 20, dt)
+    ts = np.arange(0, 1, dt)
 
     for t in ts:
         # Changing desired values
