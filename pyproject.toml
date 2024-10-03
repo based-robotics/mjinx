@@ -1,49 +1,42 @@
-[tool.poetry]
+[project]
 name = "mjinx"
 version = "0.0.1"
 description = "Numerical Inverse Kinematics based on JAX + MJX"
 authors = [
-    "Ivan Domrachev, <domrachev10@gmail.com>, Simeon Nedelchev <simkaned@gmail.com>", "Lev Kozlov <kozlov.l.a10@gmail.com>"
-]   
-readme = "README.md"
-packages = [
-  { include = "mjinx"},
+  { name = "Ivan Domrachev", email = "domrachev10@gmail.com" },
+  { name = "Simeon Nedelchev", email = "simkaned@gmail.com" },
+  { name = "Lev Kozlov", email = "kozlov.l.a10@gmail.com" },
 ]
+readme = "README.md"
+requires-python = ">=3.10"
 
-[tool.poetry.dependencies]
-python = "^3.10"
-mujoco = "3.1.6"
-mujoco_mjx = "3.1.6"
-jaxlib = "^0.4"
-jaxopt = "*"
-# For strictrer versioning
-jax = "^0.4"
-robot_descriptions = "1.12"
-jaxlie = "^1.4"
-optax = "^0.2"
-jax_dataclasses = "^1.6.0"
+dependencies = ["mujoco", "mujoco_mjx", "jaxlib>=0.4", "jaxopt", "jax>=0.4", "jaxlie>=1.4", "jax_dataclasses>=1.6.0", "optax>=0.2"]
 
-[tool.poetry.group.dev.dependencies]
-pre-commit = "^3.6.0"
-ruff = "^0.1.13"
-pytest = "^7.4.4"
-mypy = "^1.11"
+[project.optional-dependencies]
+dev = ["robot_descriptions>=1.12", "pre-commit", "ruff", "pytest"]
 
 [build-system]
-requires = ["poetry-core"]
-build-backend = "poetry.core.masonry.api"
+requires = ["setuptools>=43.0.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["mjinx*"]
 
 [tool.ruff]
 select = [
-    "E",  # pycodestyle errors
-    "W",  # pycodestyle warnings
-    "F",  # pyflakes
-    "I",  # isort
-    "B",  # flake8-bugbear
-    "C4", # flake8-comprehensions
-    "UP", # pyupgrade
+  "E",  # pycodestyle errors
+  "W",  # pycodestyle warnings
+  "F",  # pyflakes
+  "I",  # isort
+  "B",  # flake8-bugbear
+  "C4", # flake8-comprehensions
+  "UP", # pyupgrade
 ]
-line-length=120
+line-length = 120
 
 [tool.ruff.lint.per-file-ignores]
 "__init__.py" = ["F401"]
+
+[tool.pytest]
+filterwarnings = "ignore:.*U.*mode is deprecated:DeprecationWarning"

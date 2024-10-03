@@ -1,4 +1,4 @@
-"""Typings which are utilized in the mjinx """
+"""Typings which are utilized in the mjinx"""
 
 from __future__ import annotations
 
