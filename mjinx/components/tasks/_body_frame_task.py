@@ -41,9 +41,7 @@ class JaxFrameTask(JaxBodyTask):
                 self.body_id,
             ).inverse()
             @ self.target_frame
-        ).log()[
-            self.mask_idxs,
-        ]
+        ).log()[self.mask_idxs,]
 
     @final
     def compute_jacobian(self, data: mjx.Data) -> jnp.ndarray:

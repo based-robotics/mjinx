@@ -14,7 +14,6 @@ from mjinx.solvers import LocalIKSolver
 
 # === Mujoco ===
 def test_local_ik_vmap():
-
     mj_model = mj.MjModel.from_xml_path(MJCF_PATH)
 
     mjx_model = mjx.put_model(mj_model)
