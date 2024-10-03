@@ -26,7 +26,7 @@ class Problem:
     __v_min: jnp.ndarray
     __v_max: jnp.ndarray
 
-    def __init__(self, model: mjx.Model, v_min: ArrayOrFloat, v_max: ArrayOrFloat):
+    def __init__(self, model: mjx.Model, v_min: ArrayOrFloat = 1e-3, v_max: ArrayOrFloat = 1e3):
         self.__model = model
         self.__components = {}
         self.update_v_min(v_min)
