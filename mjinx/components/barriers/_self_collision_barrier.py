@@ -178,6 +178,11 @@ class SelfCollisionBarrier(Barrier[JaxSelfCollisionBarrier]):
         return list(collision_pairs)
 
     def update_model(self, model: mjx.Model):
+        """
+        Update the model and generate collision pairs.
+
+        :param model: The MuJoCo model.
+        """
         super().update_model(model)
         if len(self.collision_bodies) == 0:
             self.collision_bodies = list(range(self.model.nbody))
@@ -197,6 +202,12 @@ class SelfCollisionBarrier(Barrier[JaxSelfCollisionBarrier]):
 
     @property
     def d_min_vec(self) -> jnp.ndarray:
+        """
+        Get the vector of minimum allowed distances for each collision pair.
+
+        :return: An array of minimum distances.
+        :raises ValueError: If the dimension is not set.
+        """
         if self._dim == -1:
             raise ValueError(
                 "fail to calculate d_min without dimension specified. "
