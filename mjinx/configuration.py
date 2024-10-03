@@ -11,6 +11,13 @@ from mjinx.typing import CollisionPair
 
 
 def update(model: mjx.Model, q: jnp.ndarray) -> mjx.Data:
+    """
+    Update the MuJoCo data with new joint positions.
+
+    :param model: The MuJoCo model.
+    :param q: The new joint positions.
+    :return: Updated MuJoCo data.
+    """
     data = mjx.make_data(model)
     data = data.replace(qpos=q)
     data = mjx.fwd_position(model, data)
@@ -20,7 +27,14 @@ def update(model: mjx.Model, q: jnp.ndarray) -> mjx.Data:
 
 
 def get_frame_jacobian_world_aligned(model: mjx.Model, data: mjx.Data, body_id: int) -> jnp.ndarray:
-    """Compute pair of (NV, 3) Jacobians of global point attached to body."""
+    """
+    Compute pair of (NV, 3) Jacobians of global point attached to body.
+
+    :param model: The MuJoCo model.
+    :param data: The MuJoCo data.
+    :param body_id: The ID of the body.
+    :return: The Jacobian matrix.
+    """
 
     def fn(carry, b):
         return b if carry is None else b + carry
@@ -42,7 +56,18 @@ def get_frame_jacobian_world_aligned(model: mjx.Model, data: mjx.Data, body_id: 
 
 
 def get_frame_jacobian_local(model: mjx.Model, data: mjx.Data, body_id: int) -> jax.Array:
-    """Compute pair of (NV, 3) Jacobians of global point attached to body."""
+    """
+    Compute pair of (NV, 3) Jacobians of global point attached to body in local frame.
+
+    :param model: The MuJoCo model.
+    :type model: mjx.Model
+    :param data: The MuJoCo data.
+    :type data: mjx.Data
+    :param body_id: The ID of the body.
+    :type body_id: int
+    :return: The Jacobian matrix in local frame.
+    :rtype: jax.Array
+    """
 
     def fn(carry, b):
         return b if carry is None else b + carry
@@ -68,7 +93,14 @@ def get_frame_jacobian_local(model: mjx.Model, data: mjx.Data, body_id: int) -> 
 
 
 def get_transform_frame_to_world(model: mjx.Model, data: mjx.Data, frame_id: int) -> SE3:
-    """..."""
+    """
+    Get the transformation from frame to world coordinates.
+
+    :param model: The MuJoCo model.
+    :param data: The MuJoCo data.
+    :param frame_id: The ID of the frame.
+    :return: The SE3 transformation.
+    """
     return SE3.from_rotation_and_translation(
         SO3.from_quaternion_xyzw(data.xquat[frame_id, [1, 2, 3, 0]]),
         data.xpos[frame_id],
@@ -76,17 +108,39 @@ def get_transform_frame_to_world(model: mjx.Model, data: mjx.Data, frame_id: int
 
 
 def get_transform(model: mjx.Model, data: mjx.Data, source_id: int, dest_id: int) -> SE3:
-    """..."""
+    """
+    Get the transformation between two frames.
+
+    :param model: The MuJoCo model.
+    :param data: The MuJoCo data.
+    :param source_id: The ID of the source frame.
+    :param dest_id: The ID of the destination frame.
+    :return: The SE3 transformation from source to destination.
+    """
     return get_transform_frame_to_world(model, data, dest_id) @ get_transform_frame_to_world(model, data, source_id)
 
 
 def integrate(model: mjx.Model, q0: jnp.ndarray, velocity: jnp.ndarray, dt: jnp.ndarray) -> jnp.ndarray:
-    """..."""
+    """
+    Integrate the joint positions given initial position, velocity, and time step.
+
+    :param model: The MuJoCo model.
+    :param q0: The initial joint positions.
+    :param velocity: The joint velocities.
+    :param dt: The time step.
+    :return: The integrated joint positions.
+    """
     return mjx._src.forward._integrate_pos(model.jnt_type, q0, velocity, dt)
 
 
 def get_configuration_limit(model: mjx.Model, limit: jnp.ndarray | float) -> tuple[jnp.ndarray, jnp.ndarray]:
-    """..."""
+    """
+    Get the configuration limits for the model.
+
+    :param model: The MuJoCo model.
+    :param limit: The limit value(s).
+    :return: A tuple of arrays representing the lower and upper bounds.
+    """
     # -limit <= v <- limit
     limit_array = jnp.ones(model.nv) * limit if isinstance(limit, float) else limit
 
@@ -97,7 +151,12 @@ def get_configuration_limit(model: mjx.Model, limit: jnp.ndarray | float) -> tup
 
 
 def get_joint_zero(model: mjx.Model) -> jnp.ndarray:
-    """..."""
+    """
+    Get the zero configuration for all joints in the model.
+
+    :param model: The MuJoCo model.
+    :return: An array representing the zero configuration for all joints.
+    """
     jnts = []
 
     for jnt_id in range(model.njnt):
@@ -114,6 +173,14 @@ def get_joint_zero(model: mjx.Model) -> jnp.ndarray:
 
 
 def joint_difference(model: mjx.Model, q1: jnp.ndarray, q2: jnp.ndarray) -> jnp.ndarray:
+    """
+    Compute the difference between two joint configurations.
+
+    :param model: The MuJoCo model.
+    :param q1: The first joint configuration.
+    :param q2: The second joint configuration.
+    :return: The difference between the two configurations.
+    """
     jnt_diff = []
     idx = 0
     for jnt_id in range(model.njnt):
@@ -153,10 +220,25 @@ def joint_difference(model: mjx.Model, q1: jnp.ndarray, q2: jnp.ndarray) -> jnp.
 
 
 def sorted_pair(x: int, y: int) -> tuple[int, int]:
+    """
+    Return a sorted pair of integers.
+
+    :param x: The first integer.
+    :param y: The second integer.
+    :return: A tuple of the two integers, sorted in ascending order.
+    """
     return (min(x, y), max(x, y))
 
 
 def get_distance(model: mjx.Model, data: mjx.Data, collision_pairs: list[CollisionPair]) -> jnp.ndarray:
+    """
+    Compute the distances for the given collision pairs.
+
+    :param model: The MuJoCo model.
+    :param data: The MuJoCo data.
+    :param collision_pairs: A list of collision pairs to check.
+    :return: An array of distances for each collision pair.
+    """
     dists = []
     for g1, g2 in collision_pairs:
         if model.geom_type[g1] > model.geom_type[g2]:
