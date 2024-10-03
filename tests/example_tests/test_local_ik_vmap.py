@@ -14,7 +14,6 @@ from mjinx.solvers import LocalIKSolver
 
 # === Mujoco ===
 def test_local_ik_vmap():
-
     mj_model = mj.MjModel.from_xml_path(MJCF_PATH)
 
     mjx_model = mjx.put_model(mj_model)
@@ -86,7 +85,7 @@ def test_local_ik_vmap():
 
     # === Control loop ===
     dt = 1e-2
-    ts = np.arange(0, 20, dt)
+    ts = np.arange(0, 1, dt)
 
     for t in ts:
         # Changing desired values

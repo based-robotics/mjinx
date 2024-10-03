@@ -1,0 +1,28 @@
+name: Upload Python Package
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+permissions:
+  contents: read
+
+jobs:
+  ruff:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Install Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.10"
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install ruff==0.6.3 # keep in sync with pyproject.toml
+      # Update output format to enable automatic inline annotations.
+      - name: Run Ruff
+        run: ruff format --diff .
+  
+  

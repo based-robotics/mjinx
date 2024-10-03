@@ -12,7 +12,14 @@ from mjinx.typing import ArrayOrFloat
 
 @jdc.pytree_dataclass
 class JaxBodyBarrier(JaxBarrier):
-    r""""""
+    """
+    A JAX implementation of a body-specific barrier function.
+
+    This class extends JaxBarrier to provide barrier functions that are
+    specific to a particular body in the robot model.
+
+    :param body_id: The ID of the body to which this barrier applies.
+    """
 
     body_id: jdc.Static[int]
 
@@ -21,6 +28,14 @@ AtomicBodyBarrierType = TypeVar("AtomicBodyBarrierType", bound=JaxBodyBarrier)
 
 
 class BodyBarrier(Generic[AtomicBodyBarrierType], Barrier[AtomicBodyBarrierType]):
+    """
+    A generic body barrier class that wraps atomic body barrier implementations.
+
+    This class provides a high-level interface for body-specific barrier functions.
+
+    :param body_name: The name of the body to which this barrier applies.
+    """
+
     __body_name: str
     __body_id: int
 
@@ -33,21 +48,51 @@ class BodyBarrier(Generic[AtomicBodyBarrierType], Barrier[AtomicBodyBarrierType]
         safe_displacement_gain: float = 0,
         mask: Sequence[int] | None = None,
     ):
+        """
+        Initialize the BodyBarrier object.
+
+        :param name: The name of the barrier.
+        :param gain: The gain for the barrier function.
+        :param body_name: The name of the body to which this barrier applies.
+        :param gain_fn: A function to compute the gain dynamically.
+        :param safe_displacement_gain: The gain for computing safe displacements.
+        :param mask: A sequence of integers to mask certain dimensions.
+        """
         super().__init__(name, gain, gain_fn, safe_displacement_gain, mask)
         self.__body_name = body_name
         self.__body_id = -1
 
     @property
     def body_name(self) -> str:
+        """
+        Get the name of the body to which this barrier applies.
+
+        :return: The name of the body.
+        """
         return self.__body_name
 
     @property
     def body_id(self) -> int:
+        """
+        Get the ID of the body to which this barrier applies.
+
+        :return: The ID of the body.
+        :raises ValueError: If the body ID is not available.
+        """
+
         if self.__body_id == -1:
             raise ValueError("body_id is not available until model is provided.")
         return self.__body_id
 
     def update_model(self, model: mjx.Model):
+        """
+        Update the model and retrieve the body ID.
+
+        :param model: The MuJoCo model.
+        :return: The updated model.
+        :raises ValueError: If the body with the specified name is not found.
+        """
+
         self.__body_id = mjx.name2id(
             model,
             mj.mjtObj.mjOBJ_BODY,

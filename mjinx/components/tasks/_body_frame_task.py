@@ -15,13 +15,25 @@ from mjinx.typing import ArrayOrFloat
 
 @jdc.pytree_dataclass
 class JaxFrameTask(JaxBodyTask):
-    r""""""
+    """
+    A JAX-based implementation of a frame task for inverse kinematics.
+
+    This class represents a task that aims to achieve a specific target frame
+    for a body in the robot model.
+
+    :param target_frame: The target frame to be achieved.
+    """
 
     target_frame: SE3
 
     @final
     def __call__(self, data: mjx.Data) -> jnp.ndarray:
-        r""""""
+        """
+        Compute the error between the current frame and the target frame.
+
+        :param data: The MuJoCo simulation data.
+        :return: The error vector representing the difference between the current and target frames.
+        """
         return (
             get_transform_frame_to_world(
                 self.model,
@@ -29,12 +41,19 @@ class JaxFrameTask(JaxBodyTask):
                 self.body_id,
             ).inverse()
             @ self.target_frame
-        ).log()[
-            self.mask_idxs,
-        ]
+        ).log()[self.mask_idxs,]
 
     @final
     def compute_jacobian(self, data: mjx.Data) -> jnp.ndarray:
+        """
+        Compute the Jacobian of the frame task.
+
+        This method calculates the Jacobian matrix that represents how changes
+        in joint positions affect the frame task error.
+
+        :param data: The MuJoCo simulation data.
+        :return: The Jacobian matrix of the frame task.
+        """
         T_bt = self.target_frame.inverse() @ get_transform_frame_to_world(
             self.model,
             data,
@@ -50,6 +69,21 @@ class JaxFrameTask(JaxBodyTask):
 
 
 class FrameTask(BodyTask[JaxFrameTask]):
+    """
+    A high-level representation of a frame task for inverse kinematics.
+
+    This class provides an interface for creating and manipulating frame tasks,
+    which aim to achieve a specific target frame for a body in the robot model.
+
+    :param name: The name of the task.
+    :param cost: The cost associated with the task.
+    :param gain: The gain for the task.
+    :param body_name: The name of the body to which the task is applied.
+    :param gain_fn: A function to compute the gain dynamically.
+    :param lm_damping: The Levenberg-Marquardt damping factor.
+    :param mask: A sequence of integers to mask certain dimensions of the task.
+    """
+
     JaxComponentType: type = JaxFrameTask
     __target_frame: SE3
 
@@ -69,13 +103,32 @@ class FrameTask(BodyTask[JaxFrameTask]):
 
     @property
     def target_frame(self) -> SE3:
+        """
+        Get the current target frame for the task.
+
+        :return: The current target frame as an SE3 object.
+        """
         return self.__target_frame
 
     @target_frame.setter
     def target_frame(self, value: SE3 | Sequence):
+        """
+        Set the target frame for the task.
+
+        :param value: The new target frame, either as an SE3 object or a sequence of values.
+        """
         self.update_target_frame(value)
 
     def update_target_frame(self, target_frame: SE3 | Sequence):
+        """
+        Update the target frame for the task.
+
+        This method allows setting the target frame using either an SE3 object
+        or a sequence of values representing the frame.
+
+        :param target_frame: The new target frame, either as an SE3 object or a sequence of values.
+        :raises ValueError: If the provided sequence doesn't have the correct length.
+        """
         if not isinstance(target_frame, SE3):
             target_frame_jnp = jnp.array(target_frame)
             if target_frame_jnp.shape[-1] != SE3.parameters_dim:

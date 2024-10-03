@@ -14,17 +14,41 @@ from mjinx.typing import ArrayOrFloat, CollisionBody, CollisionPair
 
 @jdc.pytree_dataclass
 class JaxSelfCollisionBarrier(JaxBarrier):
-    r"""..."""
+    """
+    A JAX implementation of a self-collision barrier function.
+
+    This class extends JaxBarrier to provide barrier functions that prevent
+    self-collisions between different parts of the robot.
+
+    :param d_min_vec: The minimum allowed distances between collision pairs.
+    :param collision_pairs: A list of collision pairs to check.
+    """
 
     d_min_vec: jnp.ndarray
     collision_pairs: jdc.Static[list[CollisionPair]]
 
     @final
     def __call__(self, data: mjx.Data) -> jnp.ndarray:
+        """
+        Compute the self-collision barrier value.
+
+        :param data: The MuJoCo simulation data.
+        :return: The computed self-collision barrier value.
+        """
         return get_distance(self.model, data, self.collision_pairs) - self.d_min_vec
 
 
 class SelfCollisionBarrier(Barrier[JaxSelfCollisionBarrier]):
+    """
+    A self-collision barrier class that wraps the JAX self-collision barrier implementation.
+
+    This class provides a high-level interface for self-collision barrier functions.
+
+    :param d_min: The minimum allowed distance between collision pairs.
+    :param collision_bodies: A sequence of bodies to check for collisions.
+    :param excluded_collisions: A sequence of body pairs to exclude from collision checking.
+    """
+
     JaxComponentType: type = JaxSelfCollisionBarrier
     d_min: float
     collision_bodies: Sequence[CollisionBody]
@@ -41,6 +65,17 @@ class SelfCollisionBarrier(Barrier[JaxSelfCollisionBarrier]):
         collision_bodies: Sequence[CollisionBody] = (),
         excluded_collisions: Sequence[tuple[CollisionBody, CollisionBody]] = (),
     ):
+        """
+        Initialize the SelfCollisionBarrier object.
+
+        :param name: The name of the barrier.
+        :param gain: The gain for the barrier function.
+        :param gain_fn: A function to compute the gain dynamically.
+        :param safe_displacement_gain: The gain for computing safe displacements.
+        :param d_min: The minimum allowed distance between collision pairs.
+        :param collision_bodies: A sequence of bodies to check for collisions.
+        :param excluded_collisions: A sequence of body pairs to exclude from collision checking.
+        """
         self.collision_bodies = collision_bodies
         self.__exclude_collisions_raw: Sequence[tuple[CollisionBody, CollisionBody]] = excluded_collisions
 
@@ -48,6 +83,13 @@ class SelfCollisionBarrier(Barrier[JaxSelfCollisionBarrier]):
         self.d_min = d_min
 
     def validate_body_pair(self, body1_id: int, body2_id: int) -> bool:
+        """
+        Validate if a pair of bodies should be considered for collision checking.
+
+        :param body1_id: The ID of the first body.
+        :param body2_id: The ID of the second body.
+        :return: True if the pair is valid for collision checking, False otherwise.
+        """
         # body_weldid is the ID of the body's weld.
         body_weldid1 = self.model.body_weldid[body1_id]
         body_weldid2 = self.model.body_weldid[body2_id]
@@ -77,6 +119,13 @@ class SelfCollisionBarrier(Barrier[JaxSelfCollisionBarrier]):
         )
 
     def body2id(self, body: CollisionBody):
+        """
+        Convert a body identifier to its corresponding ID in the model.
+
+        :param body: The body identifier (either an integer ID or a string name).
+        :return: The integer ID of the body.
+        :raises ValueError: If the body identifier is invalid.
+        """
         if isinstance(body, int):
             return body
         elif isinstance(body, str):
@@ -93,6 +142,14 @@ class SelfCollisionBarrier(Barrier[JaxSelfCollisionBarrier]):
         collision_bodies: Sequence[CollisionBody] = (),
         excluded_collisions: set[CollisionPair] = (),
     ) -> list[CollisionPair]:
+        """Construct colliison bodies, based on the model, their list.
+
+        The names from the list are used pairwise among each other.
+
+        :param collision_bodies: List of several bodies, defaults to empty bodies.
+        :param excluded_collisions: set of excluded collision pairs, defaults to no collisions observed
+        :type excluded_collisions: set[CollisionPair], optional
+        """
         collision_pairs: set[CollisionPair] = set()
         for i in range(len(collision_bodies)):
             for k in range(i + 1, len(collision_bodies)):
@@ -121,6 +178,11 @@ class SelfCollisionBarrier(Barrier[JaxSelfCollisionBarrier]):
         return list(collision_pairs)
 
     def update_model(self, model: mjx.Model):
+        """
+        Update the model and generate collision pairs.
+
+        :param model: The MuJoCo model.
+        """
         super().update_model(model)
         if len(self.collision_bodies) == 0:
             self.collision_bodies = list(range(self.model.nbody))
@@ -140,6 +202,12 @@ class SelfCollisionBarrier(Barrier[JaxSelfCollisionBarrier]):
 
     @property
     def d_min_vec(self) -> jnp.ndarray:
+        """
+        Get the vector of minimum allowed distances for each collision pair.
+
+        :return: An array of minimum distances.
+        :raises ValueError: If the dimension is not set.
+        """
         if self._dim == -1:
             raise ValueError(
                 "fail to calculate d_min without dimension specified. "
