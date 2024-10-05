@@ -11,6 +11,13 @@ from mjinx.typing import CollisionPair
 
 
 def update(model: mjx.Model, q: jnp.ndarray) -> mjx.Data:
+    """
+    Update the MuJoCo data with new joint positions.
+
+    :param model: The MuJoCo model.
+    :param q: The new joint positions.
+    :return: Updated MuJoCo data.
+    """
     data = mjx.make_data(model)
     data = data.replace(qpos=q)
     data = mjx.fwd_position(model, data)
@@ -224,6 +231,14 @@ def sorted_pair(x: int, y: int) -> tuple[int, int]:
 
 
 def get_distance(model: mjx.Model, data: mjx.Data, collision_pairs: list[CollisionPair]) -> jnp.ndarray:
+    """
+    Compute the distances for the given collision pairs.
+
+    :param model: The MuJoCo model.
+    :param data: The MuJoCo data.
+    :param collision_pairs: A list of collision pairs to check.
+    :return: An array of distances for each collision pair.
+    """
     dists = []
     for g1, g2 in collision_pairs:
         if model.geom_type[g1] > model.geom_type[g2]:
