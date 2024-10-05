@@ -1,32 +1,31 @@
-
 /* Jinx color palette   */
 /* #03587f - dark blue  */
 /* #a75a97 - pink       */
-/* #a16f6f - bronw      */
+/* #a16f6f - brown      */
 /* #d9ccc9 - beige      */
 /* #aecadc - light blue */
 a, a:visited, a:focus {
-  color: #a75a97;
+  color: rgb(3, 88, 127); /* dark blue */
   text-decoration: none;
 }
 
 a:hover, a:active {
-  color: #a16f6f;
+  color: rgb(3, 88, 127); /* dark blue */
   text-decoration: none;
 }
 
 .wy-menu-vertical header, .wy-menu-vertical p.caption {
-    color: #d9ccc9;
+    color: white;
     font-weight: 600;
 }
 
 .wy-menu-vertical a {
-    color: #d9ccc9;
+    color: rgb(167, 90, 151); /* pink */
 }
 
 .wy-menu-vertical a:hover {
-    background: #a75a97;
-    color: #d9ccc9;
+    background: rgb(167, 90, 151); /* pink */
+    color: white;
 }
 
 .wy-menu-vertical header, .wy-menu-vertical p.caption {
@@ -37,16 +36,17 @@ a:hover, a:active {
 .wy-menu-vertical a{
     color: black;
 }
+
 .wy-nav-content-wrap, .wy-menu li.current > a {
-    background-color: #d9ccc9;
+    background-color: white;
 }
 
 .wy-nav-side {
-    background: rgb(255, 200, 225);
+    background: rgb(174, 202, 220); /* light blue */
 }
 
 .wy-nav-top {
-    background: rgb(250, 231, 242);
+    background: rgb(217, 204, 201); /* beige */
 }
 
 .wy-nav-top a {
@@ -54,40 +54,41 @@ a:hover, a:active {
 }
 
 .wy-nav-top i {
-    color: rgb(176, 46, 118);
+    color: rgb(167, 90, 151); /* pink */
 }
 
 .wy-side-nav-search {
-    background: #a75a97;
+    background: rgb(3, 88, 127); /* dark blue */
 }
 
 .wy-side-nav-search > div.version {
-    color: #d9ccc9;
+    color: white;
 }
 
 .wy-side-nav-search > a {
-    color: #d9ccc9;
+    color: white;
 }
 
 pre {
-    background: rgb(255, 230, 240);
+    background: #efd0f3; /* beige */
+    border-left: 5px solid #c076b1; /* brown */
 }
 
 html.writer-html4 .rst-content dl:not(.docutils) > dt,
 html.writer-html5 .rst-content dl[class]:not(.option-list):not(.field-list):not(.footnote):not(.citation):not(.glossary):not(.simple) > dt {
-    background: rgb(255, 230, 240);
-    border-top: 3px solid #de6a98;
-    color: #a75a97;
+    background: rgb(217, 204, 201); /* beige */
+    border-top: 3px solid #a16f6f; /* brown */
+    color: rgb(3, 88, 127); /* dark blue */
 }
 
 .rst-content .note {
-    background: rgb(255, 230, 240);
+    background: rgb(217, 204, 201); /* beige */
 }
 
 .rst-content .note .admonition-title {
-    background: #a75a97;
+    background: rgb(3, 88, 127); /* dark blue */
 }
 
 .rst-content code.literal {
-    color: rgb(220, 40, 115);
+    color: rgb(161, 111, 111); /* brown */
 }

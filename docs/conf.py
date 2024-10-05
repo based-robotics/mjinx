@@ -16,10 +16,9 @@ sys.path.insert(0, abspath(".."))
 extensions = [
     "sphinx.ext.autodoc",
     "sphinx.ext.coverage",
-    "sphinx-mathjax-offline",
-    "sphinx.ext.napoleon",  # before sphinx_autodoc_typehints
-    "sphinx_autodoc_typehints",
     "sphinx.ext.intersphinx",
+    "sphinx-mathjax-offline",
+    "sphinx_autodoc_typehints",
     "sphinx_rtd_theme",
 ]
 
@@ -28,6 +27,8 @@ autodoc_mock_imports = []
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = []
+
+add_module_names = False
 
 # The suffix(es) of source filenames.
 # You can specify multiple suffix as a list of string:
@@ -334,5 +335,6 @@ intersphinx_mapping = {
 
 # Treat warnings as errors, in particular when a reference target (such as a
 # :func:`something`) is not found.
-nitpicky = True
+# TODO: reference to the mujoco model
+# nitpicky = True
 # nitpick_ignore = [("py:class", "type")]

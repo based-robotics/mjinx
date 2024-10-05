@@ -14,6 +14,12 @@ dependencies = ["mujoco", "mujoco_mjx", "jaxlib>=0.4", "jaxopt", "jax>=0.4", "ja
 
 [project.optional-dependencies]
 dev = ["robot_descriptions>=1.12", "pre-commit", "ruff", "pytest"]
+docs = [
+    "sphinx",
+    "sphinx-mathjax-offline",
+    "sphinx-autodoc-typehints",
+    "sphinx-rtd-theme",
+]
 
 [build-system]
 requires = ["setuptools>=43.0.0", "wheel"]
