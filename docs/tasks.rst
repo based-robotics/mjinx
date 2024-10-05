@@ -21,7 +21,7 @@ Joint Task
     :members:
 
 Base Body Task
----------
+--------------
 .. automodule:: mjinx.components.tasks._body_task
     :members:
 

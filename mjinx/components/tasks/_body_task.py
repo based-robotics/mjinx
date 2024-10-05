@@ -2,6 +2,7 @@
 
 from typing import Callable, Generic, Sequence, TypeVar
 
+import jax.numpy as jnp
 import jax_dataclasses as jdc
 import mujoco as mj
 import mujoco.mjx as mjx

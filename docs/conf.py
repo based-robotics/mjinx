@@ -153,7 +153,7 @@ html_theme_options = {
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
-html_static_path = ["css", "images"]
+html_static_path = ["css", "img"]
 
 # These paths are either relative to html_static_path or fully qualified paths
 # (eg. https://...)
@@ -324,10 +324,15 @@ latex_documents = [
 
 intersphinx_mapping = {
     "numpy": ("https://numpy.org/doc/stable", None),
-    "jax": ("https://jax.readthedocs.io/en/latest/", None),
-    "mujoco": ("https://mujoco.readthedocs.io/en/", None),
+    "jax": ("https://jax.readthedocs.io/en/latest", None),
+    "optax": ("https://optax.readthedocs.io/en/latest", None),
+    "mujoco": ("https://mujoco.readthedocs.io/en/latest", None),
+    "jaxopt": ("https://jaxopt.github.io/stable", None),
+    "jaxlie": ("https://brentyi.github.io/jaxlie", None),
+    "chex": ("https://chex.readthedocs.io/en/latest", None),
 }
 
 # Treat warnings as errors, in particular when a reference target (such as a
 # :func:`something`) is not found.
 nitpicky = True
+# nitpick_ignore = [("py:class", "type")]

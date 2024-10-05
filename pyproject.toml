@@ -10,7 +10,7 @@ authors = [
 readme = "README.md"
 requires-python = ">=3.10"
 
-dependencies = ["mujoco", "mujoco_mjx", "jaxlib>=0.4", "jaxopt", "jax>=0.4", "jaxlie>=1.4", "jax_dataclasses>=1.6.0", "optax>=0.2"]
+dependencies = ["mujoco", "mujoco_mjx", "jaxlib>=0.4", "jaxopt", "jax>=0.4", "jaxlie>=1.4", "jax_dataclasses>=1.6.0"]
 
 [project.optional-dependencies]
 dev = ["robot_descriptions>=1.12", "pre-commit", "ruff", "pytest"]

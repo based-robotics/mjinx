@@ -60,13 +60,9 @@ def get_frame_jacobian_local(model: mjx.Model, data: mjx.Data, body_id: int) -> 
     Compute pair of (NV, 3) Jacobians of global point attached to body in local frame.
 
     :param model: The MuJoCo model.
-    :type model: mjx.Model
     :param data: The MuJoCo data.
-    :type data: mjx.Data
     :param body_id: The ID of the body.
-    :type body_id: int
     :return: The Jacobian matrix in local frame.
-    :rtype: jax.Array
     """
 
     def fn(carry, b):

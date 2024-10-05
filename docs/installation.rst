@@ -5,7 +5,7 @@ Installation
 ************
 
 From PyPI
-==========
+=========
 
 Installation from the Python Package Index should work via:
 
@@ -14,7 +14,7 @@ Installation from the Python Package Index should work via:
     pip install mjinx
 
 From source (developer mode)
-===========
+============================
 
 Alternatively, to test the latest updates, you could clone the repository and install it in the editable mode:
 
