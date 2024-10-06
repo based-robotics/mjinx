@@ -118,7 +118,7 @@ class BatchVisualizer:
         # Build and return mujoco model
         return mjcf.Physics.from_mjcf_model(mjcf_model).model._model
 
-    def add_markers(self, size: np.ndarray, marker_alpha: float, color_begin: np.ndarray, color_end: np.ndarray):
+    def add_markers(self, size: float, marker_alpha: float, color_begin: np.ndarray, color_end: np.ndarray):
         """
         Add markers to the visualization.
 
