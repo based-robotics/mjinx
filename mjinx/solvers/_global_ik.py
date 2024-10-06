@@ -5,6 +5,7 @@ import jax.numpy as jnp
 import jax_dataclasses as jdc
 import mujoco.mjx as mjx
 import optax
+from chex import ArrayTree
 
 import mjinx.typing as mjt
 from mjinx import configuration
