@@ -64,6 +64,17 @@ class BatchVisualizer:
         """
 
         mjcf_model = mjcf.RootElement()
+
+        # Add white sky
+        skybox = mjcf_model.asset.add("texture")
+        skybox.name = "skybox"
+        skybox.type = "skybox"
+        skybox.width = 512
+        skybox.height = 3072
+        skybox.rgb1 = np.ones(3)
+        skybox.rgb2 = np.ones(3)
+        skybox.builtin = "flat"
+
         # Attach all models together
         for i in range(n_models):
             # Compute model prefix
