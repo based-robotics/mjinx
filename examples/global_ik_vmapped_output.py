@@ -50,7 +50,7 @@ position_barrier = PositionBarrier(
     gain=0.1,
     body_name="link7",
     limit_type="max",
-    p_max=0.45,
+    p_max=0.4,
     safe_displacement_gain=1e-2,
     mask=[1, 0, 0],
 )

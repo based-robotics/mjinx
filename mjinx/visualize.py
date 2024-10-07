@@ -1,9 +1,12 @@
+from collections.abc import Sequence
 from typing import NamedTuple
 
 import mujoco as mj
 import numpy as np
 from dm_control import mjcf
 from mujoco import viewer
+
+from mjinx.typing import ndarray
 
 
 class MarkerData(NamedTuple):
@@ -46,6 +49,7 @@ class BatchVisualizer:
             show_right_ui=False,
         )
         # For markers
+        self.n_markers: int = 0
         self.markers_data: list[MarkerData] = []
 
     def _generate_mj_model(self, model_path: str, n_models: int, geom_group: int, alpha: float) -> mj.MjModel:
@@ -118,7 +122,9 @@ class BatchVisualizer:
         # Build and return mujoco model
         return mjcf.Physics.from_mjcf_model(mjcf_model).model._model
 
-    def add_markers(self, size: float, marker_alpha: float, color_begin: np.ndarray, color_end: np.ndarray):
+    def add_markers(
+        self, size: float, marker_alpha: float, color_begin: np.ndarray, color_end: np.ndarray, n_markers: int = 0
+    ):
         """
         Add markers to the visualization.
 
@@ -126,11 +132,14 @@ class BatchVisualizer:
         :param marker_alpha: Transparency of the markers.
         :param color_begin: Starting color for marker interpolation.
         :param color_end: Ending color for marker interpolation.
+        :param n_markers: Amount of markers to add. Defaults to number of the models in the batch.
         """
-        self.renderer.scene.ngeom += self.n_models
-        self.mj_viewer.user_scn.ngeom += self.n_models
+        if n_markers < 1:
+            n_markers = self.n_models
+        self.renderer.scene.ngeom += n_markers
+        self.mj_viewer.user_scn.ngeom += n_markers
 
-        for interp_coef in np.linspace(0, 1, self.n_models):
+        for interp_coef in np.linspace(0, 1, n_markers):
             # Interpolate the color
             color = interp_coef * color_begin + (1 - interp_coef) * color_end
 
@@ -140,6 +149,7 @@ class BatchVisualizer:
                     rgba=np.array([*color, marker_alpha]),
                 )
             )
+        self.n_markers += n_markers
 
     def get_prefix(self, i: int) -> str:
         """
@@ -150,7 +160,7 @@ class BatchVisualizer:
         """
         return f"manip{i}"
 
-    def update(self, q: np.ndarray):
+    def update(self, q: ndarray):
         """
         Update the model positions.
 
@@ -161,14 +171,16 @@ class BatchVisualizer:
         self.mj_data.qpos = q_raveled
         mj.mj_fwdPosition(self.mj_model, self.mj_data)
 
-    def visualize(self, markers: np.ndarray | None = None):
+    def visualize(self, markers: ndarray | None = None):
         """
         Visualize the current state of the models and markers.
 
         :param markers: Array of marker positions. If None, no markers are displayed.
         """
         if markers is not None:
-            for i in range(len(self.markers_data)):
+            if markers.ndim == 1:
+                markers = markers.reshape(1, -1)
+            for i in range(len(markers)):
                 size, rgba = self.markers_data[i].size, self.markers_data[i].rgba
                 mj.mjv_initGeom(
                     self.mj_viewer.user_scn.geoms[i],

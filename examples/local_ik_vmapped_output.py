@@ -5,7 +5,6 @@ import jax.numpy as jnp
 import mujoco as mj
 import mujoco.mjx as mjx
 import numpy as np
-from mujoco import viewer
 from robot_descriptions.iiwa14_mj_description import MJCF_PATH
 
 from mjinx.components.barriers import JointBarrier, PositionBarrier
@@ -51,7 +50,7 @@ position_barrier = PositionBarrier(
     gain=100,
     body_name="link7",
     limit_type="max",
-    p_max=0.3,
+    p_max=0.4,
     safe_displacement_gain=1e-2,
     mask=[1, 0, 0],
 )

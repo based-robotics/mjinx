@@ -10,7 +10,7 @@ from jaxlie import SE3, SO3
 
 from mjinx.components.tasks._body_task import BodyTask, JaxBodyTask
 from mjinx.configuration import get_frame_jacobian_local, get_transform_frame_to_world
-from mjinx.typing import ArrayOrFloat
+from mjinx.typing import ArrayOrFloat, ndarray
 
 
 @jdc.pytree_dataclass
@@ -111,7 +111,7 @@ class FrameTask(BodyTask[JaxFrameTask]):
         return self.__target_frame
 
     @target_frame.setter
-    def target_frame(self, value: SE3 | Sequence):
+    def target_frame(self, value: SE3 | Sequence | ndarray):
         """
         Set the target frame for the task.
 
@@ -119,7 +119,7 @@ class FrameTask(BodyTask[JaxFrameTask]):
         """
         self.update_target_frame(value)
 
-    def update_target_frame(self, target_frame: SE3 | Sequence):
+    def update_target_frame(self, target_frame: SE3 | Sequence | ndarray):
         """
         Update the target frame for the task.
 
