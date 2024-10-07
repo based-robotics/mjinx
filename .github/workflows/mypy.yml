@@ -27,4 +27,4 @@ jobs:
     - name: Run mypy
       continue-on-error: true
       run: |
-        mypy . 
+        mypy mjinx

@@ -20,6 +20,9 @@ docs = [
     "sphinx-autodoc-typehints",
     "sphinx-rtd-theme>1",
 ]
+visual = [
+    "dm_control",
+]
 
 [build-system]
 requires = ["setuptools>=43.0.0", "wheel"]

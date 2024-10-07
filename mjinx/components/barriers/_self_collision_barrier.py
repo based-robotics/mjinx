@@ -61,7 +61,7 @@ class SelfCollisionBarrier(Barrier[JaxSelfCollisionBarrier]):
         gain: ArrayOrFloat,
         gain_fn: Callable[[float], float] | None = None,
         safe_displacement_gain: float = 0,
-        d_min: ArrayOrFloat = 0,
+        d_min: float = 0,
         collision_bodies: Sequence[CollisionBody] = (),
         excluded_collisions: Sequence[tuple[CollisionBody, CollisionBody]] = (),
     ):
@@ -140,7 +140,7 @@ class SelfCollisionBarrier(Barrier[JaxSelfCollisionBarrier]):
     def _generate_collision_pairs(
         self,
         collision_bodies: Sequence[CollisionBody] = (),
-        excluded_collisions: set[CollisionPair] = (),
+        excluded_collisions: set[CollisionPair] | None = None,
     ) -> list[CollisionPair]:
         """Construct colliison bodies, based on the model, their list.
 
@@ -148,8 +148,12 @@ class SelfCollisionBarrier(Barrier[JaxSelfCollisionBarrier]):
 
         :param collision_bodies: List of several bodies, defaults to empty bodies.
         :param excluded_collisions: set of excluded collision pairs, defaults to no collisions observed
-        :type excluded_collisions: set[CollisionPair], optional
+        :type excluded_collisions: set[CollisionPair], defaults to empty set.
         """
+        if excluded_collisions is None:
+            excluded_collisions = set()
+
+        excluded_collisions_set = set(excluded_collisions)
         collision_pairs: set[CollisionPair] = set()
         for i in range(len(collision_bodies)):
             for k in range(i + 1, len(collision_bodies)):
@@ -158,7 +162,7 @@ class SelfCollisionBarrier(Barrier[JaxSelfCollisionBarrier]):
 
                 if (
                     body1_id == body2_id  # If bodies are the same (somehow),
-                    or sorted_pair(body1_id, body2_id) in excluded_collisions  # or body pair is excluded,
+                    or sorted_pair(body1_id, body2_id) in excluded_collisions_set  # or body pair is excluded,
                     or not self.validate_body_pair(body1_id, body2_id)  # or body pair is not valid for other reason
                 ):
                     # then skip

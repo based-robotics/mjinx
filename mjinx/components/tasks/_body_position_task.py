@@ -93,9 +93,9 @@ class PositionTask(BodyTask[JaxPositionTask]):
         :param target_pos: The new target position as a sequence of values.
         :raises ValueError: If the provided sequence doesn't have the correct length.
         """
-        target_pos = jnp.array(target_pos)
-        if target_pos.shape[-1] != self._dim:
+        target_pos_array = jnp.array(target_pos)
+        if target_pos_array.shape[-1] != self._dim:
             raise ValueError(
                 "invalid dimension of the target positin value: " f"{len(target_pos)} given, expected {self._dim} "
             )
-        self.__target_pos = target_pos
+        self.__target_pos = target_pos_array

@@ -5,7 +5,6 @@ import jax.numpy as jnp
 import mujoco as mj
 import mujoco.mjx as mjx
 import numpy as np
-from mujoco import viewer
 from robot_descriptions.iiwa14_mj_description import MJCF_PATH
 
 from mjinx.components.barriers import JointBarrier, PositionBarrier
@@ -13,6 +12,7 @@ from mjinx.components.tasks import FrameTask
 from mjinx.configuration import integrate
 from mjinx.problem import Problem
 from mjinx.solvers import LocalIKSolver
+from mjinx.visualize import BatchVisualizer
 
 # === Mujoco ===
 
@@ -27,25 +27,14 @@ q_max = mj_model.jnt_range[:, 1].copy()
 
 # --- Mujoco visualization ---
 # Initialize render window and launch it at the background
-mj_data = mj.MjData(mj_model)
-renderer = mj.Renderer(mj_model)
-mj_viewer = viewer.launch_passive(
-    mj_model,
-    mj_data,
-    show_left_ui=False,
-    show_right_ui=False,
-)
+vis = BatchVisualizer(MJCF_PATH, n_models=5, alpha=0.5)
 
 # Initialize a sphere marker for end-effector task
-renderer.scene.ngeom += 1
-mj_viewer.user_scn.ngeom = 1
-mj.mjv_initGeom(
-    mj_viewer.user_scn.geoms[0],
-    mj.mjtGeom.mjGEOM_SPHERE,
-    0.05 * np.ones(3),
-    np.array([0.2, 0.2, 0.2]),
-    np.eye(3).flatten(),
-    np.array([0.565, 0.933, 0.565, 0.4]),
+vis.add_markers(
+    size=0.05,
+    marker_alpha=0.9,
+    color_begin=np.array([0, 1.0, 0.53]),
+    color_end=np.array([0.38, 0.94, 1.0]),
 )
 
 # === Mjinx ===
@@ -61,7 +50,7 @@ position_barrier = PositionBarrier(
     gain=100,
     body_name="link7",
     limit_type="max",
-    p_max=0.3,
+    p_max=0.4,
     safe_displacement_gain=1e-2,
     mask=[1, 0, 0],
 )
@@ -78,7 +67,7 @@ problem_data = problem.compile()
 solver = LocalIKSolver(mjx_model, maxiter=20)
 
 # Initializing initial condition
-N_batch = 10000
+N_batch = 100
 q0 = np.array(
     [
         -1.5878328,
@@ -90,7 +79,21 @@ q0 = np.array(
         -2.982619,
     ]
 )
-q = jnp.array([q0.copy() for _ in range(N_batch)])
+q = jnp.array(
+    [
+        np.clip(
+            q0
+            + np.random.uniform(
+                -0.1,
+                0.1,
+                size=(mj_model.nq),
+            ),
+            q_min + 1e-1,
+            q_max - 1e-1,
+        )
+        for _ in range(N_batch)
+    ]
+)
 
 # --- Batching ---
 # First of all, data should be created via vmapped init function
@@ -124,7 +127,18 @@ n = 0
 for t in ts:
     # Changing desired values
     frame_task.target_frame = np.array(
-        [[0.2 + 0.2 * np.sin(t + np.pi * i / N_batch) ** 2, 0.2, 0.2, 1, 0, 0, 0] for i in range(N_batch)]
+        [
+            [
+                0.4 + 0.3 * np.sin(t + 2 * np.pi * i / N_batch),
+                0.2,
+                0.4 + 0.3 * np.cos(t + 2 * np.pi * i / N_batch),
+                1,
+                0,
+                0,
+                0,
+            ]
+            for i in range(N_batch)
+        ]
     )
     problem_data = problem.compile()
     t0 = time.perf_counter()
@@ -143,22 +157,8 @@ for t in ts:
     t2 = time.perf_counter()
 
     # --- MuJoCo visualization ---
-    mj_data.qpos = q[0]
-    mj.mj_forward(mj_model, mj_data)
-    print(f"Position barrier: {mj_data.xpos[position_barrier.body_id][0]} <= {position_barrier.p_max[0]}")
-    mj.mjv_initGeom(
-        mj_viewer.user_scn.geoms[0],
-        mj.mjtGeom.mjGEOM_SPHERE,
-        0.05 * np.ones(3),
-        np.array(frame_task.target_frame.wxyz_xyz[0, -3:], dtype=np.float64),
-        np.eye(3).flatten(),
-        np.array([0.565, 0.933, 0.565, 0.4]),
-    )
-
-    # Run the forward dynamics to reflec
-    # the updated state in the data
-    mj.mj_forward(mj_model, mj_data)
-    mj_viewer.sync()
+    vis.update(q[:: N_batch // vis.n_models])
+    vis.visualize(frame_task.target_frame.wxyz_xyz[:: N_batch // vis.n_models, -3:])
 
     # --- Logging ---
     # Execution time

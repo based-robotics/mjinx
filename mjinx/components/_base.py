@@ -304,13 +304,13 @@ class Component(Generic[AtomicComponentType], abc.ABC):
             self.__mask, self.__mask_idxs = self._get_default_mask()
         return self.__mask_idxs
 
-    def _build_component(self) -> AtomicComponentType:  # pragma: no cover
+    def _build_component(self) -> AtomicComponentType:
         """
         Build the atomic component implementation.
 
         :return: An instance of the atomic component.
         """
-        component_attributes = self.JaxComponentType.__dataclass_fields__.keys()
+        component_attributes = self.JaxComponentType.__dataclass_fields__.keys()  # type: ignore
         return self.JaxComponentType(**{attr: self.__getattribute__(attr) for attr in component_attributes})
 
     @property

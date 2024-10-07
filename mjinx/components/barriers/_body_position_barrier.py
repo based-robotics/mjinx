@@ -83,7 +83,7 @@ class PositionBarrier(BodyBarrier[JaxPositionBarrier]):
         :param safe_displacement_gain: The gain for computing safe displacements.
         :param mask: A sequence of integers to mask certain dimensions.
         """
-        mask = mask if mask is not None else jnp.array([1, 1, 1])
+        mask = mask if mask is not None else [1, 1, 1]
         super().__init__(name, gain, body_name, gain_fn, safe_displacement_gain, mask)
         if limit_type not in {"min", "max", "both"}:
             raise ValueError("[PositionBarrier] PositionBarrier.limit should be either 'min', 'max', or 'both'")
