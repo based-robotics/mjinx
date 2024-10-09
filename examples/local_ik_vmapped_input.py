@@ -24,7 +24,7 @@ q_max = mj_model.jnt_range[:, 1].copy()
 
 # --- Mujoco visualization ---
 # Initialize render window and launch it at the background
-vis = BatchVisualizer(MJCF_PATH, n_models=5, alpha=0.5, record=True)
+vis = BatchVisualizer(MJCF_PATH, n_models=5, alpha=0.5, record=False)
 
 # Initialize a sphere marker for end-effector task
 vis.add_markers(
