@@ -27,7 +27,7 @@ q_max = mj_model.jnt_range[:, 1].copy()
 
 
 # --- Mujoco visualization ---
-vis = BatchVisualizer(MJCF_PATH, n_models=5, alpha=0.5)
+vis = BatchVisualizer(MJCF_PATH, n_models=5, alpha=0.5, record=False)
 
 # Initialize a sphere marker for end-effector task
 vis.add_markers(
@@ -44,7 +44,7 @@ vis.add_markers(
 problem = Problem(mjx_model)
 
 # Creating components of interest and adding them to the problem
-frame_task = FrameTask("ee_task", cost=1, gain=50, body_name="link7")
+frame_task = FrameTask("ee_task", cost=1, gain=20, body_name="link7")
 position_barrier = PositionBarrier(
     "ee_barrier",
     gain=0.1,
@@ -121,53 +121,62 @@ ts = np.arange(0, 20, dt)
 t_solve_avg = 0.0
 n = 0
 
-for t in ts:
-    # Changing desired values
-    frame_task.target_frame = np.array(
-        [
+try:
+    for t in ts:
+        # Changing desired values
+        frame_task.target_frame = np.array(
             [
-                0.4 + 0.3 * np.sin(t + 2 * np.pi * i / N_batch),
-                0.2,
-                0.4 + 0.3 * np.cos(t + 2 * np.pi * i / N_batch),
-                1,
-                0,
-                0,
-                0,
+                [
+                    0.4 + 0.3 * np.sin(t + 2 * np.pi * i / N_batch),
+                    0.2,
+                    0.4 + 0.3 * np.cos(t + 2 * np.pi * i / N_batch),
+                    1,
+                    0,
+                    0,
+                    0,
+                ]
+                for i in range(N_batch)
             ]
-            for i in range(N_batch)
-        ]
-    )
-    # After changes, recompiling the model
-    t0 = time.perf_counter()
-    problem_data = problem.compile()
-    t1 = time.perf_counter()
+        )
+        # After changes, recompiling the model
+        t0 = time.perf_counter()
+        problem_data = problem.compile()
+        t1 = time.perf_counter()
 
-    # Solving the instance of the problem
-    for _ in range(3):
-        opt_solution, solver_data = solve_jit(q, solver_data, problem_data)
-    t2 = time.perf_counter()
+        # Solving the instance of the problem
+        for _ in range(3):
+            opt_solution, solver_data = solve_jit(q, solver_data, problem_data)
+        t2 = time.perf_counter()
 
-    # Two options for retriving q:
-    # Option 1, integrating:
-    # q = integrate(mjx_model, q, opt_solution.v_opt, dt=dt)
-    # Option 2, direct:
-    q = opt_solution.q_opt
+        # Two options for retriving q:
+        # Option 1, integrating:
+        # q = integrate(mjx_model, q, opt_solution.v_opt, dt=dt)
+        # Option 2, direct:
+        q = opt_solution.q_opt
 
-    # Run the forward dynamics to reflec
-    # the updated state in the data
-    vis.update(q[:: N_batch // vis.n_models])
-    vis.visualize(frame_task.target_frame.wxyz_xyz[:: N_batch // vis.n_models, -3:])
+        # Run the forward dynamics to reflec
+        # the updated state in the data
+        vis.update(q[:: N_batch // vis.n_models])
+        vis.visualize(frame_task.target_frame.wxyz_xyz[:: N_batch // vis.n_models, -3:])
 
-    for i in range(mj_model.nq):
-        print(f"    Joint {i + 1}: {q_min[i]:0.2f} < {q[0, i]:0.2f} < {q_max[i]:0.2f}")
-    print("-" * 80)
+        for i in range(mj_model.nq):
+            print(f"    Joint {i + 1}: {q_min[i]:0.2f} < {q[0, i]:0.2f} < {q_max[i]:0.2f}")
+        print("-" * 80)
 
-    # --- Logging ---
-    # Execution time
-    t_solve = (t2 - t1) * 1e3
-    # Ignore the first (compiling) iteration and calculate mean solution times
-    if t > 0:
-        t_solve_avg = t_solve_avg + (t_solve - t_solve_avg) / (n + 1)
-        n += 1
+        # --- Logging ---
+        # Execution time
+        t_solve = (t2 - t1) * 1e3
+        # Ignore the first (compiling) iteration and calculate mean solution times
+        if t > 0:
+            t_solve_avg = t_solve_avg + (t_solve - t_solve_avg) / (n + 1)
+            n += 1
 
-print(f"Avg solving time: {t_solve_avg:0.3f}ms")
+except KeyboardInterrupt:
+    print("Finalizing the simulation as requested...")
+except Exception as e:
+    print(e)
+finally:
+    if vis.record:
+        vis.save_video(round(1 / dt))
+    vis.close()
+    print(f"Avg solving time: {t_solve_avg:0.3f}ms")
