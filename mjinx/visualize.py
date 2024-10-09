@@ -1,12 +1,18 @@
-from collections.abc import Sequence
+import warnings
+from datetime import datetime
 from typing import NamedTuple
 
 import mujoco as mj
 import numpy as np
-from dm_control import mjcf
 from mujoco import viewer
 
 from mjinx.typing import ndarray
+
+try:
+    import mediapy
+    from dm_control import mjcf
+except ImportError as e:
+    raise ImportError("visualization is not supported, please install the mjinx[visual]") from e
 
 
 class MarkerData(NamedTuple):
@@ -22,26 +28,38 @@ class MarkerData(NamedTuple):
 
 
 class BatchVisualizer:
-    def __init__(self, model_path: str, n_models: int, geom_group: int = 2, alpha: float = 0.5):
+    def __init__(
+        self,
+        model_path: str,
+        n_models: int,
+        geom_group: int = 2,
+        alpha: float = 0.5,
+        record: bool = False,
+        filename: str = "",
+        record_res: tuple[int, int] = (1024, 1024),
+    ):
         """
         A class for batch visualization of multiple models using MuJoCo.
 
         This class allows for the visualization of multiple instances of a given model,
-        with customizable transparency and marker options.
+        with customizable transparency and marker options. It also supports recording
+        the visualization as a video.
 
         :param model_path: Path to the MuJoCo model file.
         :param n_models: Number of model instances to visualize.
         :param geom_group: Geometry group to render, defaults to 2.
         :param alpha: Transparency value for the models, defaults to 0.5.
+        :param record: if True, records and saves mp4 scene recording, defaults to False.
+        :param filename: name of the file to save the file without extension, defaults to datetime.
+        :param record_res: resolution of recorded video (width, height), defaults to (1024, 1024).
         """
         self.n_models = n_models
 
         # Generate the model, by stacking several provided models
-        self.mj_model = self._generate_mj_model(model_path, n_models, geom_group, alpha)
+        self.mj_model = self._generate_mj_model(model_path, n_models, geom_group, alpha, record_res)
         self.mj_data = mj.MjData(self.mj_model)
 
         # Initializing visualization
-        self.renderer = mj.Renderer(self.mj_model)
         self.mj_viewer = viewer.launch_passive(
             self.mj_model,
             self.mj_data,
@@ -52,7 +70,21 @@ class BatchVisualizer:
         self.n_markers: int = 0
         self.markers_data: list[MarkerData] = []
 
-    def _generate_mj_model(self, model_path: str, n_models: int, geom_group: int, alpha: float) -> mj.MjModel:
+        # Recording the visualization
+        self.record = record
+        self.filename = filename
+        self.frames: list = []
+        if self.record:
+            self.mj_renderer = mj.Renderer(self.mj_model, width=record_res[0], height=record_res[1])
+
+    def _generate_mj_model(
+        self,
+        model_path: str,
+        n_models: int,
+        geom_group: int,
+        alpha: float,
+        off_res: tuple[int, int],
+    ) -> mj.MjModel:
         """
         Generate a combined MuJoCo model from multiple instances of the given model.
 
@@ -60,6 +92,7 @@ class BatchVisualizer:
         :param n_models: Number of model instances to combine.
         :param geom_group: Geometry group to render.
         :param alpha: Transparency value for the models.
+        :param off_res: Resolution (width, height,) for the rendering.
         :return: The generated MuJoCo model.
         """
 
@@ -129,6 +162,8 @@ class BatchVisualizer:
 
         # Remove all exclude contact pairs
         mjcf_model.contact.remove(True)
+        mjcf_model.visual.__getattr__("global").offwidth = off_res[0]
+        mjcf_model.visual.__getattr__("global").offheight = off_res[1]
 
         # Build and return mujoco model
         return mjcf.Physics.from_mjcf_model(mjcf_model).model._model
@@ -147,7 +182,7 @@ class BatchVisualizer:
         """
         if n_markers < 1:
             n_markers = self.n_models
-        self.renderer.scene.ngeom += n_markers
+        self.mj_renderer.scene.ngeom += n_markers
         self.mj_viewer.user_scn.ngeom += n_markers
 
         for interp_coef in np.linspace(0, 1, n_markers):
@@ -173,7 +208,7 @@ class BatchVisualizer:
 
     def update(self, q: ndarray):
         """
-        Update the model positions.
+        Update the model positions and record frame if enabled.
 
         :param q: Array of joint positions for all model instances.
         """
@@ -181,6 +216,24 @@ class BatchVisualizer:
 
         self.mj_data.qpos = q_raveled
         mj.mj_fwdPosition(self.mj_model, self.mj_data)
+
+    def _draw_markers(self, scene: mj.MjvScene, markers: ndarray):
+        """
+        Draw markers on the given scene.
+
+        :param scene: The MjvScene to draw markers on.
+        :param markers: Array of marker positions.
+        """
+        for i in range(len(markers)):
+            size, rgba = self.markers_data[i].size, self.markers_data[i].rgba
+            mj.mjv_initGeom(
+                scene.geoms[scene.ngeom - self.n_markers + i],
+                mj.mjtGeom.mjGEOM_SPHERE,
+                size * np.ones(3),
+                markers[i],
+                np.eye(3).flatten(),
+                rgba,
+            )
 
     def visualize(self, markers: ndarray | None = None):
         """
@@ -191,14 +244,44 @@ class BatchVisualizer:
         if markers is not None:
             if markers.ndim == 1:
                 markers = markers.reshape(1, -1)
-            for i in range(len(markers)):
-                size, rgba = self.markers_data[i].size, self.markers_data[i].rgba
-                mj.mjv_initGeom(
-                    self.mj_viewer.user_scn.geoms[i],
-                    mj.mjtGeom.mjGEOM_SPHERE,
-                    size * np.ones(3),
-                    markers[i],
-                    np.eye(3).flatten(),
-                    rgba,
-                )
+            self._draw_markers(self.mj_viewer.user_scn, markers)
+
+        if self.record:
+            self.mj_renderer.update_scene(self.mj_data, scene_option=self.mj_viewer._opt, camera=self.mj_viewer._cam)
+            if markers is not None:
+                self._draw_markers(self.mj_renderer.scene, markers)
+
+            rendered_frame = self.mj_renderer.render()
+            self.frames.append(rendered_frame)
+
         self.mj_viewer.sync()
+
+    def save_video(self, fps: float):
+        """
+        Save the recorded frames as an MP4 video.
+
+        :param fps: Frames per second for the output video.
+        """
+        if not self.record:
+            warnings.warn("failed to save the video, it was not recorded", stacklevel=2)
+            return
+        filename = (
+            self.filename + ".mp4"
+            if len(self.filename) != 0
+            else "{}.mp4".format(datetime.now().strftime("%H-%M_%d-%m-%Y"))
+        )
+
+        mediapy.write_video(
+            filename,
+            self.frames,
+            fps=fps,
+        )
+
+    def close(self):
+        """
+        Close the viewer and clean up resources.
+        """
+        self.mj_viewer.close()
+        if self.record:
+            del self.frames
+            self.mj_renderer.close()
