@@ -26,15 +26,21 @@ q_max = mj_model.jnt_range[:, 1].copy()
 
 # --- Mujoco visualization ---
 # Initialize render window and launch it at the background
-vis = BatchVisualizer(MJCF_PATH, n_models=5, alpha=0.5, record=False)
+vis = BatchVisualizer(MJCF_PATH, n_models=5, alpha=0.5, record=True)
 
 # Initialize a sphere marker for end-effector task
 vis.add_markers(
+    name="ee_marker",
     size=0.05,
-    marker_alpha=0.9,
+    marker_alpha=0.4,
     color_begin=np.array([0, 1.0, 0.53]),
-    color_end=np.array([0.38, 0.94, 1.0]),
-    n_markers=1,
+)
+vis.add_markers(
+    name="blocking_plane",
+    marker_type=mj.mjtGeom.mjGEOM_PLANE,
+    size=np.array([0.5, 0.5, 0.02]),
+    marker_alpha=0.7,
+    color_begin=np.array([1, 0, 0]),
 )
 
 # === Mjinx ===
@@ -55,6 +61,15 @@ position_barrier = PositionBarrier(
     mask=[1, 0, 0],
 )
 joints_barrier = JointBarrier("jnt_range", gain=0.1)
+# Set plane coodinate same to limiting one
+vis.marker_data["blocking_plane"].pos = np.array([0.4, 0, 0.3])
+vis.marker_data["blocking_plane"].rot = np.array(
+    [
+        [0, 0, -1],
+        [0, 1, 0],
+        [1, 0, 0],
+    ]
+)
 
 problem.add_component(frame_task)
 problem.add_component(position_barrier)
@@ -135,8 +150,8 @@ try:
         q = opt_solution.q_opt
 
         # --- MuJoCo visualization ---
+        vis.marker_data["ee_marker"].pos = np.array(frame_task.target_frame.wxyz_xyz[-3:])
         vis.update(q[: vis.n_models])
-        vis.visualize(frame_task.target_frame.wxyz_xyz[-3:])
 
         # --- Logging ---
         # Execution time

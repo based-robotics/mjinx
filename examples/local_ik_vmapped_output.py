@@ -31,10 +31,19 @@ vis = BatchVisualizer(MJCF_PATH, n_models=5, alpha=0.5, record=False)
 
 # Initialize a sphere marker for end-effector task
 vis.add_markers(
+    name=[f"ee_marker_{i}" for i in range(vis.n_models)],
     size=0.05,
-    marker_alpha=0.9,
+    marker_alpha=0.5,
     color_begin=np.array([0, 1.0, 0.53]),
     color_end=np.array([0.38, 0.94, 1.0]),
+    n_markers=vis.n_models,
+)
+vis.add_markers(
+    name="blocking_plane",
+    marker_type=mj.mjtGeom.mjGEOM_PLANE,
+    size=np.array([0.5, 0.5, 0.02]),
+    marker_alpha=0.7,
+    color_begin=np.array([1, 0, 0]),
 )
 
 # === Mjinx ===
@@ -55,6 +64,15 @@ position_barrier = PositionBarrier(
     mask=[1, 0, 0],
 )
 joints_barrier = JointBarrier("jnt_range", gain=10)
+# Set plane coodinate same to limiting one
+vis.marker_data["blocking_plane"].pos = np.array([0.4, 0, 0.3])
+vis.marker_data["blocking_plane"].rot = np.array(
+    [
+        [0, 0, -1],
+        [0, 1, 0],
+        [1, 0, 0],
+    ]
+)
 
 problem.add_component(frame_task)
 problem.add_component(position_barrier)
@@ -158,8 +176,9 @@ try:
         t2 = time.perf_counter()
 
         # --- MuJoCo visualization ---
+        for i, q_i in enumerate(frame_task.target_frame.wxyz_xyz[:: N_batch // vis.n_models, -3:]):
+            vis.marker_data[f"ee_marker_{i}"].pos = q_i
         vis.update(q[:: N_batch // vis.n_models])
-        vis.visualize(frame_task.target_frame.wxyz_xyz[:: N_batch // vis.n_models, -3:])
 
         # --- Logging ---
         # Execution time
