@@ -1,12 +1,13 @@
 import warnings
+from dataclasses import dataclass, field
 from datetime import datetime
-from typing import NamedTuple
+from typing import Sequence
 
 import mujoco as mj
 import numpy as np
 from mujoco import viewer
 
-from mjinx.typing import ndarray
+from mjinx.typing import ArrayOrFloat, ndarray
 
 try:
     import mediapy
@@ -15,16 +16,66 @@ except ImportError as e:
     raise ImportError("visualization is not supported, please install the mjinx[visual]") from e
 
 
-class MarkerData(NamedTuple):
+@dataclass
+class MarkerData:
     """
-    A named tuple for storing marker data.
+    A dataclass for storing marker data.
 
-    :param size: The size of the marker.
-    :param rgba: The RGBA color values of the marker.
+    Attributes:
+        :param name: The name of the marker.
+        :param id: The unique identifier of the marker.
+        :param type: The type of geometry for the marker.
+        :param size: The size of the marker.
+        :param pos: The position of the marker in 3D space. Defaults to [0, 0, 0].
+        :param rot: The rotation of the marker. Defaults to [1, 0, 0, 0] (identity quaternion).
+        :param rgba: The RGBA color values of the marker. Defaults to [0.5, 0.5, 0.5, 0.3].
     """
 
-    size: float
-    rgba: np.ndarray
+    name: str
+    id: int
+    type: mj.mjtGeom
+    size: np.ndarray
+    pos: np.ndarray = field(default_factory=lambda: np.zeros(3))
+    rot: np.ndarray = field(default_factory=lambda: np.array([1, 0, 0, 0]))
+    rgba: np.ndarray = field(default_factory=lambda: np.array([0.5, 0.5, 0.5, 0.3]))
+
+    @property
+    def rot_matrix(self) -> np.ndarray:
+        """
+        Returns a raveled rotation matrix, generated from orientation.
+
+        It checks the ndim of the rot field. If ndim=1, it assumes quaternion
+        (scalar first) is passed, if ndim=2, it assumes that rotation matrix is
+        passed.
+
+        :return: Raveled rotation matrix with shape (9,).
+
+        :raises ValueError: If the rotation data has invalid dimensions or length.
+        """
+
+        match self.rot.ndim:
+            case 1:
+                if len(self.rot) != 4:
+                    raise ValueError(
+                        "invalid length of 1D marker rotation: "
+                        f"expected scalar-first quaternion with shape (4, ), got {len(self.rot)} "
+                    )
+                w, x, y, z = self.rot
+                rot_matrix = np.array(
+                    [
+                        [1 - 2 * y**2 - 2 * z**2, 2 * x * y - 2 * w * z, 2 * x * z + 2 * w * y],
+                        [2 * x * y + 2 * w * z, 1 - 2 * x**2 - 2 * z**2, 2 * y * z - 2 * w * x],
+                        [2 * x * z - 2 * w * y, 2 * y * z + 2 * w * x, 1 - 2 * x**2 - 2 * y**2],
+                    ]
+                )
+                return rot_matrix.ravel()
+            case 2:
+                return self.rot.ravel()
+
+            case _:
+                raise ValueError(f"wrong ndim of the self.rot, expected 1 <= self.rot.ndim <= 2, got {self.rot.ndim}")
+
+        return np.array(0)
 
 
 class BatchVisualizer:
@@ -68,7 +119,7 @@ class BatchVisualizer:
         )
         # For markers
         self.n_markers: int = 0
-        self.markers_data: list[MarkerData] = []
+        self.marker_data: dict[str, MarkerData] = {}
 
         # Recording the visualization
         self.record = record
@@ -169,33 +220,50 @@ class BatchVisualizer:
         return mjcf.Physics.from_mjcf_model(mjcf_model).model._model
 
     def add_markers(
-        self, size: float, marker_alpha: float, color_begin: np.ndarray, color_end: np.ndarray, n_markers: int = 0
+        self,
+        name: str | Sequence[str],
+        size: ArrayOrFloat,
+        marker_alpha: float,
+        color_begin: np.ndarray,
+        color_end: np.ndarray | None = None,
+        marker_type: mj.mjtGeom = mj.mjtGeom.mjGEOM_SPHERE,
+        n_markers: int = 1,
     ):
         """
         Add markers to the visualization.
 
-        :param size: Size of the markers.
+        :param name: Name or sequence of names for the markers.
+        :param size: Size of the markers. Can be a single float or an array of size 3.
         :param marker_alpha: Transparency of the markers.
         :param color_begin: Starting color for marker interpolation.
-        :param color_end: Ending color for marker interpolation.
-        :param n_markers: Amount of markers to add. Defaults to number of the models in the batch.
+        :param color_end: Ending color for marker interpolation. If None, uses `color_begin`.
+        :param marker_type: Type of marker geometry, defaults to sphere.
+        :param n_markers: Amount of markers to add. Defaults to 1.
         """
-        if n_markers < 1:
-            n_markers = self.n_models
-        self.mj_renderer.scene.ngeom += n_markers
-        self.mj_viewer.user_scn.ngeom += n_markers
+        if n_markers > 1 and (isinstance(name, str) or len(name) != n_markers):
+            raise ValueError(f"list of n_marker ({n_markers}) names is required.")
 
-        for interp_coef in np.linspace(0, 1, n_markers):
+        if color_end is None:
+            color_end = color_begin
+
+        size_array = size if isinstance(size, np.ndarray) else np.ones(3) * size
+
+        for i, interp_coef in enumerate(np.linspace(0, 1, n_markers)):
             # Interpolate the color
+            name_i = name if isinstance(name, str) else name[i]
             color = interp_coef * color_begin + (1 - interp_coef) * color_end
 
-            self.markers_data.append(
-                MarkerData(
-                    size=size,
-                    rgba=np.array([*color, marker_alpha]),
-                )
+            self.marker_data[name_i] = MarkerData(
+                name=name_i,
+                id=self.n_markers + i,
+                type=marker_type,
+                size=size_array,
+                rgba=np.array([*color, marker_alpha]),
             )
         self.n_markers += n_markers
+        self.mj_viewer.user_scn.ngeom += n_markers
+        if self.record:
+            self.mj_renderer.scene.ngeom += n_markers
 
     def get_prefix(self, i: int) -> str:
         """
@@ -217,44 +285,33 @@ class BatchVisualizer:
         self.mj_data.qpos = q_raveled
         mj.mj_fwdPosition(self.mj_model, self.mj_data)
 
-    def _draw_markers(self, scene: mj.MjvScene, markers: ndarray):
+        self._draw_markers(self.mj_viewer.user_scn)
+
+        if self.record:
+            self.mj_renderer.update_scene(self.mj_data, scene_option=self.mj_viewer._opt, camera=self.mj_viewer._cam)
+            self._draw_markers(self.mj_renderer.scene)
+
+            rendered_frame = self.mj_renderer.render()
+            self.frames.append(rendered_frame)
+
+        self.mj_viewer.sync()
+
+    def _draw_markers(self, scene: mj.MjvScene):
         """
         Draw markers on the given scene.
 
         :param scene: The MjvScene to draw markers on.
         :param markers: Array of marker positions.
         """
-        for i in range(len(markers)):
-            size, rgba = self.markers_data[i].size, self.markers_data[i].rgba
+        for marker in self.marker_data.values():
             mj.mjv_initGeom(
-                scene.geoms[scene.ngeom - self.n_markers + i],
-                mj.mjtGeom.mjGEOM_SPHERE,
-                size * np.ones(3),
-                markers[i],
-                np.eye(3).flatten(),
-                rgba,
+                scene.geoms[scene.ngeom - self.n_markers + marker.id],
+                marker.type,
+                marker.size,
+                marker.pos,
+                marker.rot_matrix,
+                marker.rgba,
             )
-
-    def visualize(self, markers: ndarray | None = None):
-        """
-        Visualize the current state of the models and markers.
-
-        :param markers: Array of marker positions. If None, no markers are displayed.
-        """
-        if markers is not None:
-            if markers.ndim == 1:
-                markers = markers.reshape(1, -1)
-            self._draw_markers(self.mj_viewer.user_scn, markers)
-
-        if self.record:
-            self.mj_renderer.update_scene(self.mj_data, scene_option=self.mj_viewer._opt, camera=self.mj_viewer._cam)
-            if markers is not None:
-                self._draw_markers(self.mj_renderer.scene, markers)
-
-            rendered_frame = self.mj_renderer.render()
-            self.frames.append(rendered_frame)
-
-        self.mj_viewer.sync()
 
     def save_video(self, fps: float):
         """
