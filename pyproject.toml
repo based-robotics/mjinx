@@ -22,6 +22,7 @@ docs = [
 ]
 visual = [
     "dm_control",
+    "mediapy",
 ]
 
 [build-system]
