@@ -162,3 +162,4 @@ cython_debug/
 #.idea/
 _build
 MUJOCO_LOG.TXT
+*.mp4
