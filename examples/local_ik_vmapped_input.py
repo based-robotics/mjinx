@@ -44,7 +44,7 @@ vis.add_markers(
 
 # --- Constructing the problem ---
 # Creating problem formulation
-problem = Problem(mjx_model, v_min=-100, v_max=100)
+problem = Problem(mjx_model, v_min=-5, v_max=5)
 
 # Creating components of interest and adding them to the problem
 frame_task = FrameTask("ee_task", cost=1, gain=20, body_name="link7")

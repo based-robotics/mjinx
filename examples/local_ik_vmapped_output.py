@@ -24,7 +24,6 @@ mjx_model = mjx.put_model(mj_model)
 q_min = mj_model.jnt_range[:, 0].copy()
 q_max = mj_model.jnt_range[:, 1].copy()
 
-
 # --- Mujoco visualization ---
 # Initialize render window and launch it at the background
 vis = BatchVisualizer(MJCF_PATH, n_models=5, alpha=0.5, record=False)
@@ -50,7 +49,7 @@ vis.add_markers(
 
 # --- Constructing the problem ---
 # Creating problem formulation
-problem = Problem(mjx_model, v_min=-100, v_max=100)
+problem = Problem(mjx_model, v_min=-5, v_max=5)
 
 # Creating components of interest and adding them to the problem
 frame_task = FrameTask("ee_task", cost=1, gain=20, body_name="link7")
