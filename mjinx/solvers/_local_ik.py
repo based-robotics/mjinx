@@ -183,7 +183,7 @@ class LocalIKSolver(Solver[LocalIKData, LocalIKSolution]):
                 component.vector_gain * jax.lax.map(component.gain_fn, barrier),
             )
         else:
-            return jnp.empty((0, model.nq)), jnp.empty(0)
+            return jnp.empty((0, model.nv)), jnp.empty(0)
 
     def __compute_qp_matrices(
         self,

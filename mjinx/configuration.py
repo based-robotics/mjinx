@@ -263,3 +263,46 @@ def get_distance(model: mjx.Model, data: mjx.Data, collision_pairs: list[Collisi
             )[0].min()
         )
     return jnp.array(dists).ravel()
+
+
+def skew_symmetric(v: jnp.ndarray) -> jnp.ndarray:
+    return jnp.array(
+        [
+            [0, -v[2], v[1]],
+            [v[2], 0, -v[0]],
+            [-v[1], v[0], 0],
+        ]
+    )
+
+
+def attitude_jacobian(q: jnp.ndarray) -> jnp.ndarray:
+    w, v = q[0], q[1:]
+    return jnp.vstack([-v.T, jnp.eye(3) * w + skew_symmetric(v)])
+
+
+def jac_dq2v(model: mjx.Model, q: jnp.ndarray):
+    jac = jnp.zeros((model.nq, model.nv))
+
+    row_idx, col_idx = 0, 0
+    for jnt_id in range(model.njnt):
+        jnt_type = model.jnt_type[jnt_id]
+        jnt_qpos_idx_begin = model.jnt_qposadr[jnt_id]
+        match jnt_type:
+            case mj.mjtJoint.mjJNT_FREE:
+                jac = jac.at[row_idx : row_idx + 3, col_idx : col_idx + 3].set(jnp.eye(3))
+                jac = jac.at[row_idx + 3 : row_idx + 7, col_idx + 3 : col_idx + 6].set(
+                    attitude_jacobian(q[jnt_qpos_idx_begin + 3 : jnt_qpos_idx_begin + 7])
+                )
+                row_idx += 7
+                col_idx += 6
+            case mj.mjtJoint.mjJNT_BALL:
+                jac = jac.at[row_idx : row_idx + 4, col_idx : col_idx + 3].set(
+                    attitude_jacobian(q[jnt_qpos_idx_begin : jnt_qpos_idx_begin + 4])
+                )
+                row_idx += 4
+                col_idx += 3
+            case _:
+                jac = jac.at[row_idx, col_idx].set(1)
+                row_idx += 1
+                col_idx += 1
+    return jac

@@ -8,7 +8,7 @@ import jax.numpy as jnp
 import jax_dataclasses as jdc
 import mujoco.mjx as mjx
 
-from mjinx.configuration import update
+from mjinx.configuration import jac_dq2v, update
 from mjinx.typing import ArrayOrFloat
 
 
@@ -62,12 +62,15 @@ class JaxComponent(abc.ABC):
         :param data: The MuJoCo simulation data.
         :return: The computed Jacobian matrix.
         """
-        return jax.jacrev(
+        jac = jax.jacrev(
             lambda q, model=self.model: self.__call__(
                 update(model, q),
             ),
             argnums=0,
         )(data.qpos)
+        if self.model.nq != self.model.nv:
+            jac = jac @ jac_dq2v(self.model, data.qpos)
+        return jac
 
 
 AtomicComponentType = TypeVar("AtomicComponentType", bound=JaxComponent)
