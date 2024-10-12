@@ -28,6 +28,15 @@ class JaxJointBarrier(JaxBarrier):
             ]
         )
 
+    def compute_jacobian(self, data):
+        mask_idxs = tuple(idx + 6 for idx in self.mask_idxs) if self.floating_base else self.mask_idxs
+        half_jac_matrix = (
+            jnp.eye(self.dim // 2, self.model.nv, 6)[mask_idxs,]
+            if self.floating_base
+            else jnp.eye(self.model.nv)[mask_idxs,]
+        )
+        return jnp.vstack([half_jac_matrix, -half_jac_matrix])
+
 
 class JointBarrier(Barrier[JaxJointBarrier]):
     JaxComponentType: type = JaxJointBarrier

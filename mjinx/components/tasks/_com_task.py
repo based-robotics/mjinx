@@ -8,11 +8,15 @@
 
 from typing import Callable, Sequence, final
 
+import jax
 import jax.numpy as jnp
 import jax_dataclasses as jdc
+import mujoco
 import mujoco.mjx as mjx
+from mujoco.mjx._src import scan
 
 from mjinx.components.tasks._base import JaxTask, Task
+from mjinx.configuration import jac_dq2v
 from mjinx.typing import ArrayOrFloat
 
 
@@ -37,8 +41,40 @@ class JaxComTask(JaxTask):
         :param data: The MuJoCo simulation data.
         :return: The error vector representing the difference between the current and target center of mass.
         """
-        error = data.subtree_com[self.model.body_rootid[0], self.mask_idxs].ravel() - self.target_com
+        error = data.subtree_com[self.model.body_rootid[0], self.mask_idxs] - self.target_com
         return error
+
+    @final
+    def compute_jacobian(self, data):
+        def specific_update(model: mjx.Model, q: jnp.ndarray) -> mjx.Data:
+            data = mjx.kinematics(model, mjx.make_data(model).replace(qpos=q))
+
+            # calculate center of mass of each subtree
+            def subtree_sum(carry, xipos, body_mass):
+                pos, mass = xipos * body_mass, body_mass
+                if carry is not None:
+                    subtree_pos, subtree_mass = carry
+                    pos, mass = pos + subtree_pos, mass + subtree_mass
+                return pos, mass
+
+            pos, mass = scan.body_tree(model, subtree_sum, "bb", "bb", data.xipos, model.body_mass, reverse=True)
+            cond = jnp.tile(mass < mujoco.mjMINVAL, (3, 1)).T
+            # take maximum to avoid NaN in gradient of jp.where
+            subtree_com = jax.vmap(jnp.divide)(pos, jnp.maximum(mass, mujoco.mjMINVAL))
+            subtree_com = jnp.where(cond, data.xipos, subtree_com)
+            data = data.replace(subtree_com=subtree_com)
+
+            return data
+
+        jac = jax.jacrev(
+            lambda q, model=self.model: self.__call__(
+                specific_update(model, q),
+            ),
+            argnums=0,
+        )(data.qpos)
+        if self.model.nq != self.model.nv:
+            jac = jac @ jac_dq2v(self.model, data.qpos)
+        return jac
 
 
 class ComTask(Task[JaxComTask]):

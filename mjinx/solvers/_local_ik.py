@@ -211,8 +211,8 @@ class LocalIKSolver(Solver[LocalIKData, LocalIKSolution]):
         for component in problem_data.components.values():
             # The objective
             H, c = self.__parse_component_objective(problem_data.model, model_data, component)
-            H_total += H
-            c_total += c
+            H_total = H_total + H
+            c_total = c_total + c
 
             # The constraints
             G, h = self.__parse_component_constraints(problem_data.model, model_data, component)
@@ -236,6 +236,8 @@ class LocalIKSolver(Solver[LocalIKData, LocalIKSolution]):
         """
         P, c, G, h = self.__compute_qp_matrices(problem_data, model_data)
         solution = self._solver.run(
+            # TODO: warm start is not working
+            # init_params=self._solver.init_params(solver_data.v_prev, (P, c), None, (G, h)),
             params_obj=(P, c),
             params_ineq=(G, h),
         )

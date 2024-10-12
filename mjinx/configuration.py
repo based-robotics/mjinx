@@ -116,7 +116,7 @@ def get_transform(model: mjx.Model, data: mjx.Data, source_id: int, dest_id: int
     return get_transform_frame_to_world(model, data, dest_id) @ get_transform_frame_to_world(model, data, source_id)
 
 
-def integrate(model: mjx.Model, q0: jnp.ndarray, velocity: jnp.ndarray, dt: jnp.ndarray) -> jnp.ndarray:
+def integrate(model: mjx.Model, q0: jnp.ndarray, velocity: jnp.ndarray, dt: jnp.ndarray | float) -> jnp.ndarray:
     """
     Integrate the joint positions given initial position, velocity, and time step.
 

@@ -64,7 +64,7 @@ class JaxComponent(abc.ABC):
         """
         jac = jax.jacrev(
             lambda q, model=self.model: self.__call__(
-                update(model, q),
+                mjx.kinematics(model, mjx.make_data(model).replace(qpos=q)),
             ),
             argnums=0,
         )(data.qpos)
