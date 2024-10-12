@@ -6,6 +6,7 @@ import jax.numpy as jnp
 import jax_dataclasses as jdc
 import mujoco.mjx as mjx
 
+from mjinx.components._base import Component
 from mjinx.components.tasks._base import JaxTask, Task
 from mjinx.configuration import get_joint_zero, joint_difference
 from mjinx.typing import ArrayOrFloat
@@ -23,6 +24,7 @@ class JaxJointTask(JaxTask):
     """
 
     target_q: jnp.ndarray
+    floating_base: jdc.Static[bool]
 
     def __call__(self, data: mjx.Data) -> jnp.ndarray:
         """
@@ -31,7 +33,8 @@ class JaxJointTask(JaxTask):
         :param data: The MuJoCo simulation data.
         :return: The error vector representing the difference between the current and target joint positions.
         """
-        return joint_difference(self.model, data.qpos, self.target_q)[self.mask_idxs,]
+        mask_idxs = tuple(idx + 6 for idx in self.mask_idxs) if self.floating_base else self.mask_idxs
+        return joint_difference(self.model, data.qpos, self.target_q)[mask_idxs,]
 
 
 class JointTask(Task[JaxJointTask]):
@@ -60,9 +63,17 @@ class JointTask(Task[JaxJointTask]):
         gain_fn: Callable[[float], float] | None = None,
         lm_damping: float = 0,
         mask: Sequence[int] | None = None,
+        floating_base: bool = False,
     ):
         super().__init__(name, cost, gain, gain_fn, lm_damping, mask)
         self.__target_q = None
+        self.__floating_base = floating_base
+
+    @property
+    def mask_idxs_jnt_space(self) -> tuple[int, ...]:
+        if self.floating_base:
+            return tuple(mask_idx + 7 for mask_idx in self.mask_idxs)
+        return self.mask_idxs
 
     def update_model(self, model: mjx.Model):
         """
@@ -76,15 +87,16 @@ class JointTask(Task[JaxJointTask]):
         """
         super().update_model(model)
 
-        self._dim = model.nq
-        if len(self.mask) != self._dim:
+        self._dim = model.nv if not self.floating_base else model.nv - 6
+        # if self.floating_base:
+        if len(self.mask) != model._dim:
             raise ValueError("provided mask in invalid for the model")
         if len(self.mask_idxs) != self._dim:
             self._dim = len(self.mask_idxs)
 
         # Validate current target_q, if empty -- set via default value
         if self.__target_q is None:
-            self.target_q = get_joint_zero(model)[self.mask_idxs,]
+            self.target_q = get_joint_zero(model)
         elif self.target_q.shape[-1] != self._dim:
             raise ValueError(
                 "provided model is incompatible with target q: "
@@ -126,4 +138,8 @@ class JointTask(Task[JaxJointTask]):
             raise ValueError(
                 f"dimension mismatch: expected last dimension to be {self._dim}, got{target_q_jnp.shape[-1]}"
             )
-        self.__target_q = target_q_jnp
+        self.__target_q = get_joint_zero(self.model).at[self.mask_idxs_jnt_space].set(target_q)
+
+    @property
+    def floating_base(self) -> bool:
+        return self.__floating_base
