@@ -24,22 +24,27 @@ q_max = mj_model.jnt_range[:, 1].copy()
 
 # --- Mujoco visualization ---
 # Initialize render window and launch it at the background
-vis = BatchVisualizer(MJCF_PATH, n_models=5, alpha=0.5)
+vis = BatchVisualizer(MJCF_PATH, n_models=5, alpha=0.5, record=False)
 
 # Initialize a sphere marker for end-effector task
 vis.add_markers(
+    name="ee_marker",
     size=0.05,
-    marker_alpha=0.9,
+    marker_alpha=0.4,
     color_begin=np.array([0, 1.0, 0.53]),
-    color_end=np.array([0.38, 0.94, 1.0]),
-    n_markers=1,
 )
-
+vis.add_markers(
+    name="blocking_plane",
+    marker_type=mj.mjtGeom.mjGEOM_PLANE,
+    size=np.array([0.5, 0.5, 0.02]),
+    marker_alpha=0.7,
+    color_begin=np.array([1, 0, 0]),
+)
 # === Mjinx ===
 
 # --- Constructing the problem ---
 # Creating problem formulation
-problem = Problem(mjx_model, v_min=-100, v_max=100)
+problem = Problem(mjx_model, v_min=-5, v_max=5)
 
 # Creating components of interest and adding them to the problem
 frame_task = FrameTask("ee_task", cost=1, gain=20, body_name="link7")
@@ -51,6 +56,15 @@ position_barrier = PositionBarrier(
     p_max=0.4,
     safe_displacement_gain=1e-2,
     mask=[1, 0, 0],
+)
+# Set plane coodinate same to limiting one
+vis.marker_data["blocking_plane"].pos = np.array([0.4, 0, 0.3])
+vis.marker_data["blocking_plane"].rot = np.array(
+    [
+        [0, 0, -1],
+        [0, 1, 0],
+        [1, 0, 0],
+    ]
 )
 joints_barrier = JointBarrier("jnt_range", gain=10)
 
@@ -111,40 +125,48 @@ integrate_jit = jax.jit(jax.vmap(integrate, in_axes=(None, 0, 0, None)), static_
 
 # === Control loop ===
 dt = 1e-2
-ts = np.arange(0, 20, dt)
+ts = np.arange(0, 20.0, dt)
 
 t_solve_avg = 0.0
 n = 0
 
-for t in ts:
-    # Changing desired values
-    frame_task.target_frame = np.array([0.4 + 0.3 * np.sin(t), 0.2, 0.4 + 0.3 * np.cos(t), 1, 0, 0, 0])
-    # After changes, recompiling the model
-    problem_data = problem.compile()
-    t0 = time.perf_counter()
+try:
+    for t in ts:
+        # Changing desired values
+        frame_task.target_frame = np.array([0.4 + 0.3 * np.sin(t), 0.2, 0.4 + 0.3 * np.cos(t), 1, 0, 0, 0])
+        # After changes, recompiling the model
+        problem_data = problem.compile()
+        t0 = time.perf_counter()
 
-    # Solving the instance of the problem
-    opt_solution, solver_data = solve_jit(q, solver_data, problem_data)
-    t1 = time.perf_counter()
+        # Solving the instance of the problem
+        opt_solution, solver_data = solve_jit(q, solver_data, problem_data)
+        t1 = time.perf_counter()
 
-    # Integrating
-    q = integrate_jit(
-        mjx_model,
-        q,
-        opt_solution.v_opt,
-        dt,
-    )
+        # Integrating
+        q = integrate_jit(
+            mjx_model,
+            q,
+            opt_solution.v_opt,
+            dt,
+        )
 
-    # --- MuJoCo visualization ---
-    vis.update(q[: vis.n_models])
-    vis.visualize(frame_task.target_frame.wxyz_xyz[-3:])
+        # --- MuJoCo visualization ---
+        vis.marker_data["ee_marker"].pos = np.array(frame_task.target_frame.wxyz_xyz[-3:])
+        vis.update(q[: vis.n_models])
 
-    t2 = time.perf_counter()
-    t_solve = (t1 - t0) * 1e3
-    t_interpolate = (t2 - t1) * 1e3
+        t2 = time.perf_counter()
+        t_solve = (t1 - t0) * 1e3
+        t_interpolate = (t2 - t1) * 1e3
 
-    if t > 0:
-        t_solve_avg = t_solve_avg + (t_solve - t_solve_avg) / (n + 1)
-        n += 1
-
-print(f"Avg solving time: {t_solve_avg:0.3f}ms")
+        if t > 0:
+            t_solve_avg = t_solve_avg + (t_solve - t_solve_avg) / (n + 1)
+            n += 1
+except KeyboardInterrupt:
+    print("Finalizing the simulation as requested...")
+except Exception as e:
+    print(e)
+finally:
+    if vis.record:
+        vis.save_video(round(1 / dt))
+    vis.close()
+    print(f"Avg solving time: {t_solve_avg:0.3f}ms")

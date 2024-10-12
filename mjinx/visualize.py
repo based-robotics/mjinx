@@ -1,47 +1,116 @@
-from collections.abc import Sequence
-from typing import NamedTuple
+import warnings
+from dataclasses import dataclass, field
+from datetime import datetime
+from typing import Sequence
 
 import mujoco as mj
 import numpy as np
-from dm_control import mjcf
 from mujoco import viewer
 
-from mjinx.typing import ndarray
+from mjinx.typing import ArrayOrFloat, ndarray
+
+try:
+    import mediapy
+    from dm_control import mjcf
+except ImportError as e:
+    raise ImportError("visualization is not supported, please install the mjinx[visual]") from e
 
 
-class MarkerData(NamedTuple):
+@dataclass
+class MarkerData:
     """
-    A named tuple for storing marker data.
+    A dataclass for storing marker data.
 
-    :param size: The size of the marker.
-    :param rgba: The RGBA color values of the marker.
+    Attributes:
+        :param name: The name of the marker.
+        :param id: The unique identifier of the marker.
+        :param type: The type of geometry for the marker.
+        :param size: The size of the marker.
+        :param pos: The position of the marker in 3D space. Defaults to [0, 0, 0].
+        :param rot: The rotation of the marker. Defaults to [1, 0, 0, 0] (identity quaternion).
+        :param rgba: The RGBA color values of the marker. Defaults to [0.5, 0.5, 0.5, 0.3].
     """
 
-    size: float
-    rgba: np.ndarray
+    name: str
+    id: int
+    type: mj.mjtGeom
+    size: np.ndarray
+    pos: np.ndarray = field(default_factory=lambda: np.zeros(3))
+    rot: np.ndarray = field(default_factory=lambda: np.array([1, 0, 0, 0]))
+    rgba: np.ndarray = field(default_factory=lambda: np.array([0.5, 0.5, 0.5, 0.3]))
+
+    @property
+    def rot_matrix(self) -> np.ndarray:
+        """
+        Returns a raveled rotation matrix, generated from orientation.
+
+        It checks the ndim of the rot field. If ndim=1, it assumes quaternion
+        (scalar first) is passed, if ndim=2, it assumes that rotation matrix is
+        passed.
+
+        :return: Raveled rotation matrix with shape (9,).
+
+        :raises ValueError: If the rotation data has invalid dimensions or length.
+        """
+
+        match self.rot.ndim:
+            case 1:
+                if len(self.rot) != 4:
+                    raise ValueError(
+                        "invalid length of 1D marker rotation: "
+                        f"expected scalar-first quaternion with shape (4, ), got {len(self.rot)} "
+                    )
+                w, x, y, z = self.rot
+                rot_matrix = np.array(
+                    [
+                        [1 - 2 * y**2 - 2 * z**2, 2 * x * y - 2 * w * z, 2 * x * z + 2 * w * y],
+                        [2 * x * y + 2 * w * z, 1 - 2 * x**2 - 2 * z**2, 2 * y * z - 2 * w * x],
+                        [2 * x * z - 2 * w * y, 2 * y * z + 2 * w * x, 1 - 2 * x**2 - 2 * y**2],
+                    ]
+                )
+                return rot_matrix.ravel()
+            case 2:
+                return self.rot.ravel()
+
+            case _:
+                raise ValueError(f"wrong ndim of the self.rot, expected 1 <= self.rot.ndim <= 2, got {self.rot.ndim}")
+
+        return np.array(0)
 
 
 class BatchVisualizer:
-    def __init__(self, model_path: str, n_models: int, geom_group: int = 2, alpha: float = 0.5):
+    def __init__(
+        self,
+        model_path: str,
+        n_models: int,
+        geom_group: int = 2,
+        alpha: float = 0.5,
+        record: bool = False,
+        filename: str = "",
+        record_res: tuple[int, int] = (1024, 1024),
+    ):
         """
         A class for batch visualization of multiple models using MuJoCo.
 
         This class allows for the visualization of multiple instances of a given model,
-        with customizable transparency and marker options.
+        with customizable transparency and marker options. It also supports recording
+        the visualization as a video.
 
         :param model_path: Path to the MuJoCo model file.
         :param n_models: Number of model instances to visualize.
         :param geom_group: Geometry group to render, defaults to 2.
         :param alpha: Transparency value for the models, defaults to 0.5.
+        :param record: if True, records and saves mp4 scene recording, defaults to False.
+        :param filename: name of the file to save the file without extension, defaults to datetime.
+        :param record_res: resolution of recorded video (width, height), defaults to (1024, 1024).
         """
         self.n_models = n_models
 
         # Generate the model, by stacking several provided models
-        self.mj_model = self._generate_mj_model(model_path, n_models, geom_group, alpha)
+        self.mj_model = self._generate_mj_model(model_path, n_models, geom_group, alpha, record_res)
         self.mj_data = mj.MjData(self.mj_model)
 
         # Initializing visualization
-        self.renderer = mj.Renderer(self.mj_model)
         self.mj_viewer = viewer.launch_passive(
             self.mj_model,
             self.mj_data,
@@ -50,9 +119,23 @@ class BatchVisualizer:
         )
         # For markers
         self.n_markers: int = 0
-        self.markers_data: list[MarkerData] = []
+        self.marker_data: dict[str, MarkerData] = {}
 
-    def _generate_mj_model(self, model_path: str, n_models: int, geom_group: int, alpha: float) -> mj.MjModel:
+        # Recording the visualization
+        self.record = record
+        self.filename = filename
+        self.frames: list = []
+        if self.record:
+            self.mj_renderer = mj.Renderer(self.mj_model, width=record_res[0], height=record_res[1])
+
+    def _generate_mj_model(
+        self,
+        model_path: str,
+        n_models: int,
+        geom_group: int,
+        alpha: float,
+        off_res: tuple[int, int],
+    ) -> mj.MjModel:
         """
         Generate a combined MuJoCo model from multiple instances of the given model.
 
@@ -60,6 +143,7 @@ class BatchVisualizer:
         :param n_models: Number of model instances to combine.
         :param geom_group: Geometry group to render.
         :param alpha: Transparency value for the models.
+        :param off_res: Resolution (width, height,) for the rendering.
         :return: The generated MuJoCo model.
         """
 
@@ -129,38 +213,57 @@ class BatchVisualizer:
 
         # Remove all exclude contact pairs
         mjcf_model.contact.remove(True)
+        mjcf_model.visual.__getattr__("global").offwidth = off_res[0]
+        mjcf_model.visual.__getattr__("global").offheight = off_res[1]
 
         # Build and return mujoco model
         return mjcf.Physics.from_mjcf_model(mjcf_model).model._model
 
     def add_markers(
-        self, size: float, marker_alpha: float, color_begin: np.ndarray, color_end: np.ndarray, n_markers: int = 0
+        self,
+        name: str | Sequence[str],
+        size: ArrayOrFloat,
+        marker_alpha: float,
+        color_begin: np.ndarray,
+        color_end: np.ndarray | None = None,
+        marker_type: mj.mjtGeom = mj.mjtGeom.mjGEOM_SPHERE,
+        n_markers: int = 1,
     ):
         """
         Add markers to the visualization.
 
-        :param size: Size of the markers.
+        :param name: Name or sequence of names for the markers.
+        :param size: Size of the markers. Can be a single float or an array of size 3.
         :param marker_alpha: Transparency of the markers.
         :param color_begin: Starting color for marker interpolation.
-        :param color_end: Ending color for marker interpolation.
-        :param n_markers: Amount of markers to add. Defaults to number of the models in the batch.
+        :param color_end: Ending color for marker interpolation. If None, uses `color_begin`.
+        :param marker_type: Type of marker geometry, defaults to sphere.
+        :param n_markers: Amount of markers to add. Defaults to 1.
         """
-        if n_markers < 1:
-            n_markers = self.n_models
-        self.renderer.scene.ngeom += n_markers
-        self.mj_viewer.user_scn.ngeom += n_markers
+        if n_markers > 1 and (isinstance(name, str) or len(name) != n_markers):
+            raise ValueError(f"list of n_marker ({n_markers}) names is required.")
 
-        for interp_coef in np.linspace(0, 1, n_markers):
+        if color_end is None:
+            color_end = color_begin
+
+        size_array = size if isinstance(size, np.ndarray) else np.ones(3) * size
+
+        for i, interp_coef in enumerate(np.linspace(0, 1, n_markers)):
             # Interpolate the color
+            name_i = name if isinstance(name, str) else name[i]
             color = interp_coef * color_begin + (1 - interp_coef) * color_end
 
-            self.markers_data.append(
-                MarkerData(
-                    size=size,
-                    rgba=np.array([*color, marker_alpha]),
-                )
+            self.marker_data[name_i] = MarkerData(
+                name=name_i,
+                id=self.n_markers + i,
+                type=marker_type,
+                size=size_array,
+                rgba=np.array([*color, marker_alpha]),
             )
         self.n_markers += n_markers
+        self.mj_viewer.user_scn.ngeom += n_markers
+        if self.record:
+            self.mj_renderer.scene.ngeom += n_markers
 
     def get_prefix(self, i: int) -> str:
         """
@@ -173,7 +276,7 @@ class BatchVisualizer:
 
     def update(self, q: ndarray):
         """
-        Update the model positions.
+        Update the model positions and record frame if enabled.
 
         :param q: Array of joint positions for all model instances.
         """
@@ -182,23 +285,60 @@ class BatchVisualizer:
         self.mj_data.qpos = q_raveled
         mj.mj_fwdPosition(self.mj_model, self.mj_data)
 
-    def visualize(self, markers: ndarray | None = None):
-        """
-        Visualize the current state of the models and markers.
+        self._draw_markers(self.mj_viewer.user_scn)
 
-        :param markers: Array of marker positions. If None, no markers are displayed.
-        """
-        if markers is not None:
-            if markers.ndim == 1:
-                markers = markers.reshape(1, -1)
-            for i in range(len(markers)):
-                size, rgba = self.markers_data[i].size, self.markers_data[i].rgba
-                mj.mjv_initGeom(
-                    self.mj_viewer.user_scn.geoms[i],
-                    mj.mjtGeom.mjGEOM_SPHERE,
-                    size * np.ones(3),
-                    markers[i],
-                    np.eye(3).flatten(),
-                    rgba,
-                )
+        if self.record:
+            self.mj_renderer.update_scene(self.mj_data, scene_option=self.mj_viewer._opt, camera=self.mj_viewer._cam)
+            self._draw_markers(self.mj_renderer.scene)
+
+            rendered_frame = self.mj_renderer.render()
+            self.frames.append(rendered_frame)
+
         self.mj_viewer.sync()
+
+    def _draw_markers(self, scene: mj.MjvScene):
+        """
+        Draw markers on the given scene.
+
+        :param scene: The MjvScene to draw markers on.
+        :param markers: Array of marker positions.
+        """
+        for marker in self.marker_data.values():
+            mj.mjv_initGeom(
+                scene.geoms[scene.ngeom - self.n_markers + marker.id],
+                marker.type,
+                marker.size,
+                marker.pos,
+                marker.rot_matrix,
+                marker.rgba,
+            )
+
+    def save_video(self, fps: float):
+        """
+        Save the recorded frames as an MP4 video.
+
+        :param fps: Frames per second for the output video.
+        """
+        if not self.record:
+            warnings.warn("failed to save the video, it was not recorded", stacklevel=2)
+            return
+        filename = (
+            self.filename + ".mp4"
+            if len(self.filename) != 0
+            else "{}.mp4".format(datetime.now().strftime("%H-%M_%d-%m-%Y"))
+        )
+
+        mediapy.write_video(
+            filename,
+            self.frames,
+            fps=fps,
+        )
+
+    def close(self):
+        """
+        Close the viewer and clean up resources.
+        """
+        self.mj_viewer.close()
+        if self.record:
+            del self.frames
+            self.mj_renderer.close()
