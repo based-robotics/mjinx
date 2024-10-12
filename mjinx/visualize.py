@@ -1,7 +1,9 @@
+import os
 import warnings
+import xml.etree.ElementTree as ET
+from collections.abc import Sequence
 from dataclasses import dataclass, field
 from datetime import datetime
-from typing import Sequence
 
 import mujoco as mj
 import numpy as np
@@ -128,6 +130,47 @@ class BatchVisualizer:
         if self.record:
             self.mj_renderer = mj.Renderer(self.mj_model, width=record_res[0], height=record_res[1])
 
+    def __find_asset(self, asset_root: str, asset_name: str) -> str:
+        for root, _, files in os.walk(asset_root):
+            if asset_name in files:
+                return os.path.join(root, asset_name)
+        raise ValueError(f"asset {asset_name} not found in {asset_root}")
+
+    def remove_high_level_body_tags(self, mjcf_str: str, model_directory: str) -> tuple[str, dict[str, bytes]]:
+        # Parse the XML string
+        root = ET.fromstring(mjcf_str)
+
+        # Find the worldbody element
+        worldbody = root.find(".//worldbody")
+
+        if worldbody is not None:
+            # Iterate through direct children of worldbody
+            for child in list(worldbody):
+                if child.tag == "body":
+                    # This is a high-level body tag
+                    # Move its children to worldbody and remove it
+                    for subchild in list(child):
+                        worldbody.append(subchild)
+                    worldbody.remove(child)
+
+        mesh_elements = root.findall(".//mesh")
+        assets: dict[str, bytes] = {}
+        for mesh in mesh_elements:
+            file_attr = mesh.get("file")
+            if file_attr:
+                # Remove the hash from the file attribute
+                new_file_attr = file_attr[: file_attr.find("-")] + file_attr[file_attr.rfind(".") :]
+
+                asset_path = self.__find_asset(model_directory, new_file_attr)
+                with open(asset_path, "rb") as f:
+                    assets[new_file_attr] = f.read()
+
+                mesh.set("file", new_file_attr)
+        # Convert the modified XML tree back to a string
+        modified_xml = ET.tostring(root, encoding="unicode")
+
+        return modified_xml, assets
+
     def _generate_mj_model(
         self,
         model_path: str,
@@ -170,6 +213,8 @@ class BatchVisualizer:
             if i > 0:
                 for light in attached_mjcf_model.find_all("light"):
                     light.remove()
+                for camera in attached_mjcf_model.find_all("camera"):
+                    camera.remove()
             # Attach the model
             site = mjcf_model.worldbody.add("site")
             site.attach(attached_mjcf_model)
@@ -216,8 +261,12 @@ class BatchVisualizer:
         mjcf_model.visual.__getattr__("global").offwidth = off_res[0]
         mjcf_model.visual.__getattr__("global").offheight = off_res[1]
 
+        edited_xml, assets = self.remove_high_level_body_tags(
+            mjcf_model.to_xml_string(),
+            os.path.split(model_path)[0],
+        )
         # Build and return mujoco model
-        return mjcf.Physics.from_mjcf_model(mjcf_model).model._model
+        return mj.MjModel.from_xml_string(edited_xml, assets)
 
     def add_markers(
         self,
