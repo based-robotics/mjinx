@@ -54,6 +54,8 @@ class TestPositionBarrier(unittest.TestCase):
             p_min=[-1.0, -1.0, -1.0],
             limit_type="min",
         )
+        barrier.update_p_min(0.1)
+        np.testing.assert_array_equal(barrier.p_min, 0.1 * jnp.ones(3))
 
         barrier.update_p_min([-2.0, -2.0, -2.0])
         np.testing.assert_array_equal(barrier.p_min, jnp.array([-2.0, -2.0, -2.0]))
@@ -73,6 +75,8 @@ class TestPositionBarrier(unittest.TestCase):
             p_max=[1.0, 1.0, 1.0],
             limit_type="max",
         )
+        barrier.update_p_max(0.1)
+        np.testing.assert_array_equal(barrier.p_max, 0.1 * jnp.ones(3))
 
         barrier.update_p_max([2.0, 2.0, 2.0])
         np.testing.assert_array_equal(barrier.p_max, jnp.array([2.0, 2.0, 2.0]))

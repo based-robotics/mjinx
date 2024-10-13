@@ -33,6 +33,8 @@ class TestBodyTask(unittest.TestCase):
     def test_body_id(self):
         """Test setting body id"""
         body_task_1 = DummyBodyTask("body_task", gain=1.0, body_name="body1")
+        with self.assertRaises(ValueError):
+            _ = body_task_1.body_id
         self.set_model(body_task_1)
 
         self.assertEqual(body_task_1.body_id, 1)

@@ -140,16 +140,15 @@ class SelfCollisionBarrier(Barrier[JaxSelfCollisionBarrier]):
 
     def _generate_collision_pairs(
         self,
-        collision_bodies: Sequence[CollisionBody] = (),
-        excluded_collisions: set[CollisionPair] | None = None,
+        collision_bodies: Sequence[CollisionBody],
+        excluded_collisions: set[CollisionPair],
     ) -> list[CollisionPair]:
         """Construct colliison bodies, based on the model, their list.
 
         The names from the list are used pairwise among each other.
 
-        :param collision_bodies: List of several bodies, defaults to empty bodies.
-        :param excluded_collisions: set of excluded collision pairs, defaults to no collisions observed
-        :type excluded_collisions: set[CollisionPair], defaults to empty set.
+        :param collision_bodies: List of several bodies.
+        :param excluded_collisions: set of excluded collision pairs.
         """
         if excluded_collisions is None:
             excluded_collisions = set()

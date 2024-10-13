@@ -2,12 +2,12 @@ import unittest
 
 import jax
 import jax.numpy as jnp
-import jaxlie
 import mujoco as mj
 from jaxlie import SE3
 from mujoco import mjx
 
 from mjinx.configuration import (
+    attitude_jacobian,
     get_configuration_limit,
     get_distance,
     get_frame_jacobian_local,
@@ -16,7 +16,9 @@ from mjinx.configuration import (
     get_transform,
     get_transform_frame_to_world,
     integrate,
+    jac_dq2v,
     joint_difference,
+    skew_symmetric,
     update,
 )
 
@@ -275,3 +277,95 @@ class TestConfiguration(unittest.TestCase):
 
         with self.assertRaises(NotImplementedError):
             get_distance(hfield_model, hfield_data, collision_pairs)
+
+    def test_skew_symmetric(self):
+        v = jnp.array([1.0, 2.0, 3.0])
+        result = skew_symmetric(v)
+        expected = jnp.array(
+            [
+                [0.0, -3.0, 2.0],
+                [3.0, 0.0, -1.0],
+                [-2.0, 1.0, 0.0],
+            ]
+        )
+        self.assertTrue(jnp.allclose(result, expected))
+
+    def test_attitude_jacobian(self):
+        q = jnp.array([0.5, 0.5, 0.5, 0.5])  # Example quaternion
+        result = attitude_jacobian(q)
+        expected = jnp.array(
+            [
+                [-0.5, -0.5, -0.5],
+                [0.5, -0.5, 0.5],
+                [0.5, 0.5, -0.5],
+                [-0.5, 0.5, 0.5],
+            ]
+        )
+        self.assertTrue(jnp.allclose(result, expected))
+
+    def test_jac_dq2v(self):
+        # Create a model with different joint types
+        model = mjx.put_model(
+            mj.MjModel.from_xml_string(
+                """
+                <mujoco>
+                    <worldbody>
+                        <body name="body1">
+                            <geom name="geom1" size="0.1"/>
+                            <joint name="free_joint" type="free"/>
+                            <body name="body2">
+                                <geom name="geom2" size="0.1"/>
+                                <joint name="ball_joint" type="ball"/>
+                                <body name="body3">
+                                    <geom name="geom3" size="0.1"/>
+                                    <joint name="hinge_joint" type="hinge"/>
+                                </body>
+                            </body>
+                        </body>
+                    </worldbody>
+                </mujoco>
+                """
+            )
+        )
+
+        # Example configuration (adjust based on your model's degrees of freedom)
+        q = jnp.array(
+            [
+                1.0,
+                2.0,
+                3.0,
+                1.0,
+                0.0,
+                0.0,
+                0.0,  # Free joint (3 pos + 4 quat)
+                1.0,
+                0.0,
+                0.0,
+                0.0,  # Ball joint (4 quat)
+                0.5,
+            ]
+        )  # Hinge joint (1 angle)
+
+        result = jac_dq2v(model, q)
+
+        # Check the shape of the result
+        self.assertEqual(result.shape, (model.nq, model.nv))
+
+        # Check specific elements (you may need to adjust these based on your implementation)
+        # Free joint
+        self.assertTrue(jnp.allclose(result[:3, :3], jnp.eye(3)))  # Position part
+        self.assertTrue(jnp.allclose(result[3:7, 3:6], attitude_jacobian(q[3:7])))  # Rotation part
+
+        # Ball joint
+        self.assertTrue(jnp.allclose(result[7:11, 6:9], attitude_jacobian(q[7:11])))
+
+        # Hinge joint
+        self.assertEqual(result[11, 9], 1.0)
+
+        # Check that all other elements are zero
+        mask = jnp.ones_like(result, dtype=bool)
+        mask = mask.at[:3, :3].set(False)
+        mask = mask.at[3:7, 3:6].set(False)
+        mask = mask.at[7:11, 6:9].set(False)
+        mask = mask.at[11, 9].set(False)
+        self.assertTrue(jnp.allclose(result[mask], 0.0))
