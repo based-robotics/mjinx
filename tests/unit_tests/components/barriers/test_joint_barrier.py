@@ -100,8 +100,8 @@ class TestJointBarrier(unittest.TestCase):
         self.assertIsInstance(jax_component, JaxJointBarrier)
         self.assertEqual(jax_component.dim, 2)
         np.testing.assert_array_equal(jax_component.vector_gain, jnp.ones(2))
-        np.testing.assert_array_equal(jax_component.q_min, jnp.array([-1.0]))
-        np.testing.assert_array_equal(jax_component.q_max, jnp.array([1.0]))
+        np.testing.assert_array_equal(jax_component.full_q_min, jnp.array([-1.0]))
+        np.testing.assert_array_equal(jax_component.full_q_max, jnp.array([1.0]))
 
     def test_call(self):
         """Test jax component actual computation"""
@@ -112,8 +112,9 @@ class TestJointBarrier(unittest.TestCase):
             gain_fn=lambda x: x,
             mask_idxs=(0,),
             safe_displacement_gain=0.0,
-            q_min=jnp.array([-1.0]),
-            q_max=jnp.array([1.0]),
+            full_q_min=jnp.array([-1.0]),
+            full_q_max=jnp.array([1.0]),
+            floating_base=False,
         )
 
         self.data.replace(qpos=jnp.array([0.5]))
@@ -122,8 +123,8 @@ class TestJointBarrier(unittest.TestCase):
         result = barrier(self.data)
         expected = jnp.concatenate(
             [
-                joint_difference(self.model, self.data.qpos, barrier.q_min),
-                joint_difference(self.model, barrier.q_max, self.data.qpos),
+                joint_difference(self.model, self.data.qpos, barrier.full_q_min),
+                joint_difference(self.model, barrier.full_q_max, self.data.qpos),
             ]
         )
         np.testing.assert_array_almost_equal(result, expected)

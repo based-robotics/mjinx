@@ -90,13 +90,13 @@ class Component(Generic[AtomicComponentType], abc.ABC):
     JaxComponentType: type
 
     _dim: int
-    __name: str
-    __jax_component: AtomicComponentType
-    __model: mjx.Model | None
-    __gain: jnp.ndarray
-    __gain_fn: Callable[[float], float]
-    __mask: jnp.ndarray | None
-    __mask_idxs: tuple[int, ...]
+    _name: str
+    _jax_component: AtomicComponentType
+    _model: mjx.Model | None
+    _gain: jnp.ndarray
+    _gain_fn: Callable[[float], float]
+    _mask: jnp.ndarray | None
+    _mask_idxs: tuple[int, ...]
 
     __modified: bool
 
@@ -115,21 +115,21 @@ class Component(Generic[AtomicComponentType], abc.ABC):
         :param gain_fn: A function to compute the gain dynamically.
         :param mask: A sequence of integers to mask certain dimensions.
         """
-        self.__name = name
-        self.__model = None
+        self._name = name
+        self._model = None
 
         self.update_gain(gain)
-        self.__gain_fn = gain_fn if gain_fn is not None else lambda x: x
+        self._gain_fn = gain_fn if gain_fn is not None else lambda x: x
         self._dim = -1
 
         if mask is not None:
-            self.__mask = jnp.array(mask)
-            if self.__mask.ndim != 1:
-                raise ValueError(f"mask is 1D vector, got {self.__mask.ndim}D array")
-            self.__mask_idxs = tuple(i for i in range(len(self.__mask)) if self.__mask[i])
+            self._mask = jnp.array(mask)
+            if self._mask.ndim != 1:
+                raise ValueError(f"mask is 1D vector, got {self._mask.ndim}D array")
+            self._mask_idxs = tuple(i for i in range(len(self._mask)) if self._mask[i])
         else:
-            self.__mask = None
-            self.__mask_idxs = ()
+            self._mask = None
+            self._mask_idxs = ()
 
     def _get_default_mask(self) -> tuple[jnp.ndarray, tuple[int, ...]]:
         """
@@ -167,7 +167,7 @@ class Component(Generic[AtomicComponentType], abc.ABC):
 
         :return: The MuJoCo model.
         """
-        return self.__model
+        return self._model
 
     @model.setter
     def model(self, value: mjx.Model):
@@ -184,7 +184,7 @@ class Component(Generic[AtomicComponentType], abc.ABC):
 
         :param model: The new MuJoCo model.
         """
-        self.__model = model
+        self._model = model
 
     @property
     def gain(self) -> jnp.ndarray:
@@ -193,7 +193,7 @@ class Component(Generic[AtomicComponentType], abc.ABC):
 
         :return: The gain array.
         """
-        return self.__gain
+        return self._gain
 
     @gain.setter
     def gain(self, value: ArrayOrFloat):
@@ -215,7 +215,7 @@ class Component(Generic[AtomicComponentType], abc.ABC):
         gain = jnp.array(gain)
         if not isinstance(gain, float) and gain.ndim > 1:
             raise ValueError(f"gain ndim is too high: expected <= 1, got {gain.ndim}")
-        self.__gain = gain
+        self._gain = gain
 
     @property
     def vector_gain(self) -> jnp.ndarray:
@@ -252,7 +252,7 @@ class Component(Generic[AtomicComponentType], abc.ABC):
 
         :return: The gain function.
         """
-        return self.__gain_fn
+        return self._gain_fn
 
     @property
     def name(self) -> str:
@@ -261,7 +261,7 @@ class Component(Generic[AtomicComponentType], abc.ABC):
 
         :return: The component name.
         """
-        return self.__name
+        return self._name
 
     @property
     def dim(self) -> int:
@@ -286,12 +286,12 @@ class Component(Generic[AtomicComponentType], abc.ABC):
         :return: The mask array.
         :raises ValueError: If the mask is not set and the dimension is not defined.
         """
-        if self.__mask is None and self._dim == -1:
+        if self._mask is None and self._dim == -1:
             raise ValueError("either mask should be provided explicitly, or dimension should be set")
-        elif self.__mask is None:
-            self.__mask, self.__mask_idxs = self._get_default_mask()
+        elif self._mask is None:
+            self._mask, self._mask_idxs = self._get_default_mask()
 
-        return self.__mask
+        return self._mask
 
     @property
     def mask_idxs(self) -> tuple[int, ...]:
@@ -301,11 +301,11 @@ class Component(Generic[AtomicComponentType], abc.ABC):
         :return: A tuple of mask indices.
         :raises ValueError: If the mask is not set and the dimension is not defined.
         """
-        if self.__mask is None and self._dim == -1:
+        if self._mask is None and self._dim == -1:
             raise ValueError("either mask should be provided explicitly, or dimension should be set")
-        elif self.__mask is None:
-            self.__mask, self.__mask_idxs = self._get_default_mask()
-        return self.__mask_idxs
+        elif self._mask is None:
+            self._mask, self._mask_idxs = self._get_default_mask()
+        return self._mask_idxs
 
     def _build_component(self) -> AtomicComponentType:
         """
@@ -324,12 +324,12 @@ class Component(Generic[AtomicComponentType], abc.ABC):
         :return: The JAX component instance.
         :raises ValueError: If the model or dimension is not set.
         """
-        if self.__model is None:
+        if self._model is None:
             raise ValueError("model is not provided")
         if self._dim == -1:
             raise ValueError("dimension is not specified")
 
         if self.__modified:
-            self.__jax_component: AtomicComponentType = self._build_component()
+            self._jax_component: AtomicComponentType = self._build_component()
             self.__modified = False
-        return self.__jax_component
+        return self._jax_component

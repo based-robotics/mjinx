@@ -15,16 +15,16 @@ from mjinx.typing import ArrayOrFloat, ndarray
 class JaxJointBarrier(JaxBarrier):
     r"""..."""
 
-    q_min: jnp.ndarray
-    q_max: jnp.ndarray
+    full_q_min: jnp.ndarray
+    full_q_max: jnp.ndarray
     floating_base: jdc.Static[bool]
 
     def __call__(self, data: mjx.Data) -> jnp.ndarray:
         mask_idxs = tuple(idx + 6 for idx in self.mask_idxs) if self.floating_base else self.mask_idxs
         return jnp.concatenate(
             [
-                joint_difference(self.model, data.qpos, self.q_min)[mask_idxs,],
-                joint_difference(self.model, self.q_max, data.qpos)[mask_idxs,],
+                joint_difference(self.model, data.qpos, self.full_q_min)[mask_idxs,],
+                joint_difference(self.model, self.full_q_max, data.qpos)[mask_idxs,],
             ]
         )
 
@@ -40,8 +40,8 @@ class JaxJointBarrier(JaxBarrier):
 
 class JointBarrier(Barrier[JaxJointBarrier]):
     JaxComponentType: type = JaxJointBarrier
-    __q_min: jnp.ndarray | None
-    __q_max: jnp.ndarray | None
+    _q_min: jnp.ndarray | None
+    _q_max: jnp.ndarray | None
 
     def __init__(
         self,
@@ -55,17 +55,17 @@ class JointBarrier(Barrier[JaxJointBarrier]):
         floating_base: bool = False,
     ):
         super().__init__(name, gain, gain_fn, safe_displacement_gain, mask=mask)
-        self.__q_min = jnp.array(q_min) if q_min is not None else None
-        self.__q_max = jnp.array(q_max) if q_max is not None else None
+        self._q_min = jnp.array(q_min) if q_min is not None else None
+        self._q_max = jnp.array(q_max) if q_max is not None else None
         self.__floating_base = floating_base
 
     @property
     def q_min(self) -> jnp.ndarray:
-        if self.__q_min is None:
+        if self._q_min is None:
             raise ValueError(
                 "q_min is not yet defined. Either provide it explicitly, or provide an instance of a model"
             )
-        return self.__q_min
+        return self._q_min
 
     @q_min.setter
     def q_min(self, value: ndarray):
@@ -77,15 +77,16 @@ class JointBarrier(Barrier[JaxJointBarrier]):
                 f"[JointBarrier] wrong dimension of q_min: expected {self.dim // 2}, got {q_min.shape[-1]}"
             )
 
-        self.__q_min = get_joint_zero(self.model).at[self.mask_idxs_jnt_space,].set(jnp.array(q_min))
+        # self.__q_min = get_joint_zero(self.model).at[self.mask_idxs_jnt_space,].set(jnp.array(q_min))
+        self._q_min = jnp.array(q_min)
 
     @property
     def q_max(self) -> jnp.ndarray:
-        if self.__q_max is None:
+        if self._q_max is None:
             raise ValueError(
                 "q_max is not yet defined. Either provide it explicitly, or provide an instance of a model"
             )
-        return self.__q_max
+        return self._q_max
 
     @q_max.setter
     def q_max(self, value: ndarray):
@@ -96,7 +97,8 @@ class JointBarrier(Barrier[JaxJointBarrier]):
             raise ValueError(
                 f"[JointBarrier] wrong dimension of q_max: expected {self.dim // 2}, got {q_max.shape[-1]}"
             )
-        self.__q_max = get_joint_zero(self.model).at[self.mask_idxs_jnt_space,].set(jnp.array(q_max))
+        # self.__q_max = get_joint_zero(self.model).at[self.mask_idxs_jnt_space,].set(jnp.array(q_max))
+        self._q_max = jnp.array(q_max)
 
     @property
     def mask_idxs_jnt_space(self) -> tuple[int, ...]:
@@ -107,17 +109,27 @@ class JointBarrier(Barrier[JaxJointBarrier]):
     def update_model(self, model: mjx.Model):
         super().update_model(model)
 
-        self._dim = self.model.nv if not self.floating_base else (self.model.nv - 6)
-        if len(self.mask_idxs) != self._dim:
-            self._dim = 2 * len(self.mask_idxs)
-        else:
-            self._dim = 2 * self._dim
+        self._dim = 2 * self.model.nv if not self.floating_base else 2 * (self.model.nv - 6)
+        self._mask = jnp.zeros(self._dim // 2)
+        self._mask_idxs = tuple(range(self._dim // 2))
 
         begin_idx = 0 if not self.floating_base else 1
-        if self.__q_min is None:
+        if self._q_min is None:
             self.q_min = self.model.jnt_range[begin_idx:, 0][self.mask_idxs,]
-        if self.__q_max is None:
+        if self._q_max is None:
             self.q_max = self.model.jnt_range[begin_idx:, 1][self.mask_idxs,]
+
+    @property
+    def full_q_min(self) -> jnp.ndarray:
+        if self._model is None:
+            raise ValueError("model is not defined yet.")
+        return get_joint_zero(self.model).at[self.mask_idxs_jnt_space,].set(jnp.array(self._q_min))
+
+    @property
+    def full_q_max(self) -> jnp.ndarray:
+        if self._model is None:
+            raise ValueError("model is not defined yet.")
+        return get_joint_zero(self.model).at[self.mask_idxs_jnt_space,].set(jnp.array(self._q_max))
 
     @property
     def floating_base(self) -> bool:

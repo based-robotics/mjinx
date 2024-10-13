@@ -100,7 +100,7 @@ class TestJointTask(unittest.TestCase):
         np.testing.assert_array_equal(jax_component.vector_gain, jnp.ones(2) * 2.0)
         self.assertEqual(jax_component.gain_fn(4), 8)
         self.assertEqual(jax_component.lm_damping, 0.5)
-        np.testing.assert_array_equal(jax_component.target_q, jnt_des)
+        np.testing.assert_array_equal(jax_component.full_target_q, jnp.array([jnt_des[0], 0.0, jnt_des[1]]))
         self.assertEqual(jax_component.mask_idxs, (0, 2))
 
         data = mjx.fwd_position(self.model, mjx.make_data(self.model))

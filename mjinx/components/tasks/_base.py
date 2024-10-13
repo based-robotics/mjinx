@@ -1,4 +1,5 @@
-from typing import Callable, Generic, Sequence, TypeVar
+from collections.abc import Callable, Sequence
+from typing import Generic, TypeVar
 
 import jax.numpy as jnp
 import jax_dataclasses as jdc
@@ -53,7 +54,7 @@ class Task(Generic[AtomicTaskType], Component[AtomicTaskType]):
     """
 
     lm_damping: float
-    __cost: jnp.ndarray
+    _cost: jnp.ndarray
 
     def __init__(
         self,
@@ -89,7 +90,7 @@ class Task(Generic[AtomicTaskType], Component[AtomicTaskType]):
 
         :return: The cost as a numpy array.
         """
-        return self.__cost
+        return self._cost
 
     @cost.setter
     def cost(self, value: ArrayOrFloat):
@@ -112,7 +113,7 @@ class Task(Generic[AtomicTaskType], Component[AtomicTaskType]):
         cost = cost if isinstance(cost, jnp.ndarray) else jnp.array(cost)
         if cost.ndim > 2:
             raise ValueError(f"the cost.ndim is too high: expected <= 2, got {cost.ndim}")
-        self.__cost = cost
+        self._cost = cost
 
     @property
     def matrix_cost(self) -> jnp.ndarray:

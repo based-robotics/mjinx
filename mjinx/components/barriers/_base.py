@@ -5,7 +5,6 @@ import jax_dataclasses as jdc
 import mujoco.mjx as mjx
 
 from mjinx.components import Component, JaxComponent
-from mjinx.typing import ArrayOrFloat
 
 
 @jdc.pytree_dataclass

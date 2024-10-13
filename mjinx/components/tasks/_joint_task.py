@@ -1,12 +1,11 @@
 """Center of mass task implementation."""
 
-from typing import Callable, Sequence
+from collections.abc import Callable, Sequence
 
 import jax.numpy as jnp
 import jax_dataclasses as jdc
 import mujoco.mjx as mjx
 
-from mjinx.components._base import Component
 from mjinx.components.tasks._base import JaxTask, Task
 from mjinx.configuration import get_joint_zero, joint_difference
 from mjinx.typing import ArrayOrFloat
@@ -23,7 +22,7 @@ class JaxJointTask(JaxTask):
     :param target_q: The target joint positions to be achieved.
     """
 
-    target_q: jnp.ndarray
+    full_target_q: jnp.ndarray
     floating_base: jdc.Static[bool]
 
     def __call__(self, data: mjx.Data) -> jnp.ndarray:
@@ -34,7 +33,7 @@ class JaxJointTask(JaxTask):
         :return: The error vector representing the difference between the current and target joint positions.
         """
         mask_idxs = tuple(idx + 6 for idx in self.mask_idxs) if self.floating_base else self.mask_idxs
-        return joint_difference(self.model, data.qpos, self.target_q)[mask_idxs,]
+        return joint_difference(self.model, data.qpos, self.full_target_q)[mask_idxs,]
 
 
 class JointTask(Task[JaxJointTask]):
@@ -53,7 +52,8 @@ class JointTask(Task[JaxJointTask]):
     """
 
     JaxComponentType: type = JaxJointTask
-    __target_q: jnp.ndarray | None
+    _target_q: jnp.ndarray | None
+    _floating_base: bool
 
     def __init__(
         self,
@@ -66,8 +66,8 @@ class JointTask(Task[JaxJointTask]):
         floating_base: bool = False,
     ):
         super().__init__(name, cost, gain, gain_fn, lm_damping, mask)
-        self.__target_q = None
-        self.__floating_base = floating_base
+        self._target_q = None
+        self._floating_base = floating_base
 
     @property
     def mask_idxs_jnt_space(self) -> tuple[int, ...]:
@@ -89,18 +89,18 @@ class JointTask(Task[JaxJointTask]):
 
         self._dim = model.nv if not self.floating_base else model.nv - 6
         # if self.floating_base:
-        if len(self.mask) != model._dim:
+        if len(self.mask) != self.dim:
             raise ValueError("provided mask in invalid for the model")
-        if len(self.mask_idxs) != self._dim:
+        if len(self.mask_idxs) != self.dim:
             self._dim = len(self.mask_idxs)
 
         # Validate current target_q, if empty -- set via default value
-        if self.__target_q is None:
-            self.target_q = get_joint_zero(model)
-        elif self.target_q.shape[-1] != self._dim:
+        if self._target_q is None:
+            self.target_q = jnp.zeros(self.dim)
+        elif self.target_q.shape[-1] != self.dim:
             raise ValueError(
                 "provided model is incompatible with target q: "
-                f"{len(self.target_q)} is set, model expects {self._dim}."
+                f"{len(self.target_q)} is set, model expects {self.dim}."
             )
 
     @property
@@ -111,9 +111,9 @@ class JointTask(Task[JaxJointTask]):
         :return: The current target joint positions as a numpy array.
         :raises ValueError: If the target value was not provided and the model is missing.
         """
-        if self.__target_q is None:
+        if self._target_q is None:
             raise ValueError("target value was neither provided, nor deduced from other arguments (model is missing)")
-        return self.__target_q
+        return self._target_q
 
     @target_q.setter
     def target_q(self, value: Sequence):
@@ -138,8 +138,14 @@ class JointTask(Task[JaxJointTask]):
             raise ValueError(
                 f"dimension mismatch: expected last dimension to be {self._dim}, got{target_q_jnp.shape[-1]}"
             )
-        self.__target_q = get_joint_zero(self.model).at[self.mask_idxs_jnt_space].set(target_q)
+        self._target_q = target_q_jnp
+
+    @property
+    def full_target_q(self) -> jnp.ndarray:
+        if self._model is None:
+            raise ValueError("model is not defined yet.")
+        return get_joint_zero(self.model).at[self.mask_idxs_jnt_space,].set(self._target_q)
 
     @property
     def floating_base(self) -> bool:
-        return self.__floating_base
+        return self._floating_base
