@@ -1,6 +1,7 @@
 """Build and solve the inverse kinematics problem."""
 
-from typing import Callable, TypedDict
+from collections.abc import Callable
+from typing import TypedDict
 
 import jax
 import jax.numpy as jnp

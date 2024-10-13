@@ -1,14 +1,15 @@
 from __future__ import annotations
 
 import abc
-from typing import Any, Callable, Generic, Sequence, TypeVar
+from collections.abc import Callable, Sequence
+from typing import Any, Generic, TypeVar
 
 import jax
 import jax.numpy as jnp
 import jax_dataclasses as jdc
 import mujoco.mjx as mjx
 
-from mjinx.configuration import jac_dq2v, update
+from mjinx.configuration import jac_dq2v
 from mjinx.typing import ArrayOrFloat
 
 

@@ -110,10 +110,10 @@ class Task(Generic[AtomicTaskType], Component[AtomicTaskType]):
         :param cost: The new cost value.
         :raises ValueError: If the cost has an invalid dimension.
         """
-        cost = cost if isinstance(cost, jnp.ndarray) else jnp.array(cost)
-        if cost.ndim > 2:
-            raise ValueError(f"the cost.ndim is too high: expected <= 2, got {cost.ndim}")
-        self._cost = cost
+        cost_jnp = cost if isinstance(cost, jnp.ndarray) else jnp.array(cost)
+        if cost_jnp.ndim > 2:
+            raise ValueError(f"the cost.ndim is too high: expected <= 2, got {cost_jnp.ndim}")
+        self._cost = cost_jnp
 
     @property
     def matrix_cost(self) -> jnp.ndarray:

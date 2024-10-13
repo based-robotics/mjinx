@@ -1,6 +1,7 @@
 """Frame task implementation."""
 
-from typing import Callable, Sequence, final
+from collections.abc import Callable, Sequence
+from typing import final
 
 import jax
 import jax.numpy as jnp

@@ -1,6 +1,7 @@
 # problem.py
 
-from typing import ContextManager, cast
+from contextlib import AbstractContextManager
+from typing import cast
 
 import jax
 import jax.numpy as jnp
@@ -149,7 +150,7 @@ class Problem:
         components = {
             name: cast(JaxComponent, component.jax_component) for name, component in self.__components.items()
         }
-        return JaxProblemData(self.__model, self.v_min, self.v_max, components)
+        return JaxProblemData(self.__model, self.v_min, self.v_max, components)  # type: ignore[call-arg]
 
     def component(self, name: str) -> Component:
         """
@@ -191,7 +192,7 @@ class Problem:
             raise ValueError("specified component is not a barrier")
         return cast(Barrier, self.__components[name])
 
-    def set_vmap_dimension(self) -> ContextManager[JaxProblemData]:
+    def set_vmap_dimension(self) -> AbstractContextManager[JaxProblemData]:
         """
         Set the vmap dimension for the problem.
 

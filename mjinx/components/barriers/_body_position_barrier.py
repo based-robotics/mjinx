@@ -1,7 +1,8 @@
 from __future__ import annotations
 
 import warnings
-from typing import Callable, Sequence, final
+from collections.abc import Callable, Sequence
+from typing import final
 
 import jax.numpy as jnp
 import jax_dataclasses as jdc
@@ -139,13 +140,13 @@ class PositionBarrier(BodyBarrier[JaxPositionBarrier]):
         :raises ValueError: If the dimension of p_min is incorrect.
         """
 
-        p_min = jnp.array(p_min)
-        if p_min.ndim == 0:
-            p_min = jnp.ones(len(self.mask_idxs)) * p_min
+        p_min_jnp = jnp.array(p_min)
+        if p_min_jnp.ndim == 0:
+            p_min_jnp = jnp.ones(len(self.mask_idxs)) * p_min_jnp
 
-        elif p_min.shape[-1] != len(self.mask_idxs):
+        elif p_min_jnp.shape[-1] != len(self.mask_idxs):
             raise ValueError(
-                f"[PositionBarrier] wrong dimension of p_min: expected {len(self.mask_idxs)}, got {p_min.shape[-1]}"
+                f"[PositionBarrier] wrong dimension of p_min: expected {len(self.mask_idxs)}, got {p_min_jnp.shape[-1]}"
             )
         if not ignore_warnings and not PositionLimitType.includes_min(self.limit_type):
             warnings.warn(
@@ -154,7 +155,7 @@ class PositionBarrier(BodyBarrier[JaxPositionBarrier]):
             )
             return
 
-        self._p_min = jnp.array(p_min)
+        self._p_min = p_min_jnp
 
     @property
     def p_max(self) -> jnp.ndarray:
@@ -177,13 +178,13 @@ class PositionBarrier(BodyBarrier[JaxPositionBarrier]):
         :param ignore_warnings: Whether to ignore warnings about limit type.
         :raises ValueError: If the dimension of p_max is incorrect.
         """
-        p_max = jnp.array(p_max)
-        if p_max.ndim == 0:
+        p_max_jnp = jnp.array(p_max)
+        if p_max_jnp.ndim == 0:
             p_max = jnp.ones(len(self.mask_idxs)) * p_max
 
-        elif p_max.shape[-1] != len(self.mask_idxs):
+        elif p_max_jnp.shape[-1] != len(self.mask_idxs):
             raise ValueError(
-                f"[PositionBarrier] wrong dimension of p_max: expected {len(self.mask_idxs)}, got {p_max.shape[-1]}"
+                f"[PositionBarrier] wrong dimension of p_max: expected {len(self.mask_idxs)}, got {p_max_jnp.shape[-1]}"
             )
         if not ignore_warnings and not PositionLimitType.includes_max(self.limit_type):
             warnings.warn(

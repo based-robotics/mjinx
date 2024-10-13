@@ -1,6 +1,7 @@
 from __future__ import annotations
 
-from typing import Callable, Sequence, final
+from collections.abc import Callable, Sequence
+from typing import final
 
 import jax.numpy as jnp
 import jax_dataclasses as jdc

@@ -1,12 +1,7 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-#
-# SPDX-License-Identifier: Apache-2.0
-# Copyright 2024 Stéphane Caron, Simeon Nedelchev, Ivan Domrachev
-
 """Center of mass task implementation."""
 
-from typing import Callable, Sequence, final
+from collections.abc import Callable, Sequence
+from typing import final
 
 import jax
 import jax.numpy as jnp

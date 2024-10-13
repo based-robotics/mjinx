@@ -2,8 +2,9 @@
 
 from __future__ import annotations
 
+from collections.abc import Callable
 from enum import Enum
-from typing import Callable, TypeAlias, TypedDict
+from typing import TypeAlias
 
 import jax.numpy as jnp
 import numpy as np
