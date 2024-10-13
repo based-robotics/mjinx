@@ -1,5 +1,3 @@
-import time
-
 import jax
 import jax.numpy as jnp
 import mujoco as mj
@@ -127,20 +125,15 @@ integrate_jit = jax.jit(jax.vmap(integrate, in_axes=(None, 0, 0, None)), static_
 dt = 1e-2
 ts = np.arange(0, 20.0, dt)
 
-t_solve_avg = 0.0
-n = 0
-
 try:
     for t in ts:
         # Changing desired values
         frame_task.target_frame = np.array([0.4 + 0.3 * np.sin(t), 0.2, 0.4 + 0.3 * np.cos(t), 1, 0, 0, 0])
         # After changes, recompiling the model
         problem_data = problem.compile()
-        t0 = time.perf_counter()
 
         # Solving the instance of the problem
         opt_solution, solver_data = solve_jit(q, solver_data, problem_data)
-        t1 = time.perf_counter()
 
         # Integrating
         q = integrate_jit(
@@ -154,13 +147,6 @@ try:
         vis.marker_data["ee_marker"].pos = np.array(frame_task.target_frame.wxyz_xyz[-3:])
         vis.update(q[: vis.n_models])
 
-        t2 = time.perf_counter()
-        t_solve = (t1 - t0) * 1e3
-        t_interpolate = (t2 - t1) * 1e3
-
-        if t > 0:
-            t_solve_avg = t_solve_avg + (t_solve - t_solve_avg) / (n + 1)
-            n += 1
 except KeyboardInterrupt:
     print("Finalizing the simulation as requested...")
 except Exception as e:
@@ -169,4 +155,3 @@ finally:
     if vis.record:
         vis.save_video(round(1 / dt))
     vis.close()
-    print(f"Avg solving time: {t_solve_avg:0.3f}ms")

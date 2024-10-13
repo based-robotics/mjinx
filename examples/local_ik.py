@@ -105,52 +105,45 @@ integrate_jit = jax.jit(integrate, static_argnames=["dt"])
 dt = 1e-2
 ts = np.arange(0, 20, dt)
 
-t_solve_avg = 0.0
-n = 0
+try:
+    for t in ts:
+        # Changing desired values
+        frame_task.target_frame = np.array([0.2 + 0.2 * jnp.sin(t) ** 2, 0.2, 0.2, 1, 0, 0, 0])
 
-for t in ts:
-    # Changing desired values
-    frame_task.target_frame = np.array([0.2 + 0.2 * jnp.sin(t) ** 2, 0.2, 0.2, 1, 0, 0, 0])
-    # After changes, recompiling the model
-    problem_data = problem.compile()
-    t0 = time.perf_counter()
+        # After changes, recompiling the model
+        problem_data = problem.compile()
 
-    # Solving the instance of the problem
-    opt_solution, solver_data = solve_jit(q, solver_data, problem_data)
-    t1 = time.perf_counter()
+        # Solving the instance of the problem
+        opt_solution, solver_data = solve_jit(q, solver_data, problem_data)
 
-    # Integrating
-    q = integrate_jit(
-        mjx_model,
-        q,
-        velocity=opt_solution.v_opt,
-        dt=dt,
-    )
+        # Integrating
+        q = integrate_jit(
+            mjx_model,
+            q,
+            velocity=opt_solution.v_opt,
+            dt=dt,
+        )
 
-    # --- MuJoCo visualization ---
-    mj_data.qpos = q
-    mj.mj_forward(mj_model, mj_data)
-    print(f"Position barrier: {mj_data.xpos[position_barrier.body_id][0]} <= {position_barrier.p_max[0]}")
-    mj.mjv_initGeom(
-        mj_viewer.user_scn.geoms[0],
-        mj.mjtGeom.mjGEOM_SPHERE,
-        0.05 * np.ones(3),
-        np.array(frame_task.target_frame.wxyz_xyz[-3:], dtype=np.float64),
-        np.eye(3).flatten(),
-        np.array([0.565, 0.933, 0.565, 0.4]),
-    )
+        # --- MuJoCo visualization ---
+        mj_data.qpos = q
+        mj.mj_forward(mj_model, mj_data)
+        print(f"Position barrier: {mj_data.xpos[position_barrier.body_id][0]} <= {position_barrier.p_max[0]}")
+        mj.mjv_initGeom(
+            mj_viewer.user_scn.geoms[0],
+            mj.mjtGeom.mjGEOM_SPHERE,
+            0.05 * np.ones(3),
+            np.array(frame_task.target_frame.wxyz_xyz[-3:], dtype=np.float64),
+            np.eye(3).flatten(),
+            np.array([0.565, 0.933, 0.565, 0.4]),
+        )
 
-    # Run the forward dynamics to reflec
-    # the updated state in the data
-    mj.mj_forward(mj_model, mj_data)
-    mj_viewer.sync()
-
-    t2 = time.perf_counter()
-    t_solve = (t1 - t0) * 1e3
-    t_interpolate = (t2 - t1) * 1e3
-
-    if t > 0:
-        t_solve_avg = t_solve_avg + (t_solve - t_solve_avg) / (n + 1)
-        n += 1
-
-print(f"Avg solving time: {t_solve_avg:0.3f}ms")
+        # Run the forward dynamics to reflec
+        # the updated state in the data
+        mj.mj_forward(mj_model, mj_data)
+        mj_viewer.sync()
+except KeyboardInterrupt:
+    print("Finalizing the simulation as requested...")
+except Exception as e:
+    print(e)
+finally:
+    renderer.close()

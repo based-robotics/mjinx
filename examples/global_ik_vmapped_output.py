@@ -1,5 +1,3 @@
-import time
-
 import jax
 import jax.numpy as jnp
 import mujoco as mj
@@ -137,9 +135,6 @@ integrate_jit = jax.jit(jax.vmap(integrate, in_axes=(None, 0, 0, None)), static_
 dt = 1e-2
 ts = np.arange(0, 20, dt)
 
-t_solve_avg = 0.0
-n = 0
-
 try:
     for t in ts:
         # Changing desired values
@@ -158,14 +153,11 @@ try:
             ]
         )
         # After changes, recompiling the model
-        t0 = time.perf_counter()
         problem_data = problem.compile()
-        t1 = time.perf_counter()
 
         # Solving the instance of the problem
         for _ in range(3):
             opt_solution, solver_data = solve_jit(q, solver_data, problem_data)
-        t2 = time.perf_counter()
 
         # Two options for retriving q:
         # Option 1, integrating:
@@ -178,17 +170,10 @@ try:
             vis.marker_data[f"ee_marker_{i}"].pos = q_i
         vis.update(q[:: N_batch // vis.n_models])
 
+        # --- Joint limits ---
         for i in range(mj_model.nq):
             print(f"    Joint {i + 1}: {q_min[i]:0.2f} < {q[0, i]:0.2f} < {q_max[i]:0.2f}")
         print("-" * 80)
-
-        # --- Logging ---
-        # Execution time
-        t_solve = (t2 - t1) * 1e3
-        # Ignore the first (compiling) iteration and calculate mean solution times
-        if t > 0:
-            t_solve_avg = t_solve_avg + (t_solve - t_solve_avg) / (n + 1)
-            n += 1
 
 except KeyboardInterrupt:
     print("Finalizing the simulation as requested...")
@@ -198,4 +183,3 @@ finally:
     if vis.record:
         vis.save_video(round(1 / dt))
     vis.close()
-    print(f"Avg solving time: {t_solve_avg:0.3f}ms")
