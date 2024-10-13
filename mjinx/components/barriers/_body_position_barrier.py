@@ -53,10 +53,10 @@ class PositionBarrier(BodyBarrier[JaxPositionBarrier]):
     """
 
     JaxComponentType: type = JaxPositionBarrier
-    __p_min: jnp.ndarray
-    __p_max: jnp.ndarray
+    _p_min: jnp.ndarray
+    _p_max: jnp.ndarray
 
-    __limit_type: PositionLimitType
+    _limit_type: PositionLimitType
 
     def __init__(
         self,
@@ -89,7 +89,7 @@ class PositionBarrier(BodyBarrier[JaxPositionBarrier]):
             raise ValueError("[PositionBarrier] PositionBarrier.limit should be either 'min', 'max', or 'both'")
 
         # Setting up the dimension, using mask and limit type
-        self.__limit_type = PositionLimitType.from_str(limit_type)
+        self._limit_type = PositionLimitType.from_str(limit_type)
         n_axes = len(self.mask_idxs)
         self._dim = 2 * n_axes if self.limit_type == PositionLimitType.BOTH else n_axes
 
@@ -109,7 +109,7 @@ class PositionBarrier(BodyBarrier[JaxPositionBarrier]):
 
         :return: The limit type.
         """
-        return self.__limit_type
+        return self._limit_type
 
     @property
     def p_min(self) -> jnp.ndarray:
@@ -118,7 +118,7 @@ class PositionBarrier(BodyBarrier[JaxPositionBarrier]):
 
         :return: The minimum position.
         """
-        return self.__p_min
+        return self._p_min
 
     @p_min.setter
     def p_min(self, value: ArrayOrFloat):
@@ -154,7 +154,7 @@ class PositionBarrier(BodyBarrier[JaxPositionBarrier]):
             )
             return
 
-        self.__p_min = jnp.array(p_min)
+        self._p_min = jnp.array(p_min)
 
     @property
     def p_max(self) -> jnp.ndarray:
@@ -163,7 +163,7 @@ class PositionBarrier(BodyBarrier[JaxPositionBarrier]):
 
         :return: The maximum position.
         """
-        return self.__p_max
+        return self._p_max
 
     @p_max.setter
     def p_max(self, value: ArrayOrFloat):
@@ -192,4 +192,4 @@ class PositionBarrier(BodyBarrier[JaxPositionBarrier]):
             )
             return
 
-        self.__p_max = jnp.array(p_max)
+        self._p_max = jnp.array(p_max)

@@ -85,7 +85,7 @@ class FrameTask(BodyTask[JaxFrameTask]):
     """
 
     JaxComponentType: type = JaxFrameTask
-    __target_frame: SE3
+    _target_frame: SE3
 
     def __init__(
         self,
@@ -108,7 +108,7 @@ class FrameTask(BodyTask[JaxFrameTask]):
 
         :return: The current target frame as an SE3 object.
         """
-        return self.__target_frame
+        return self._target_frame
 
     @target_frame.setter
     def target_frame(self, value: SE3 | Sequence | ndarray):
@@ -143,4 +143,4 @@ class FrameTask(BodyTask[JaxFrameTask]):
             )
         else:
             target_frame_se3 = target_frame
-        self.__target_frame = target_frame_se3
+        self._target_frame = target_frame_se3

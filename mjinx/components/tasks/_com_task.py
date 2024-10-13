@@ -93,7 +93,7 @@ class ComTask(Task[JaxComTask]):
     """
 
     JaxComponentType: type = JaxComTask
-    __target_com: jnp.ndarray
+    _target_com: jnp.ndarray
 
     def __init__(
         self,
@@ -117,7 +117,7 @@ class ComTask(Task[JaxComTask]):
 
         :return: The current target center of mass as a numpy array.
         """
-        return self.__target_com
+        return self._target_com
 
     @target_com.setter
     def target_com(self, value: Sequence):
@@ -142,4 +142,4 @@ class ComTask(Task[JaxComTask]):
             raise ValueError(
                 "invalid last dimension of target CoM : " f"{target_com_jnp.shape[-1]} given, expected {self._dim} "
             )
-        self.__target_com = target_com_jnp
+        self._target_com = target_com_jnp

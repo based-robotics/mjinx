@@ -1,13 +1,11 @@
-from typing import Callable, Sequence
+from collections.abc import Callable, Sequence
 
-import itertools
 import jax.numpy as jnp
 import jax_dataclasses as jdc
 import mujoco.mjx as mjx
 
-from mjinx.components._base import Component
 from mjinx.components.barriers._base import Barrier, JaxBarrier
-from mjinx.configuration import joint_difference, get_joint_zero
+from mjinx.configuration import get_joint_zero, joint_difference
 from mjinx.typing import ArrayOrFloat, ndarray
 
 

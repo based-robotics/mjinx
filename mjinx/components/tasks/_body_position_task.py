@@ -50,7 +50,7 @@ class PositionTask(BodyTask[JaxPositionTask]):
     """
 
     JaxComponentType: type = JaxPositionTask
-    __target_pos: jnp.ndarray
+    _target_pos: jnp.ndarray
 
     def __init__(
         self,
@@ -64,7 +64,7 @@ class PositionTask(BodyTask[JaxPositionTask]):
     ):
         super().__init__(name, cost, gain, body_name, gain_fn, lm_damping, mask)
         self._dim = 3 if mask is None else len(self.mask_idxs)
-        self.__target_pos = jnp.zeros(self._dim)
+        self._target_pos = jnp.zeros(self._dim)
 
     @property
     def target_pos(self) -> jnp.ndarray:
@@ -73,7 +73,7 @@ class PositionTask(BodyTask[JaxPositionTask]):
 
         :return: The current target position as a numpy array.
         """
-        return self.__target_pos
+        return self._target_pos
 
     @target_pos.setter
     def target_pos(self, value: Sequence):
@@ -98,4 +98,4 @@ class PositionTask(BodyTask[JaxPositionTask]):
             raise ValueError(
                 "invalid dimension of the target positin value: " f"{len(target_pos)} given, expected {self._dim} "
             )
-        self.__target_pos = target_pos_array
+        self._target_pos = target_pos_array

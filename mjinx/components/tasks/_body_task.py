@@ -45,8 +45,8 @@ class BodyTask(Generic[AtomicBodyTaskType], Task[AtomicBodyTaskType]):
     """
 
     JaxComponentType: type = JaxBodyTask
-    __body_name: str
-    __body_id: int
+    _body_name: str
+    _body_id: int
 
     def __init__(
         self,
@@ -59,7 +59,7 @@ class BodyTask(Generic[AtomicBodyTaskType], Task[AtomicBodyTaskType]):
         mask: Sequence[int] | None = None,
     ):
         super().__init__(name, cost, gain, gain_fn, lm_damping, mask)
-        self.__body_name = body_name
+        self._body_name = body_name
 
     @property
     def body_name(self) -> str:
@@ -68,7 +68,7 @@ class BodyTask(Generic[AtomicBodyTaskType], Task[AtomicBodyTaskType]):
 
         :return: The name of the body.
         """
-        return self.__body_name
+        return self._body_name
 
     @property
     def body_id(self) -> int:
@@ -77,7 +77,7 @@ class BodyTask(Generic[AtomicBodyTaskType], Task[AtomicBodyTaskType]):
 
         :return: The ID of the body.
         """
-        return self.__body_id
+        return self._body_id
 
     def update_model(self, model: mjx.Model):
         """
@@ -89,12 +89,12 @@ class BodyTask(Generic[AtomicBodyTaskType], Task[AtomicBodyTaskType]):
         :param model: The new MuJoCo model.
         :raises ValueError: If the body with the specified name is not found in the model.
         """
-        self.__body_id = mjx.name2id(
+        self._body_id = mjx.name2id(
             model,
             mj.mjtObj.mjOBJ_BODY,
-            self.__body_name,
+            self._body_name,
         )
-        if self.__body_id == -1:
-            raise ValueError(f"body with name {self.__body_name} is not found.")
+        if self._body_id == -1:
+            raise ValueError(f"body with name {self._body_name} is not found.")
 
         return super().update_model(model)

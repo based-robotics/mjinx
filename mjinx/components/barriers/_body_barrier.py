@@ -37,8 +37,8 @@ class BodyBarrier(Generic[AtomicBodyBarrierType], Barrier[AtomicBodyBarrierType]
     :param body_name: The name of the body to which this barrier applies.
     """
 
-    __body_name: str
-    __body_id: int
+    _body_name: str
+    _body_id: int
 
     def __init__(
         self,
@@ -60,8 +60,8 @@ class BodyBarrier(Generic[AtomicBodyBarrierType], Barrier[AtomicBodyBarrierType]
         :param mask: A sequence of integers to mask certain dimensions.
         """
         super().__init__(name, gain, gain_fn, safe_displacement_gain, mask)
-        self.__body_name = body_name
-        self.__body_id = -1
+        self._body_name = body_name
+        self._body_id = -1
 
     @property
     def body_name(self) -> str:
@@ -70,7 +70,7 @@ class BodyBarrier(Generic[AtomicBodyBarrierType], Barrier[AtomicBodyBarrierType]
 
         :return: The name of the body.
         """
-        return self.__body_name
+        return self._body_name
 
     @property
     def body_id(self) -> int:
@@ -81,9 +81,9 @@ class BodyBarrier(Generic[AtomicBodyBarrierType], Barrier[AtomicBodyBarrierType]
         :raises ValueError: If the body ID is not available.
         """
 
-        if self.__body_id == -1:
+        if self._body_id == -1:
             raise ValueError("body_id is not available until model is provided.")
-        return self.__body_id
+        return self._body_id
 
     def update_model(self, model: mjx.Model):
         """
@@ -94,12 +94,12 @@ class BodyBarrier(Generic[AtomicBodyBarrierType], Barrier[AtomicBodyBarrierType]
         :raises ValueError: If the body with the specified name is not found.
         """
 
-        self.__body_id = mjx.name2id(
+        self._body_id = mjx.name2id(
             model,
             mj.mjtObj.mjOBJ_BODY,
-            self.__body_name,
+            self._body_name,
         )
-        if self.__body_id == -1:
-            raise ValueError(f"body with name {self.__body_name} is not found.")
+        if self._body_id == -1:
+            raise ValueError(f"body with name {self._body_name} is not found.")
 
         return super().update_model(model)
