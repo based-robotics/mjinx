@@ -42,7 +42,7 @@ class TestBodyFrameTask(unittest.TestCase):
 
     def test_target_frame(self):
         """Testing manipulations with target frame"""
-        frame_task = FrameTask("frame_task", cost=1.0, gain=2.0, body_name="body3")
+        frame_task = FrameTask("frame_task", cost=1.0, gain=2.0, obj_name="body3")
         # By default, it has to be identity
         np.testing.assert_array_almost_equal(SE3.identity().wxyz_xyz, frame_task.target_frame.wxyz_xyz)
 
@@ -67,7 +67,7 @@ class TestBodyFrameTask(unittest.TestCase):
             "frame_task",
             cost=1.0,
             gain=2.0,
-            body_name="body3",
+            obj_name="body3",
             gain_fn=lambda x: 2 * x,
             lm_damping=0.5,
             mask=[True, False, True, True, False, True],
@@ -81,7 +81,7 @@ class TestBodyFrameTask(unittest.TestCase):
         self.assertEqual(jax_component.dim, 4)
         np.testing.assert_array_equal(jax_component.matrix_cost, jnp.eye(jax_component.dim))
         np.testing.assert_array_equal(jax_component.vector_gain, jnp.ones(jax_component.dim) * 2.0)
-        np.testing.assert_array_equal(jax_component.body_id, frame_task.body_id)
+        np.testing.assert_array_equal(jax_component.obj_id, frame_task.obj_id)
         self.assertEqual(jax_component.gain_fn(4), 8)
         self.assertEqual(jax_component.lm_damping, 0.5)
         np.testing.assert_array_almost_equal(jax_component.target_frame.wxyz_xyz, frame_des[self.to_wxyz_xyz])

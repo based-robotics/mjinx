@@ -144,7 +144,7 @@ class TestPositionBarrier(unittest.TestCase):
         self.assertIsInstance(jax_component, JaxPositionBarrier)
         self.assertEqual(jax_component.dim, 6)
         np.testing.assert_array_equal(jax_component.vector_gain, jnp.ones(6))
-        self.assertEqual(jax_component.body_id, 1)
+        self.assertEqual(jax_component.obj_id, 1)
         np.testing.assert_array_equal(jax_component.p_min, jnp.array([-1.0, -1.0, -1.0]))
         np.testing.assert_array_equal(jax_component.p_max, jnp.array([1.0, 1.0, 1.0]))
 
@@ -157,7 +157,8 @@ class TestPositionBarrier(unittest.TestCase):
             gain_fn=lambda x: x,
             mask_idxs=(0, 1, 2),
             safe_displacement_gain=0.0,
-            body_id=1,
+            obj_id=1,
+            obj_type=mj.mjtObj.mjOBJ_BODY,
             p_min=jnp.array([-1.0, -1.0, -1.0]),
             p_max=jnp.array([1.0, 1.0, 1.0]),
         )

@@ -35,7 +35,7 @@ class JaxPositionBarrier(JaxObjBarrier):
         :param data: The MuJoCo simulation data.
         :return: The computed position barrier value.
         """
-        obj_pos = self.get_pos(data)[self.mask_idxs]
+        obj_pos = self.get_pos(data)[self.mask_idxs,]
         return jnp.concatenate(
             [
                 obj_pos - self.p_min,

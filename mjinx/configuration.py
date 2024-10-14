@@ -70,7 +70,9 @@ def get_frame_jacobian_world_aligned(
     return jnp.vstack((jacp.T, jacr.T)).T
 
 
-def get_frame_jacobian_local(model: mjx.Model, data: mjx.Data, obj_id: int, obj_type: mj.mjtObj) -> jax.Array:
+def get_frame_jacobian_local(
+    model: mjx.Model, data: mjx.Data, obj_id: int, obj_type: mj.mjtObj = mj.mjtObj.mjOBJ_BODY
+) -> jax.Array:
     """
     Compute pair of (NV, 3) Jacobians of global point attached to body in local frame.
 

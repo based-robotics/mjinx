@@ -69,7 +69,7 @@ class TestBodyPositionTask(unittest.TestCase):
         self.assertEqual(jax_component.dim, 2)
         np.testing.assert_array_equal(jax_component.matrix_cost, jnp.eye(jax_component.dim))
         np.testing.assert_array_equal(jax_component.vector_gain, jnp.ones(jax_component.dim) * 2.0)
-        np.testing.assert_array_equal(jax_component.body_id, frame_task.body_id)
+        np.testing.assert_array_equal(jax_component.obj_id, frame_task.obj_id)
         self.assertEqual(jax_component.gain_fn(4), 8)
         self.assertEqual(jax_component.lm_damping, 0.5)
         np.testing.assert_array_almost_equal(jax_component.target_pos, pos_des)
