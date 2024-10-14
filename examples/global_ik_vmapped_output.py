@@ -52,7 +52,7 @@ vis.add_markers(
 problem = Problem(mjx_model)
 
 # Creating components of interest and adding them to the problem
-frame_task = FrameTask("ee_task", cost=1, gain=20, body_name="link7")
+frame_task = FrameTask("ee_task", cost=1, gain=20, obj_name="link7")
 position_barrier = PositionBarrier(
     "ee_barrier",
     gain=0.1,

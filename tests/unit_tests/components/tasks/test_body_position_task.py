@@ -38,7 +38,7 @@ class TestBodyPositionTask(unittest.TestCase):
 
     def test_target_frame(self):
         """Testing manipulations with target frame"""
-        pos_task = PositionTask("pos_task", cost=1.0, gain=2.0, body_name="body3")
+        pos_task = PositionTask("pos_task", cost=1.0, gain=2.0, obj_name="body3")
         # By default, it has to be identity
         np.testing.assert_array_almost_equal(pos_task.target_pos, jnp.zeros(3))
 
@@ -55,7 +55,7 @@ class TestBodyPositionTask(unittest.TestCase):
             "frame_task",
             cost=1.0,
             gain=2.0,
-            body_name="body3",
+            obj_name="body3",
             gain_fn=lambda x: 2 * x,
             lm_damping=0.5,
             mask=[True, False, True],

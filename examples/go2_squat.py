@@ -36,7 +36,7 @@ problem = Problem(mjx_model, v_min=-5, v_max=5)
 
 # Creating components of interest and adding them to the problem
 com_task = ComTask("com_task", cost=5.0, gain=10.0)
-frame_task = FrameTask("body_orientation_task", cost=1.0, gain=10, body_name="base", mask=[0, 0, 0, 1, 1, 1])
+frame_task = FrameTask("body_orientation_task", cost=1.0, gain=10, obj_name="base", mask=[0, 0, 0, 1, 1, 1])
 joints_barrier = JointBarrier("jnt_range", gain=0.1, floating_base=True)
 
 problem.add_component(com_task)
@@ -46,7 +46,8 @@ problem.add_component(joints_barrier)
 for foot in ["FL", "FR", "RL", "RR"]:
     task = FrameTask(
         foot + "_foot_task",
-        body_name=foot,
+        obj_name=foot,
+        obj_type=mj.mjtObj.mjOBJ_GEOM,
         cost=20.0,
         gain=10.0,
         mask=[1, 1, 1, 0, 0, 0],
@@ -90,7 +91,7 @@ q = jnp.tile(q0, (N_batch, 1))
 mjx_data = update(mjx_model, jnp.array(q0))
 
 for foot in ["FL", "FR", "RL", "RR"]:
-    foot_pos = mjx_data.xpos[mjx.name2id(mjx_model, mj.mjtObj.mjOBJ_BODY, foot)]
+    foot_pos = mjx_data.geom_xpos[mjx.name2id(mjx_model, mj.mjtObj.mjOBJ_GEOM, foot)]
     problem.component(foot + "_foot_task").target_frame = jnp.array([*foot_pos, 1, 0, 0, 0])
 
 # --- Batching ---

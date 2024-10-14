@@ -1,3 +1,4 @@
+from collections.abc import Callable  # noqa: F401
 from typing import Generic, TypeVar
 
 import jax.numpy as jnp

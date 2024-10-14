@@ -19,7 +19,8 @@ class JaxJointTask(JaxTask):
     This class represents a task that aims to achieve specific target joint positions
     for the robot model.
 
-    :param target_q: The target joint positions to be achieved.
+    :param full_target_q: The full target joint positions vector for all joints in the system.
+    :param floating_base: A static boolean indicating whether the robot has a floating base.
     """
 
     full_target_q: jnp.ndarray
@@ -35,6 +36,22 @@ class JaxJointTask(JaxTask):
         mask_idxs = tuple(idx + 6 for idx in self.mask_idxs) if self.floating_base else self.mask_idxs
         return joint_difference(self.model, data.qpos, self.full_target_q)[mask_idxs,]
 
+    def compute_jacobian(self, data: mjx.Data) -> jnp.ndarray:
+        """
+        Compute the Jacobian of the joint task function.
+
+        This method calculates the Jacobian matrix of the task function with respect
+        to the joint positions, considering the mask and whether the system has a floating base.
+
+        :param data: The MuJoCo simulation data.
+        :return: The Jacobian matrix of the barrier function.
+        """
+        return (
+            jnp.eye(self.dim, self.model.nv, 6)[self.mask_idxs,]
+            if self.floating_base
+            else jnp.eye(self.model.nv)[self.mask_idxs,]
+        )
+
 
 class JointTask(Task[JaxJointTask]):
     """
@@ -49,6 +66,7 @@ class JointTask(Task[JaxJointTask]):
     :param gain_fn: A function to compute the gain dynamically.
     :param lm_damping: The Levenberg-Marquardt damping factor.
     :param mask: A sequence of integers to mask certain dimensions of the task.
+    :param floating_base: A boolean indicating whether the robot has a floating base.
     """
 
     JaxComponentType: type = JaxJointTask
@@ -71,6 +89,11 @@ class JointTask(Task[JaxJointTask]):
 
     @property
     def mask_idxs_jnt_space(self) -> tuple[int, ...]:
+        """
+        Get the masked joint indices in joint space.
+
+        :return: A tuple of masked joint indices, adjusted for floating base if applicable.
+        """
         if self.floating_base:
             return tuple(mask_idx + 7 for mask_idx in self.mask_idxs)
         return self.mask_idxs
@@ -80,7 +103,8 @@ class JointTask(Task[JaxJointTask]):
         Update the MuJoCo model and set the joint dimensions for the task.
 
         This method is called when the model is updated or when the task
-        is first added to the problem.
+        is first added to the problem. It adjusts the dimensions based on
+        whether the robot has a floating base and validates the mask.
 
         :param model: The new MuJoCo model.
         :raises ValueError: If the provided mask is invalid for the model or if the target_q is incompatible.
@@ -142,10 +166,21 @@ class JointTask(Task[JaxJointTask]):
 
     @property
     def full_target_q(self) -> jnp.ndarray:
+        """
+        Get the full target joint positions vector for all joints in the system.
+
+        :return: The full target joint positions vector.
+        :raises ValueError: If the model is not defined yet.
+        """
         if self._model is None:
             raise ValueError("model is not defined yet.")
         return get_joint_zero(self.model).at[self.mask_idxs_jnt_space,].set(self._target_q)
 
     @property
     def floating_base(self) -> bool:
+        """
+        Check if the robot has a floating base.
+
+        :return: True if the robot has a floating base, False otherwise.
+        """
         return self._floating_base

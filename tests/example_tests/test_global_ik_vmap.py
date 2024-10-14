@@ -26,7 +26,7 @@ def test_global_ik_jit():
     problem = Problem(mjx_model, v_min=-100, v_max=100)
 
     # Creating components of interest and adding them to the problem
-    frame_task = FrameTask("ee_task", cost=1, gain=50, body_name="link7")
+    frame_task = FrameTask("ee_task", cost=1, gain=50, obj_name="link7")
     position_barrier = PositionBarrier(
         "ee_barrier",
         gain=0.1,

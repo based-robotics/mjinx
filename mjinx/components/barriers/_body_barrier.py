@@ -3,6 +3,7 @@
 from collections.abc import Callable, Sequence
 from typing import Generic, TypeVar
 
+import jax.numpy as jnp  # noqa: F401
 import jax_dataclasses as jdc
 import mujoco as mj
 import mujoco.mjx as mjx

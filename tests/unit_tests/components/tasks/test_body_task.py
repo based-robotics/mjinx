@@ -4,15 +4,15 @@ import jax.numpy as jnp
 import mujoco as mj
 import mujoco.mjx as mjx
 
-from mjinx.components.tasks import BodyTask, JaxBodyTask
+from mjinx.components.tasks import ObjTask, JaxObjTask
 
 
-class DummyJaxBodyTask(JaxBodyTask):
+class DummyJaxBodyTask(JaxObjTask):
     def __call__(self, data: mjx.Data) -> jnp.ndarray:
-        return data.xpos[self.body_id]
+        return data.xpos[self.obj_id]
 
 
-class DummyBodyTask(BodyTask[DummyJaxBodyTask]):
+class DummyBodyTask(ObjTask[DummyJaxBodyTask]):
     def set_dim(self, dim: int):
         self._dim = dim
 

@@ -4,14 +4,15 @@ from collections.abc import Callable, Sequence
 
 import jax.numpy as jnp
 import jax_dataclasses as jdc
+import mujoco as mj
 import mujoco.mjx as mjx
 
-from mjinx.components.tasks._body_task import BodyTask, JaxBodyTask
+from mjinx.components.tasks._body_task import JaxObjTask, ObjTask
 from mjinx.typing import ArrayOrFloat
 
 
 @jdc.pytree_dataclass
-class JaxPositionTask(JaxBodyTask):
+class JaxPositionTask(JaxObjTask):
     """
     A JAX-based implementation of a position task for inverse kinematics.
 
@@ -30,10 +31,10 @@ class JaxPositionTask(JaxBodyTask):
         :param data: The MuJoCo simulation data.
         :return: The error vector representing the difference between the current and target positions.
         """
-        return data.xpos[self.body_id, self.mask_idxs] - self.target_pos
+        return self.get_pos(data)[self.mask_idxs,] - self.target_pos
 
 
-class PositionTask(BodyTask[JaxPositionTask]):
+class PositionTask(ObjTask[JaxPositionTask]):
     """
     A high-level representation of a position task for inverse kinematics.
 
@@ -57,12 +58,13 @@ class PositionTask(BodyTask[JaxPositionTask]):
         name: str,
         cost: ArrayOrFloat,
         gain: ArrayOrFloat,
-        body_name: str,
+        obj_name: str,
+        obj_type: mj.mjtObj = mj.mjtObj.mjOBJ_BODY,
         gain_fn: Callable[[float], float] | None = None,
         lm_damping: float = 0,
         mask: Sequence[int] | None = None,
     ):
-        super().__init__(name, cost, gain, body_name, gain_fn, lm_damping, mask)
+        super().__init__(name, cost, gain, obj_name, obj_type, gain_fn, lm_damping, mask)
         self._dim = 3 if mask is None else len(self.mask_idxs)
         self._target_pos = jnp.zeros(self._dim)
 

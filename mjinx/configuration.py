@@ -26,7 +26,9 @@ def update(model: mjx.Model, q: jnp.ndarray) -> mjx.Data:
     return data
 
 
-def get_frame_jacobian_world_aligned(model: mjx.Model, data: mjx.Data, body_id: int) -> jnp.ndarray:
+def get_frame_jacobian_world_aligned(
+    model: mjx.Model, data: mjx.Data, obj_id: int, obj_type: mj.mjtObj = mj.mjtObj.mjOBJ_BODY
+) -> jnp.ndarray:
     """
     Compute pair of (NV, 3) Jacobians of global point attached to body.
 
@@ -39,6 +41,19 @@ def get_frame_jacobian_world_aligned(model: mjx.Model, data: mjx.Data, body_id: 
     def fn(carry, b):
         return b if carry is None else b + carry
 
+    body_id: int
+    obj_des_pos: jnp.ndarray
+    match obj_type:
+        case mj.mjtObj.mjOBJ_GEOM:
+            body_id = model.geom_bodyid[obj_id]
+            obj_des_pos = data.geom_xpos[obj_id]
+        case mj.mjtObj.mjOBJ_SITE:
+            body_id = model.site_bodyid[obj_id]
+            obj_des_pos = data.site_xpos[obj_id]
+        case _:  # default -- mjOBJ_BODY:
+            body_id = obj_id
+            obj_des_pos = data.xpos[obj_id]
+
     mask = (jnp.arange(model.nbody) == body_id) * 1
     # Puts 1 for all parent links of specified body.
     mask = mjx._src.scan.body_tree(model, fn, "b", "b", mask, reverse=True)
@@ -46,7 +61,7 @@ def get_frame_jacobian_world_aligned(model: mjx.Model, data: mjx.Data, body_id: 
     mask = mask[jnp.array(model.dof_bodyid)] > 0
 
     # Subtree_com is the center of mass of the subtree.
-    offset = data.xpos[body_id] - data.subtree_com[jnp.array(model.body_rootid)[body_id]]
+    offset = obj_des_pos - data.subtree_com[jnp.array(model.body_rootid)[body_id]]
     # vmap over all degrees of freedom of the subtree.
     jacp = jax.vmap(lambda a, b=offset: a[3:] + jnp.cross(a[:3], b))(data.cdof)
     jacp = jax.vmap(jnp.multiply)(jacp, mask)
@@ -55,7 +70,7 @@ def get_frame_jacobian_world_aligned(model: mjx.Model, data: mjx.Data, body_id: 
     return jnp.vstack((jacp.T, jacr.T)).T
 
 
-def get_frame_jacobian_local(model: mjx.Model, data: mjx.Data, body_id: int) -> jax.Array:
+def get_frame_jacobian_local(model: mjx.Model, data: mjx.Data, obj_id: int, obj_type: mj.mjtObj) -> jax.Array:
     """
     Compute pair of (NV, 3) Jacobians of global point attached to body in local frame.
 
@@ -68,6 +83,23 @@ def get_frame_jacobian_local(model: mjx.Model, data: mjx.Data, body_id: int) -> 
     def fn(carry, b):
         return b if carry is None else b + carry
 
+    body_id: int
+    obj_des_pos: jnp.ndarray
+    obj_des_rot: jnp.ndarray
+    match obj_type:
+        case mj.mjtObj.mjOBJ_GEOM:
+            body_id = model.geom_bodyid[obj_id]
+            obj_des_pos = data.geom_xpos[obj_id]
+            obj_des_rot = data.geom_xmat[obj_id]
+        case mj.mjtObj.mjOBJ_SITE:
+            body_id = model.site_bodyid[obj_id]
+            obj_des_pos = data.site_xpos[obj_id]
+            obj_des_rot = data.site_xmat[obj_id]
+        case _:  # default -- mjOBJ_BODY:
+            body_id = obj_id
+            obj_des_pos = data.xpos[obj_id]
+            obj_des_rot = data.xmat[obj_id]
+
     mask = (jnp.arange(model.nbody) == body_id) * 1
     # Puts 1 for all parent links of specified body.
     mask = mjx._src.scan.body_tree(model, fn, "b", "b", mask, reverse=True)
@@ -75,10 +107,10 @@ def get_frame_jacobian_local(model: mjx.Model, data: mjx.Data, body_id: int) -> 
     mask = mask[jnp.array(model.dof_bodyid)] > 0
 
     # Subtree_com is the center of mass of the subtree.
-    offset = data.xpos[body_id] - data.subtree_com[jnp.array(model.body_rootid)[body_id]]
+    offset = obj_des_pos - data.subtree_com[jnp.array(model.body_rootid)[body_id]]
 
     # Get rotation matrix, which describes rotation of local frame
-    R_inv = data.xmat[body_id].reshape(3, 3).T
+    R_inv = obj_des_rot.reshape(3, 3).T
 
     # vmap over all degrees of freedom of the subtree.
     jacp = jax.vmap(lambda a, b=offset, R=R_inv: R @ (a[3:] + jnp.cross(a[:3], b)))(data.cdof)
@@ -266,6 +298,17 @@ def get_distance(model: mjx.Model, data: mjx.Data, collision_pairs: list[Collisi
 
 
 def skew_symmetric(v: jnp.ndarray) -> jnp.ndarray:
+    """
+    Create a skew-symmetric matrix from a 3D vector.
+
+    This function takes a 3D vector and returns its corresponding 3x3 skew-symmetric matrix.
+    The skew-symmetric matrix is used in various robotics and physics calculations,
+    particularly for cross products and rotations.
+
+    :param v: A 3D vector (3x1 array).
+    :return: A 3x3 skew-symmetric matrix.
+    """
+
     return jnp.array(
         [
             [0, -v[2], v[1]],
@@ -276,11 +319,34 @@ def skew_symmetric(v: jnp.ndarray) -> jnp.ndarray:
 
 
 def attitude_jacobian(q: jnp.ndarray) -> jnp.ndarray:
+    """
+    Compute the attitude Jacobian for a quaternion.
+
+    This function calculates the 4x3 attitude Jacobian matrix for a given unit quaternion.
+    The attitude Jacobian is used in robotics and computer vision for relating
+    changes in orientation (represented by quaternions) to angular velocities.
+
+    :param q: A unit quaternion represented as a 4D array [w, x, y, z].
+    :return: A 4x3 attitude Jacobian matrix.
+    :ref: https://rexlab.ri.cmu.edu/papers/planning_with_attitude.pdf
+    """
     w, v = q[0], q[1:]
     return jnp.vstack([-v.T, jnp.eye(3) * w + skew_symmetric(v)])
 
 
 def jac_dq2v(model: mjx.Model, q: jnp.ndarray):
+    """
+    Compute the Jacobian matrix for converting from generalized positions to velocities.
+
+    This function calculates the Jacobian matrix that maps changes in generalized
+    positions (q) to generalized velocities (v) for a given MuJoCo model. It handles
+    different joint types, including free joints, ball joints, and other types.
+
+    :param model: A MuJoCo model object (mjx.Model).
+    :param q: The current generalized positions of the model.
+    :return: A Jacobian matrix of shape (nq, nv), where nq is the number of position
+             variables and nv is the number of velocity variables.
+    """
     jac = jnp.zeros((model.nq, model.nv))
 
     row_idx, col_idx = 0, 0

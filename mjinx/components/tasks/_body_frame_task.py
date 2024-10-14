@@ -6,16 +6,17 @@ from typing import final
 import jax
 import jax.numpy as jnp
 import jax_dataclasses as jdc
+import mujoco as mj
 import mujoco.mjx as mjx
 from jaxlie import SE3, SO3
 
-from mjinx.components.tasks._body_task import BodyTask, JaxBodyTask
-from mjinx.configuration import get_frame_jacobian_local, get_transform_frame_to_world
+from mjinx.components.tasks._body_task import JaxObjTask, ObjTask
+from mjinx.configuration import get_frame_jacobian_local
 from mjinx.typing import ArrayOrFloat, ndarray
 
 
 @jdc.pytree_dataclass
-class JaxFrameTask(JaxBodyTask):
+class JaxFrameTask(JaxObjTask):
     """
     A JAX-based implementation of a frame task for inverse kinematics.
 
@@ -35,14 +36,7 @@ class JaxFrameTask(JaxBodyTask):
         :param data: The MuJoCo simulation data.
         :return: The error vector representing the difference between the current and target frames.
         """
-        return (
-            get_transform_frame_to_world(
-                self.model,
-                data,
-                self.body_id,
-            ).inverse()
-            @ self.target_frame
-        ).log()[self.mask_idxs,]
+        return (self.get_frame(data).inverse() @ self.target_frame).log()[self.mask_idxs,]
 
     @final
     def compute_jacobian(self, data: mjx.Data) -> jnp.ndarray:
@@ -55,21 +49,17 @@ class JaxFrameTask(JaxBodyTask):
         :param data: The MuJoCo simulation data.
         :return: The Jacobian matrix of the frame task.
         """
-        T_bt = self.target_frame.inverse() @ get_transform_frame_to_world(
-            self.model,
-            data,
-            self.body_id,
-        )
+        T_bt = self.target_frame.inverse() @ self.get_frame(data).inverse()
 
         def transform_log(tau):
             return (T_bt.multiply(SE3.exp(tau))).log()
 
-        frame_jac = get_frame_jacobian_local(self.model, data, self.body_id)
+        frame_jac = get_frame_jacobian_local(self.model, data, self.obj_id, self.obj_type)
         jlog = jax.jacobian(transform_log)(jnp.zeros(SE3.tangent_dim))
         return (-jlog @ frame_jac.T)[self.mask_idxs,]
 
 
-class FrameTask(BodyTask[JaxFrameTask]):
+class FrameTask(ObjTask[JaxFrameTask]):
     """
     A high-level representation of a frame task for inverse kinematics.
 
@@ -93,12 +83,13 @@ class FrameTask(BodyTask[JaxFrameTask]):
         name: str,
         cost: ArrayOrFloat,
         gain: ArrayOrFloat,
-        body_name: str,
+        obj_name: str,
+        obj_type: mj.mjtObj = mj.mjtObj.mjOBJ_BODY,
         gain_fn: Callable[[float], float] | None = None,
         lm_damping: float = 0,
         mask: Sequence[int] | None = None,
     ):
-        super().__init__(name, cost, gain, body_name, gain_fn, lm_damping, mask)
+        super().__init__(name, cost, gain, obj_name, obj_type, gain_fn, lm_damping, mask)
         self.target_frame = SE3.identity()
         self._dim = SE3.tangent_dim if mask is None else len(self.mask_idxs)
 

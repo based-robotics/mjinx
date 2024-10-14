@@ -1,18 +1,20 @@
 """Frame task implementation."""
 
-from typing import Callable, Generic, Sequence, TypeVar
+from collections.abc import Callable, Sequence
+from typing import Generic, TypeVar
 
 import jax.numpy as jnp
 import jax_dataclasses as jdc
 import mujoco as mj
 import mujoco.mjx as mjx
+from jaxlie import SE3, SO3
 
 from mjinx.components.tasks._base import JaxTask, Task
 from mjinx.typing import ArrayOrFloat
 
 
 @jdc.pytree_dataclass
-class JaxBodyTask(JaxTask):
+class JaxObjTask(JaxTask):
     """
     A JAX-based implementation of a body task for inverse kinematics.
 
@@ -22,13 +24,35 @@ class JaxBodyTask(JaxTask):
     :param body_id: The ID of the body to which the task is applied.
     """
 
-    body_id: jdc.Static[int]
+    obj_id: jdc.Static[int]
+    obj_type: jdc.Static[mj.mjtObj]
+
+    def get_pos(self, data: mjx.Data) -> jnp.ndarray:
+        match self.obj_type:
+            case mj.mjtObj.mjOBJ_GEOM:
+                return data.geom_xpos[self.obj_id]
+            case mj.mjtObj.mjOBJ_SITE:
+                return data.site_xpos[self.obj_id]
+            case _:  # default -- mjOBJ_BODY:
+                return data.xpos[self.obj_id]
+
+    def get_rotation(self, data: mjx.Data) -> SO3:
+        match self.obj_type:
+            case mj.mjtObj.mjOBJ_GEOM:
+                return SO3.from_matrix(data.geom_xmat[self.obj_id])
+            case mj.mjtObj.mjOBJ_SITE:
+                return SO3.from_matrix(data.site_xmat[self.obj_id])
+            case _:  # default -- mjOBJ_BODY:
+                return SO3.from_matrix(data.xmat[self.obj_id])
+
+    def get_frame(self, data: mjx.Data) -> SE3:
+        return SE3.from_rotation_and_translation(self.get_rotation(data), self.get_pos(data))
 
 
-AtomicBodyTaskType = TypeVar("AtomicBodyTaskType", bound=JaxBodyTask)
+AtomicBodyTaskType = TypeVar("AtomicBodyTaskType", bound=JaxObjTask)
 
 
-class BodyTask(Generic[AtomicBodyTaskType], Task[AtomicBodyTaskType]):
+class ObjTask(Generic[AtomicBodyTaskType], Task[AtomicBodyTaskType]):
     """
     A high-level representation of a body task for inverse kinematics.
 
@@ -44,40 +68,47 @@ class BodyTask(Generic[AtomicBodyTaskType], Task[AtomicBodyTaskType]):
     :param mask: A sequence of integers to mask certain dimensions of the task.
     """
 
-    JaxComponentType: type = JaxBodyTask
-    _body_name: str
-    _body_id: int
+    JaxComponentType: type = JaxObjTask
+    _obj_name: str
+    _obj_id: int
+    _obj_type: mj.mjtObj
 
     def __init__(
         self,
         name: str,
         cost: ArrayOrFloat,
         gain: ArrayOrFloat,
-        body_name: str,
+        obj_name: str,
+        obj_type: mj.mjtObj = mj.mjtObj.mjOBJ_BODY,
         gain_fn: Callable[[float], float] | None = None,
         lm_damping: float = 0,
         mask: Sequence[int] | None = None,
     ):
         super().__init__(name, cost, gain, gain_fn, lm_damping, mask)
-        self._body_name = body_name
+        self._obj_name = obj_name
+        self._obj_type = obj_type
 
     @property
-    def body_name(self) -> str:
+    def obj_name(self) -> str:
         """
         Get the name of the body to which the task is applied.
 
         :return: The name of the body.
         """
-        return self._body_name
+        return self._obj_name
 
     @property
-    def body_id(self) -> int:
+    def obj_id(self) -> int:
         """
         Get the ID of the body to which the task is applied.
 
         :return: The ID of the body.
         """
-        return self._body_id
+        return self._obj_id
+
+    @property
+    def obj_type(self) -> mj.mjtObj:
+        return self._obj_type
 
     def update_model(self, model: mjx.Model):
         """
@@ -89,12 +120,12 @@ class BodyTask(Generic[AtomicBodyTaskType], Task[AtomicBodyTaskType]):
         :param model: The new MuJoCo model.
         :raises ValueError: If the body with the specified name is not found in the model.
         """
-        self._body_id = mjx.name2id(
+        self._obj_id = mjx.name2id(
             model,
-            mj.mjtObj.mjOBJ_BODY,
-            self._body_name,
+            self._obj_type,
+            self._obj_name,
         )
-        if self._body_id == -1:
-            raise ValueError(f"body with name {self._body_name} is not found.")
+        if self._obj_id == -1:
+            raise ValueError(f"object with type {self._obj_type} and name {self._obj_name} is not found.")
 
         return super().update_model(model)
