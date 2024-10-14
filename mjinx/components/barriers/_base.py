@@ -1,11 +1,11 @@
-from typing import Callable, Generic, Sequence, TypeVar
+from collections.abc import Callable  # noqa: F401
+from typing import Generic, TypeVar
 
 import jax.numpy as jnp
 import jax_dataclasses as jdc
 import mujoco.mjx as mjx
 
 from mjinx.components import Component, JaxComponent
-from mjinx.typing import ArrayOrFloat
 
 
 @jdc.pytree_dataclass

@@ -17,12 +17,12 @@ Joint Barrier
 
 Base Body Barrier
 -----------------
-.. automodule:: mjinx.components.barriers._body_barrier
+.. automodule:: mjinx.components.barriers._obj_barrier
     :members:
 
 Body Position Barrier
 ---------------------
-.. automodule:: mjinx.components.barriers._body_position_barrier
+.. automodule:: mjinx.components.barriers._obj_position_barrier
     :members:
 
 

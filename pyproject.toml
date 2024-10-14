@@ -15,7 +15,7 @@ dependencies = ["mujoco", "mujoco_mjx", "jaxlib>=0.4", "jaxopt", "jax>=0.4", "ja
 [project.optional-dependencies]
 dev = ["robot_descriptions>=1.12", "pre-commit", "ruff", "pytest"]
 docs = [
-    "sphinx>=7",
+    "sphinx>=8",
     "sphinx-mathjax-offline",
     "sphinx-autodoc-typehints",
     "sphinx-rtd-theme>1",
@@ -24,6 +24,7 @@ visual = [
     "dm_control",
     "mediapy",
 ]
+all = ["mjinx[dev, visual, docs]"]
 
 [build-system]
 requires = ["setuptools>=43.0.0", "wheel"]

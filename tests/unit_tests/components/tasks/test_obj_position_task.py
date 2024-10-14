@@ -6,16 +6,12 @@ import jax.numpy as jnp
 import mujoco as mj
 import mujoco.mjx as mjx
 import numpy as np
-from jaxlie import SE3
 
-from mjinx.components.tasks import FrameTask
+from mjinx.components.tasks import PositionTask
 
 
-class TestBodyFrameTask(unittest.TestCase):
-    def setUp(self) -> None:
-        self.to_wxyz_xyz: jnp.ndarray = jnp.array([3, 4, 5, 6, 0, 1, 2])
-
-    def set_model(self, task: FrameTask):
+class TestObjPositionTask(unittest.TestCase):
+    def set_model(self, task: PositionTask):
         self.model = mjx.put_model(
             mj.MjModel.from_xml_string(
                 """
@@ -42,57 +38,44 @@ class TestBodyFrameTask(unittest.TestCase):
 
     def test_target_frame(self):
         """Testing manipulations with target frame"""
-        frame_task = FrameTask("frame_task", cost=1.0, gain=2.0, body_name="body3")
+        pos_task = PositionTask("pos_task", cost=1.0, gain=2.0, obj_name="body3")
         # By default, it has to be identity
-        np.testing.assert_array_almost_equal(SE3.identity().wxyz_xyz, frame_task.target_frame.wxyz_xyz)
-
-        # Setting with SE3 object
-        test_se3 = SE3(jnp.array([0.1, 0.2, -0.1, 0, 1, 0, 0]))
-        frame_task.target_frame = test_se3
-        np.testing.assert_array_almost_equal(test_se3.wxyz_xyz, frame_task.target_frame.wxyz_xyz)
+        np.testing.assert_array_almost_equal(pos_task.target_pos, jnp.zeros(3))
 
         # Setting with sequence
-        test_se3_seq = (-1, 0, 1, 0, 0, 1, 0)
-        frame_task.target_frame = test_se3_seq
-        np.testing.assert_array_almost_equal(
-            jnp.array(test_se3_seq)[self.to_wxyz_xyz], frame_task.target_frame.wxyz_xyz
-        )
+        test_pos = (-1, 0, 1)
+        pos_task.target_pos = test_pos
+        np.testing.assert_array_almost_equal(jnp.array(test_pos), pos_task.target_pos)
 
-        # Setting with sequence of wrong length
         with self.assertRaises(ValueError):
-            frame_task.target_frame = (-1, 0, 1, 0, 0, 1, 0, 1)
+            pos_task.target_pos = (0, 1, 2, 3, 4)
 
     def test_build_component(self):
-        frame_task = FrameTask(
+        frame_task = PositionTask(
             "frame_task",
             cost=1.0,
             gain=2.0,
-            body_name="body3",
+            obj_name="body3",
             gain_fn=lambda x: 2 * x,
             lm_damping=0.5,
-            mask=[True, False, True, True, False, True],
+            mask=[True, False, True],
         )
         self.set_model(frame_task)
-        frame_des = jnp.array([0.1, 0, -0.1, 1, 0, 0, 0])
-        frame_task.target_frame = frame_des
+        pos_des = jnp.array([0.1, -0.1])
+        frame_task.target_pos = pos_des
 
         jax_component = frame_task.jax_component
 
-        self.assertEqual(jax_component.dim, 4)
+        self.assertEqual(jax_component.dim, 2)
         np.testing.assert_array_equal(jax_component.matrix_cost, jnp.eye(jax_component.dim))
         np.testing.assert_array_equal(jax_component.vector_gain, jnp.ones(jax_component.dim) * 2.0)
-        np.testing.assert_array_equal(jax_component.body_id, frame_task.body_id)
+        np.testing.assert_array_equal(jax_component.obj_id, frame_task.obj_id)
         self.assertEqual(jax_component.gain_fn(4), 8)
         self.assertEqual(jax_component.lm_damping, 0.5)
-        np.testing.assert_array_almost_equal(jax_component.target_frame.wxyz_xyz, frame_des[self.to_wxyz_xyz])
+        np.testing.assert_array_almost_equal(jax_component.target_pos, pos_des)
 
-        self.assertEqual(jax_component.mask_idxs, (0, 2, 3, 5))
+        self.assertEqual(jax_component.mask_idxs, (0, 2))
 
         data = mjx.fwd_position(self.model, mjx.make_data(self.model))
         error = jax_component(data)
-        np.testing.assert_array_equal(error, jnp.array([0.1, -0.1, 0.0, 0.0]))
-
-        # Testing component jacobian
-        jac = jax_component.compute_jacobian(mjx.make_data(self.model))
-
-        self.assertEqual(jac.shape, (jax_component.dim, self.model.nv))
+        np.testing.assert_array_equal(error, jnp.array([-0.1, 0.1]))

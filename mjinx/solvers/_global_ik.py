@@ -1,11 +1,9 @@
-from typing import Callable
-
 import jax
 import jax.numpy as jnp
 import jax_dataclasses as jdc
 import mujoco.mjx as mjx
 import optax
-from chex import ArrayTree
+from chex import ArrayTree  # noqa: F401
 
 import mjinx.typing as mjt
 from mjinx import configuration

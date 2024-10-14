@@ -38,7 +38,7 @@ Let's start with the *desired behavior*. In `mjinx` it could be specified using 
 1. `gain` -- weight of the function :math:`f` itself. It's common for all the components.
 2. `cost` -- weight of the residual in velocity space, used only by :class:`Local IK Solver <mjinx.solvers._local_ik.LocalIKSolver>`.
 
-Suppose, you want to solve a task of moving an end-effector in a desired position. In `mjinx`, you can do it by adding a :class:`FrameTask <mjinx.components.tasks._body_frame_task.FrameTask>` which is defined for the end-effector:
+Suppose, you want to solve a task of moving an end-effector in a desired position. In `mjinx`, you can do it by adding a :class:`FrameTask <mjinx.components.tasks._obj_frame_task.FrameTask>` which is defined for the end-effector:
 
 .. code-block:: python
    
@@ -70,7 +70,7 @@ Finally, when we done bulding :class:`Problem <mjinx.problem.Problem>`, it's tim
 
    problem_data: ProblemData = problem.compile()
 
-This command will compile all the components (compiling :class:`Component <mjinx.components._base.Component>` means building corresponding :class:`JaxComponent <mjinx.components._base.JaxComponent>`) and return instance of :class:`ProblemData <mjinx.problem.ProblemData>`. This action is required each time we change a :class:`Component <mjinx.components._base.Component>`, for exampe desired frame in :class:`FrameTask <mjinx.components.tasks._body_frame_task.FrameTask>`. 
+This command will compile all the components (compiling :class:`Component <mjinx.components._base.Component>` means building corresponding :class:`JaxComponent <mjinx.components._base.JaxComponent>`) and return instance of :class:`ProblemData <mjinx.problem.ProblemData>`. This action is required each time we change a :class:`Component <mjinx.components._base.Component>`, for exampe desired frame in :class:`FrameTask <mjinx.components.tasks._obj_frame_task.FrameTask>`. 
 
 Solving the problem
 ===================

@@ -100,9 +100,80 @@ class TestJointTask(unittest.TestCase):
         np.testing.assert_array_equal(jax_component.vector_gain, jnp.ones(2) * 2.0)
         self.assertEqual(jax_component.gain_fn(4), 8)
         self.assertEqual(jax_component.lm_damping, 0.5)
-        np.testing.assert_array_equal(jax_component.target_q, jnt_des)
+        np.testing.assert_array_equal(jax_component.full_target_q, jnp.array([jnt_des[0], 0.0, jnt_des[1]]))
         self.assertEqual(jax_component.mask_idxs, (0, 2))
 
         data = mjx.fwd_position(self.model, mjx.make_data(self.model))
         com_value = jax_component(data)
         np.testing.assert_array_equal(com_value, jnp.array([0.2, -0.4]))
+
+    def test_joint_task_floating_base(self):
+        # Create a simple floating base robot model with 3 additional joints
+        xml = """
+        <mujoco>
+          <worldbody>
+            <body>
+            <geom name="geom0" size=".1"/>
+              <freejoint/>
+              <body>
+                <geom name="geom1" size=".1"/>
+                <joint type="hinge"/>
+                <body>
+                    <geom name="geom2" size=".1"/>
+                  <joint type="hinge"/>
+                  <body>
+                    <geom name="geom3" size=".1"/>
+                    <joint type="hinge"/>
+                  </body>
+                </body>
+              </body>
+            </body>
+          </worldbody>
+        </mujoco>
+        """
+        self.model = mjx.put_model(mj.MjModel.from_xml_string(xml))
+        self.data = mjx.make_data(self.model)
+        task = JointTask(name="test_task", cost=1.0, gain=1.0, floating_base=True)
+
+        # Test accessing full_target_q without setting the model
+        with self.assertRaises(ValueError):
+            _ = task.full_target_q
+
+        # Update the model
+        task.update_model(self.model)
+
+        # Test the dimension of the task
+        self.assertEqual(task.dim, 3)  # nv - 6 = 9 - 6 = 3
+
+        # Test setting and getting target_q
+        target_q = [0.5, 1.0, -0.5]
+        task.update_target_q(target_q)
+        np.testing.assert_allclose(task.target_q, jnp.array(target_q))
+
+        # Test full_target_q
+        expected_full_target_q = jnp.array([0, 0, 0, 1, 0, 0, 0, 0.5, 1.0, -0.5])
+        np.testing.assert_allclose(task.full_target_q, expected_full_target_q)
+
+        # Test the computation
+        # Set qpos to initial position (all zeros)
+        self.data = self.data.replace(qpos=jnp.zeros(10).at[3].set(0))
+        result = task.jax_component(self.data)
+        expected_result = jnp.array([-0.5, -1.0, 0.5])  # Difference between current (0) and target
+        np.testing.assert_allclose(result, expected_result)
+
+        # Test computation with non-zero qpos
+        self.data = self.data.replace(qpos=jnp.array([1, 2, 3, 1, 0, 0, 0, 0.2, 0.8, -0.3]))
+        result = task.jax_component(self.data)
+        expected_result = jnp.array([-0.3, -0.2, 0.2])  # Difference between current and target
+        np.testing.assert_allclose(result, expected_result)
+
+        # Test the Jacobian
+        jacobian = task.jax_component.compute_jacobian(self.data)
+        expected_jacobian = jnp.array(
+            [
+                [0, 0, 0, 0, 0, 0, 1, 0, 0],
+                [0, 0, 0, 0, 0, 0, 0, 1, 0],
+                [0, 0, 0, 0, 0, 0, 0, 0, 1],
+            ]
+        )
+        np.testing.assert_allclose(jacobian, expected_jacobian)

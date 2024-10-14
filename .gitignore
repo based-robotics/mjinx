@@ -163,3 +163,4 @@ cython_debug/
 _build
 MUJOCO_LOG.TXT
 *.mp4
+*.prof

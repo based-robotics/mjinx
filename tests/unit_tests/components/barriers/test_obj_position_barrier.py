@@ -5,7 +5,7 @@ import mujoco as mj
 import mujoco.mjx as mjx
 import numpy as np
 
-from mjinx.components.barriers._body_position_barrier import JaxPositionBarrier, PositionBarrier
+from mjinx.components.barriers._obj_position_barrier import JaxPositionBarrier, PositionBarrier
 from mjinx.typing import PositionLimitType
 
 
@@ -32,15 +32,15 @@ class TestPositionBarrier(unittest.TestCase):
         barrier = PositionBarrier(
             name="test_barrier",
             gain=1.0,
-            body_name="body1",
+            obj_name="body1",
             p_min=[-1.0, -1.0, -1.0],
             p_max=[1.0, 1.0, 1.0],
         )
         barrier.update_model(self.model)
 
         self.assertEqual(barrier.name, "test_barrier")
-        self.assertEqual(barrier.body_name, "body1")
-        self.assertEqual(barrier.body_id, 1)
+        self.assertEqual(barrier.obj_name, "body1")
+        self.assertEqual(barrier.obj_id, 1)
         np.testing.assert_array_equal(barrier.p_min, jnp.array([-1.0, -1.0, -1.0]))
         np.testing.assert_array_equal(barrier.p_max, jnp.array([1.0, 1.0, 1.0]))
         self.assertEqual(barrier.limit_type, PositionLimitType.BOTH)
@@ -50,10 +50,12 @@ class TestPositionBarrier(unittest.TestCase):
         barrier = PositionBarrier(
             name="test_barrier",
             gain=1.0,
-            body_name="body1",
+            obj_name="body1",
             p_min=[-1.0, -1.0, -1.0],
             limit_type="min",
         )
+        barrier.update_p_min(0.1)
+        np.testing.assert_array_equal(barrier.p_min, 0.1 * jnp.ones(3))
 
         barrier.update_p_min([-2.0, -2.0, -2.0])
         np.testing.assert_array_equal(barrier.p_min, jnp.array([-2.0, -2.0, -2.0]))
@@ -69,10 +71,12 @@ class TestPositionBarrier(unittest.TestCase):
         barrier = PositionBarrier(
             name="test_barrier",
             gain=1.0,
-            body_name="body1",
+            obj_name="body1",
             p_max=[1.0, 1.0, 1.0],
             limit_type="max",
         )
+        barrier.update_p_max(0.1)
+        np.testing.assert_array_equal(barrier.p_max, 0.1 * jnp.ones(3))
 
         barrier.update_p_max([2.0, 2.0, 2.0])
         np.testing.assert_array_equal(barrier.p_max, jnp.array([2.0, 2.0, 2.0]))
@@ -88,7 +92,7 @@ class TestPositionBarrier(unittest.TestCase):
         barrier_min = PositionBarrier(
             name="test_barrier_min",
             gain=1.0,
-            body_name="body1",
+            obj_name="body1",
             p_min=[-1.0, -1.0, -1.0],
             limit_type="min",
         )
@@ -98,7 +102,7 @@ class TestPositionBarrier(unittest.TestCase):
         barrier_max = PositionBarrier(
             name="test_barrier_max",
             gain=1.0,
-            body_name="body1",
+            obj_name="body1",
             p_max=[1.0, 1.0, 1.0],
             limit_type="max",
         )
@@ -108,7 +112,7 @@ class TestPositionBarrier(unittest.TestCase):
         barrier_both = PositionBarrier(
             name="test_barrier_max",
             gain=1.0,
-            body_name="body1",
+            obj_name="body1",
             p_min=[-1.0, -1.0, -1.0],
             p_max=[1.0, 1.0, 1.0],
             limit_type="both",
@@ -120,7 +124,7 @@ class TestPositionBarrier(unittest.TestCase):
             PositionBarrier(
                 name="test_barrier_invalid",
                 gain=1.0,
-                body_name="body1",
+                obj_name="body1",
                 limit_type="invalid",
             )
 
@@ -129,7 +133,7 @@ class TestPositionBarrier(unittest.TestCase):
         barrier = PositionBarrier(
             name="test_barrier",
             gain=1.0,
-            body_name="body1",
+            obj_name="body1",
             p_min=[-1.0, -1.0, -1.0],
             p_max=[1.0, 1.0, 1.0],
         )
@@ -140,7 +144,7 @@ class TestPositionBarrier(unittest.TestCase):
         self.assertIsInstance(jax_component, JaxPositionBarrier)
         self.assertEqual(jax_component.dim, 6)
         np.testing.assert_array_equal(jax_component.vector_gain, jnp.ones(6))
-        self.assertEqual(jax_component.body_id, 1)
+        self.assertEqual(jax_component.obj_id, 1)
         np.testing.assert_array_equal(jax_component.p_min, jnp.array([-1.0, -1.0, -1.0]))
         np.testing.assert_array_equal(jax_component.p_max, jnp.array([1.0, 1.0, 1.0]))
 
@@ -153,7 +157,8 @@ class TestPositionBarrier(unittest.TestCase):
             gain_fn=lambda x: x,
             mask_idxs=(0, 1, 2),
             safe_displacement_gain=0.0,
-            body_id=1,
+            obj_id=1,
+            obj_type=mj.mjtObj.mjOBJ_BODY,
             p_min=jnp.array([-1.0, -1.0, -1.0]),
             p_max=jnp.array([1.0, 1.0, 1.0]),
         )

@@ -1,5 +1,6 @@
 import unittest
 
+import jax
 import jax.numpy as jnp
 import mujoco as mj
 import mujoco.mjx as mjx
@@ -11,7 +12,7 @@ from mjinx.typing import ArrayOrFloat
 
 class DummyJaxComponent(JaxComponent):
     def __call__(self, data: mjx.Data) -> jnp.ndarray:
-        return data.subtree_com[self.model.body_rootid[0], self.mask_idxs]
+        return data.qpos[: self.dim]  # Simple identity function for testing
 
 
 class DummyComponent(Component[DummyJaxComponent]):
@@ -178,3 +179,57 @@ class TestComponent(unittest.TestCase):
         init_component_dict.pop("vector_gain")
         updated_component_dict.pop("vector_gain")
         self.assertEqual(init_component_dict, updated_component_dict)
+
+    def test_compute_jacobian(self):
+        # Create a simple MuJoCo model with 3 degrees of freedom
+        xml = """
+        <mujoco>
+          <worldbody>
+            <body name="body1">
+              <geom name="geom1" size=".1"/>
+              <joint type="free"/>
+            </body>
+          </worldbody>
+        </mujoco>
+        """
+        model = mjx.put_model(mj.MjModel.from_xml_string(xml))
+        data = mjx.make_data(model)
+
+        # Initialize the TestJaxComponent
+        component = DummyJaxComponent(
+            dim=3, model=model, vector_gain=jnp.ones(3), gain_fn=lambda x: x, mask_idxs=(0, 1, 2)
+        )
+
+        # Set random qpos
+        key = jax.random.PRNGKey(0)
+        qpos = jax.random.uniform(key, (model.nq,))
+        data = data.replace(qpos=qpos)
+
+        # Compute the Jacobian
+        jacobian = component.compute_jacobian(data)
+
+        # Expected Jacobian for our simple identity function should be:
+        # [1 0 0 0 0 0 0]
+        # [0 1 0 0 0 0 0]
+        # [0 0 1 0 0 0 0]
+        expected_jacobian = jnp.eye(3, 6)
+
+        # Check if the computed Jacobian matches the expected Jacobian
+        np.testing.assert_allclose(jacobian, expected_jacobian, atol=1e-5)
+
+        # Test that the Jacobian has the correct shape
+        self.assertEqual(jacobian.shape, (component.dim, model.nv))
+
+        # Test that the Jacobian is differentiable
+        def jacobian_sum(qpos):
+            data = mjx.make_data(model).replace(qpos=qpos)
+            return jnp.sum(component.compute_jacobian(data))
+
+        # Compute the gradient of the Jacobian sum
+        gradient = jax.grad(jacobian_sum)(qpos)
+
+        # Check that the gradient has the correct shape
+        self.assertEqual(gradient.shape, (model.nq,))
+
+        # Check that the gradient is zero (since our function is linear)
+        np.testing.assert_allclose(gradient, jnp.zeros_like(gradient), atol=1e-5)

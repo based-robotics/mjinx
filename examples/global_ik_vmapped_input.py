@@ -1,5 +1,3 @@
-import time
-
 import jax
 import jax.numpy as jnp
 import mujoco as mj
@@ -50,11 +48,11 @@ vis.add_markers(
 problem = Problem(mjx_model)
 
 # Creating components of interest and adding them to the problem
-frame_task = FrameTask("ee_task", cost=1, gain=20, body_name="link7")
+frame_task = FrameTask("ee_task", cost=1, gain=20, obj_name="link7")
 position_barrier = PositionBarrier(
     "ee_barrier",
     gain=0.1,
-    body_name="link7",
+    obj_name="link7",
     limit_type="max",
     p_max=0.4,
     safe_displacement_gain=1e-2,
@@ -125,23 +123,17 @@ integrate_jit = jax.jit(jax.vmap(integrate, in_axes=(None, 0, 0, None)), static_
 dt = 1e-2
 ts = np.arange(0, 20, dt)
 
-t_solve_avg = 0.0
-n = 0
-
 try:
     for t in ts:
         # Changing desired values
         frame_task.target_frame = np.array([0.4 + 0.3 * np.sin(t), 0.2, 0.4 + 0.3 * np.cos(t), 1, 0, 0, 0])
 
         # After changes, recompiling the model
-        t0 = time.perf_counter()
         problem_data = problem.compile()
-        t1 = time.perf_counter()
 
         # Solving the instance of the problem
         for _ in range(1):
             opt_solution, solver_data = solve_jit(q, solver_data, problem_data)
-        t2 = time.perf_counter()
 
         # Two options for retriving q:
         # Option 1, integrating:
@@ -153,13 +145,6 @@ try:
         vis.marker_data["ee_marker"].pos = np.array(frame_task.target_frame.wxyz_xyz[-3:])
         vis.update(q[: vis.n_models])
 
-        # --- Logging ---
-        # Execution time
-        t_solve = (t2 - t1) * 1e3
-        # Ignore the first (compiling) iteration and calculate mean solution times
-        if t > 0:
-            t_solve_avg = t_solve_avg + (t_solve - t_solve_avg) / (n + 1)
-            n += 1
 except KeyboardInterrupt:
     print("Finalizing the simulation as requested...")
 except Exception as e:
@@ -168,4 +153,3 @@ finally:
     if vis.record:
         vis.save_video(round(1 / dt))
     vis.close()
-    print(f"Avg solving time: {t_solve_avg:0.3f}ms")

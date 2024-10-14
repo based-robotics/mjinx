@@ -1,5 +1,3 @@
-import time
-
 import jax
 import jax.numpy as jnp
 import mujoco as mj
@@ -55,11 +53,11 @@ mj.mjv_initGeom(
 problem = Problem(mjx_model, v_min=-100, v_max=100)
 
 # Creating components of interest and adding them to the problem
-frame_task = FrameTask("ee_task", cost=1, gain=20, body_name="link7")
+frame_task = FrameTask("ee_task", cost=1, gain=20, obj_name="link7")
 position_barrier = PositionBarrier(
     "ee_barrier",
     gain=100,
-    body_name="link7",
+    obj_name="link7",
     limit_type="max",
     p_max=0.3,
     safe_displacement_gain=1e-2,
@@ -105,19 +103,15 @@ integrate_jit = jax.jit(integrate, static_argnames=["dt"])
 dt = 1e-2
 ts = np.arange(0, 20, dt)
 
-t_solve_avg = 0.0
-n = 0
-
 for t in ts:
     # Changing desired values
     frame_task.target_frame = np.array([0.2 + 0.2 * jnp.sin(t) ** 2, 0.2, 0.2, 1, 0, 0, 0])
+
     # After changes, recompiling the model
     problem_data = problem.compile()
-    t0 = time.perf_counter()
 
     # Solving the instance of the problem
     opt_solution, solver_data = solve_jit(q, solver_data, problem_data)
-    t1 = time.perf_counter()
 
     # Integrating
     q = integrate_jit(
@@ -130,7 +124,7 @@ for t in ts:
     # --- MuJoCo visualization ---
     mj_data.qpos = q
     mj.mj_forward(mj_model, mj_data)
-    print(f"Position barrier: {mj_data.xpos[position_barrier.body_id][0]} <= {position_barrier.p_max[0]}")
+    print(f"Position barrier: {mj_data.xpos[position_barrier.obj_id][0]} <= {position_barrier.p_max[0]}")
     mj.mjv_initGeom(
         mj_viewer.user_scn.geoms[0],
         mj.mjtGeom.mjGEOM_SPHERE,
@@ -144,13 +138,4 @@ for t in ts:
     # the updated state in the data
     mj.mj_forward(mj_model, mj_data)
     mj_viewer.sync()
-
-    t2 = time.perf_counter()
-    t_solve = (t1 - t0) * 1e3
-    t_interpolate = (t2 - t1) * 1e3
-
-    if t > 0:
-        t_solve_avg = t_solve_avg + (t_solve - t_solve_avg) / (n + 1)
-        n += 1
-
-print(f"Avg solving time: {t_solve_avg:0.3f}ms")
+renderer.close()

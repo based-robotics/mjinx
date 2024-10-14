@@ -47,6 +47,9 @@ class TestSelfCollisionBarrier(unittest.TestCase):
             collision_bodies=["body1", "body2"],
             excluded_collisions=[("body1", "body2")],
         )
+        with self.assertRaises(ValueError):
+            _ = barrier.d_min_vec
+
         barrier.update_model(self.model)
 
         self.assertEqual(barrier.name, "test_barrier")

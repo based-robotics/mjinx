@@ -1,6 +1,7 @@
 """Build and solve the inverse kinematics problem."""
 
-from typing import Callable, TypedDict
+from collections.abc import Callable
+from typing import TypedDict
 
 import jax
 import jax.numpy as jnp
@@ -183,7 +184,7 @@ class LocalIKSolver(Solver[LocalIKData, LocalIKSolution]):
                 component.vector_gain * jax.lax.map(component.gain_fn, barrier),
             )
         else:
-            return jnp.empty((0, model.nq)), jnp.empty(0)
+            return jnp.empty((0, model.nv)), jnp.empty(0)
 
     def __compute_qp_matrices(
         self,
@@ -211,8 +212,8 @@ class LocalIKSolver(Solver[LocalIKData, LocalIKSolution]):
         for component in problem_data.components.values():
             # The objective
             H, c = self.__parse_component_objective(problem_data.model, model_data, component)
-            H_total += H
-            c_total += c
+            H_total = H_total + H
+            c_total = c_total + c
 
             # The constraints
             G, h = self.__parse_component_constraints(problem_data.model, model_data, component)
@@ -236,6 +237,8 @@ class LocalIKSolver(Solver[LocalIKData, LocalIKSolution]):
         """
         P, c, G, h = self.__compute_qp_matrices(problem_data, model_data)
         solution = self._solver.run(
+            # TODO: warm start is not working
+            # init_params=self._solver.init_params(solver_data.v_prev, (P, c), None, (G, h)),
             params_obj=(P, c),
             params_ineq=(G, h),
         )
