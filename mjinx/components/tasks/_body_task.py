@@ -49,10 +49,10 @@ class JaxObjTask(JaxTask):
         return SE3.from_rotation_and_translation(self.get_rotation(data), self.get_pos(data))
 
 
-AtomicBodyTaskType = TypeVar("AtomicBodyTaskType", bound=JaxObjTask)
+AtomicObjTaskType = TypeVar("AtomicObjTaskType", bound=JaxObjTask)
 
 
-class ObjTask(Generic[AtomicBodyTaskType], Task[AtomicBodyTaskType]):
+class ObjTask(Generic[AtomicObjTaskType], Task[AtomicObjTaskType]):
     """
     A high-level representation of a body task for inverse kinematics.
 
@@ -87,6 +87,7 @@ class ObjTask(Generic[AtomicBodyTaskType], Task[AtomicBodyTaskType]):
         super().__init__(name, cost, gain, gain_fn, lm_damping, mask)
         self._obj_name = obj_name
         self._obj_type = obj_type
+        self._obj_id = -1
 
     @property
     def obj_name(self) -> str:

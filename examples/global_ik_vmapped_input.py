@@ -52,7 +52,7 @@ frame_task = FrameTask("ee_task", cost=1, gain=20, obj_name="link7")
 position_barrier = PositionBarrier(
     "ee_barrier",
     gain=0.1,
-    body_name="link7",
+    obj_name="link7",
     limit_type="max",
     p_max=0.4,
     safe_displacement_gain=1e-2,

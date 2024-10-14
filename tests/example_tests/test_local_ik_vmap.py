@@ -29,7 +29,7 @@ def test_local_ik_vmap():
     position_barrier = PositionBarrier(
         "ee_barrier",
         gain=100,
-        body_name="link7",
+        obj_name="link7",
         limit_type="max",
         p_max=0.3,
         safe_displacement_gain=1e-2,

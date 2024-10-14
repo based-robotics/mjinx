@@ -4,17 +4,17 @@ import jax.numpy as jnp
 import mujoco as mj
 import mujoco.mjx as mjx
 
-from mjinx.components.barriers import BodyBarrier, JaxBodyBarrier
+from mjinx.components.barriers import ObjBarrier, JaxObjBarrier
 
 
-class DummyJaxBodyBarrier(JaxBodyBarrier):
+class DummyJaxBodyBarrier(JaxObjBarrier):
     """Dummy class to make minimal non-abstract jax body barrier class"""
 
     def __call__(self, data: mjx.Data) -> jnp.ndarray:
         return data.xpos[self.body_id]
 
 
-class DummyBodyTask(BodyBarrier[JaxBodyBarrier]):
+class DummyBodyTask(ObjBarrier[JaxObjBarrier]):
     """Dummy class to make minimal non-abstract jax body barrier class"""
 
     def set_dim(self, dim: int):
@@ -32,22 +32,22 @@ class TestBodyTask(unittest.TestCase):
 
     def test_body_id(self):
         """Test setting body id"""
-        body_task_1 = DummyBodyTask("body_task", gain=1.0, body_name="body1")
+        body_task_1 = DummyBodyTask("body_task", gain=1.0, obj_name="body1")
         with self.assertRaises(ValueError):
-            _ = body_task_1.body_id
+            _ = body_task_1.obj_id
         self.set_model(body_task_1)
 
-        self.assertEqual(body_task_1.body_id, 1)
-        self.assertEqual(body_task_1.body_name, mj.mj_id2name(self.mj_model, mj.mjtObj.mjOBJ_BODY, body_task_1.body_id))
+        self.assertEqual(body_task_1.obj_id, 1)
+        self.assertEqual(body_task_1.Obj_name, mj.mj_id2name(self.mj_model, mj.mjtObj.mjOBJ_BODY, body_task_1.obj_id))
 
-        body_task_2 = DummyBodyTask("body_task", gain=1.0, body_name="body2")
+        body_task_2 = DummyBodyTask("body_task", gain=1.0, obj_name="body2")
         self.set_model(body_task_2)
 
-        self.assertEqual(body_task_2.body_id, 2)
-        self.assertEqual(body_task_2.body_name, mj.mj_id2name(self.mj_model, mj.mjtObj.mjOBJ_BODY, body_task_2.body_id))
+        self.assertEqual(body_task_2.obj_id, 2)
+        self.assertEqual(body_task_2.Obj_name, mj.mj_id2name(self.mj_model, mj.mjtObj.mjOBJ_BODY, body_task_2.obj_id))
 
     def test_update_model_invalid_body(self):
         """Test trying to set invalid body as desired one"""
-        body_task = DummyBodyTask("body_task", gain=1.0, body_name="body3")
+        body_task = DummyBodyTask("body_task", gain=1.0, obj_name="body3")
         with self.assertRaises(ValueError):
             self.set_model(body_task)

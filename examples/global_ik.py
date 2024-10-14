@@ -60,7 +60,7 @@ frame_task = FrameTask("ee_task", cost=1, gain=50, obj_name="link7")
 position_barrier = PositionBarrier(
     "ee_barrier",
     gain=0.1,
-    body_name="link7",
+    obj_name="link7",
     limit_type="max",
     p_max=0.3,
     safe_displacement_gain=1e-2,
@@ -127,7 +127,7 @@ try:
         # --- MuJoCo visualization ---
         mj_data.qpos = q
         mj.mj_forward(mj_model, mj_data)
-        print(f"Position barrier: {mj_data.xpos[position_barrier.body_id][0]} <= {position_barrier.p_max[0]}")
+        print(f"Position barrier: {mj_data.xpos[position_barrier.obj_id][0]} <= {position_barrier.p_max[0]}")
         mj.mjv_initGeom(
             mj_viewer.user_scn.geoms[0],
             mj.mjtGeom.mjGEOM_SPHERE,

@@ -32,15 +32,15 @@ class TestPositionBarrier(unittest.TestCase):
         barrier = PositionBarrier(
             name="test_barrier",
             gain=1.0,
-            body_name="body1",
+            obj_name="body1",
             p_min=[-1.0, -1.0, -1.0],
             p_max=[1.0, 1.0, 1.0],
         )
         barrier.update_model(self.model)
 
         self.assertEqual(barrier.name, "test_barrier")
-        self.assertEqual(barrier.body_name, "body1")
-        self.assertEqual(barrier.body_id, 1)
+        self.assertEqual(barrier.Obj_name, "body1")
+        self.assertEqual(barrier.obj_id, 1)
         np.testing.assert_array_equal(barrier.p_min, jnp.array([-1.0, -1.0, -1.0]))
         np.testing.assert_array_equal(barrier.p_max, jnp.array([1.0, 1.0, 1.0]))
         self.assertEqual(barrier.limit_type, PositionLimitType.BOTH)
@@ -50,7 +50,7 @@ class TestPositionBarrier(unittest.TestCase):
         barrier = PositionBarrier(
             name="test_barrier",
             gain=1.0,
-            body_name="body1",
+            obj_name="body1",
             p_min=[-1.0, -1.0, -1.0],
             limit_type="min",
         )
@@ -71,7 +71,7 @@ class TestPositionBarrier(unittest.TestCase):
         barrier = PositionBarrier(
             name="test_barrier",
             gain=1.0,
-            body_name="body1",
+            obj_name="body1",
             p_max=[1.0, 1.0, 1.0],
             limit_type="max",
         )
@@ -92,7 +92,7 @@ class TestPositionBarrier(unittest.TestCase):
         barrier_min = PositionBarrier(
             name="test_barrier_min",
             gain=1.0,
-            body_name="body1",
+            obj_name="body1",
             p_min=[-1.0, -1.0, -1.0],
             limit_type="min",
         )
@@ -102,7 +102,7 @@ class TestPositionBarrier(unittest.TestCase):
         barrier_max = PositionBarrier(
             name="test_barrier_max",
             gain=1.0,
-            body_name="body1",
+            obj_name="body1",
             p_max=[1.0, 1.0, 1.0],
             limit_type="max",
         )
@@ -112,7 +112,7 @@ class TestPositionBarrier(unittest.TestCase):
         barrier_both = PositionBarrier(
             name="test_barrier_max",
             gain=1.0,
-            body_name="body1",
+            obj_name="body1",
             p_min=[-1.0, -1.0, -1.0],
             p_max=[1.0, 1.0, 1.0],
             limit_type="both",
@@ -124,7 +124,7 @@ class TestPositionBarrier(unittest.TestCase):
             PositionBarrier(
                 name="test_barrier_invalid",
                 gain=1.0,
-                body_name="body1",
+                obj_name="body1",
                 limit_type="invalid",
             )
 
@@ -133,7 +133,7 @@ class TestPositionBarrier(unittest.TestCase):
         barrier = PositionBarrier(
             name="test_barrier",
             gain=1.0,
-            body_name="body1",
+            obj_name="body1",
             p_min=[-1.0, -1.0, -1.0],
             p_max=[1.0, 1.0, 1.0],
         )

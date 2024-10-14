@@ -30,7 +30,7 @@ def test_global_ik_jit():
     position_barrier = PositionBarrier(
         "ee_barrier",
         gain=0.1,
-        body_name="link7",
+        obj_name="link7",
         limit_type="max",
         p_max=0.3,
         safe_displacement_gain=1e-2,

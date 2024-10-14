@@ -6,14 +6,15 @@ from typing import final
 
 import jax.numpy as jnp
 import jax_dataclasses as jdc
+import mujoco as mj
 import mujoco.mjx as mjx
 
-from mjinx.components.barriers._body_barrier import BodyBarrier, JaxBodyBarrier
+from mjinx.components.barriers._body_barrier import JaxObjBarrier, ObjBarrier
 from mjinx.typing import ArrayOrFloat, PositionLimitType
 
 
 @jdc.pytree_dataclass
-class JaxPositionBarrier(JaxBodyBarrier):
+class JaxPositionBarrier(JaxObjBarrier):
     """
     A JAX implementation of a position barrier function for a specific body.
 
@@ -34,15 +35,16 @@ class JaxPositionBarrier(JaxBodyBarrier):
         :param data: The MuJoCo simulation data.
         :return: The computed position barrier value.
         """
+        obj_pos = self.get_pos(data)[self.mask_idxs]
         return jnp.concatenate(
             [
-                data.xpos[self.body_id, self.mask_idxs] - self.p_min,
-                self.p_max - data.xpos[self.body_id, self.mask_idxs],
+                obj_pos - self.p_min,
+                self.p_max - obj_pos,
             ]
         )
 
 
-class PositionBarrier(BodyBarrier[JaxPositionBarrier]):
+class PositionBarrier(ObjBarrier[JaxPositionBarrier]):
     """
     A position barrier class that wraps the JAX position barrier implementation.
 
@@ -63,7 +65,8 @@ class PositionBarrier(BodyBarrier[JaxPositionBarrier]):
         self,
         name: str,
         gain: ArrayOrFloat,
-        body_name: str,
+        obj_name: str,
+        obj_type: mj.mjtObj = mj.mjtObj.mjOBJ_BODY,
         p_min: ArrayOrFloat | None = None,
         p_max: ArrayOrFloat | None = None,
         limit_type: str = "both",
@@ -85,7 +88,7 @@ class PositionBarrier(BodyBarrier[JaxPositionBarrier]):
         :param mask: A sequence of integers to mask certain dimensions.
         """
         mask = mask if mask is not None else [1, 1, 1]
-        super().__init__(name, gain, body_name, gain_fn, safe_displacement_gain, mask)
+        super().__init__(name, gain, obj_name, obj_type, gain_fn, safe_displacement_gain, mask)
         if limit_type not in {"min", "max", "both"}:
             raise ValueError("[PositionBarrier] PositionBarrier.limit should be either 'min', 'max', or 'both'")
 
