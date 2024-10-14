@@ -60,6 +60,10 @@ class JaxComponent(abc.ABC):
         """
         Compute the Jacobian of the component with respect to the joint positions.
 
+        The jacobian is calculated via automatic differentiation, if it is not overwritten.
+        If :math:`nq \\neq nv`, a special mapping :py:meth:`mjinx.configuration.jac_dq2v` is computed,
+        to transform :math:`J_{dq}` into :math:`J_v`.
+
         :param data: The MuJoCo simulation data.
         :return: The computed Jacobian matrix.
         """
