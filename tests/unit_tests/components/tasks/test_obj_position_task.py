@@ -10,7 +10,7 @@ import numpy as np
 from mjinx.components.tasks import PositionTask
 
 
-class TestBodyPositionTask(unittest.TestCase):
+class TestObjPositionTask(unittest.TestCase):
     def set_model(self, task: PositionTask):
         self.model = mjx.put_model(
             mj.MjModel.from_xml_string(

@@ -11,7 +11,7 @@ from jaxlie import SE3
 from mjinx.components.tasks import FrameTask
 
 
-class TestBodyFrameTask(unittest.TestCase):
+class TestObjFrameTask(unittest.TestCase):
     def setUp(self) -> None:
         self.to_wxyz_xyz: jnp.ndarray = jnp.array([3, 4, 5, 6, 0, 1, 2])
 

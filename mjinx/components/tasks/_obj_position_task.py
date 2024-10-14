@@ -7,7 +7,7 @@ import jax_dataclasses as jdc
 import mujoco as mj
 import mujoco.mjx as mjx
 
-from mjinx.components.tasks._body_task import JaxObjTask, ObjTask
+from mjinx.components.tasks._obj_task import JaxObjTask, ObjTask
 from mjinx.typing import ArrayOrFloat
 
 

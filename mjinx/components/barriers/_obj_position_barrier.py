@@ -9,7 +9,7 @@ import jax_dataclasses as jdc
 import mujoco as mj
 import mujoco.mjx as mjx
 
-from mjinx.components.barriers._body_barrier import JaxObjBarrier, ObjBarrier
+from mjinx.components.barriers._obj_barrier import JaxObjBarrier, ObjBarrier
 from mjinx.typing import ArrayOrFloat, PositionLimitType
 
 

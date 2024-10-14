@@ -10,7 +10,7 @@ import mujoco as mj
 import mujoco.mjx as mjx
 from jaxlie import SE3, SO3
 
-from mjinx.components.tasks._body_task import JaxObjTask, ObjTask
+from mjinx.components.tasks._obj_task import JaxObjTask, ObjTask
 from mjinx.configuration import get_frame_jacobian_local
 from mjinx.typing import ArrayOrFloat, ndarray
 

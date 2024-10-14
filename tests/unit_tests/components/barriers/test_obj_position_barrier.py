@@ -5,7 +5,7 @@ import mujoco as mj
 import mujoco.mjx as mjx
 import numpy as np
 
-from mjinx.components.barriers._body_position_barrier import JaxPositionBarrier, PositionBarrier
+from mjinx.components.barriers._obj_position_barrier import JaxPositionBarrier, PositionBarrier
 from mjinx.typing import PositionLimitType
 
 

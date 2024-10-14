@@ -22,15 +22,15 @@ Joint Task
 
 Base Body Task
 --------------
-.. automodule:: mjinx.components.tasks._body_task
+.. automodule:: mjinx.components.tasks._obj_task
     :members:
 
 Body Frame Task
 ---------------
-.. automodule:: mjinx.components.tasks._body_frame_task
+.. automodule:: mjinx.components.tasks._obj_frame_task
     :members:
 
 Body Position Task
 ------------------
-.. automodule:: mjinx.components.tasks._body_position_task
+.. automodule:: mjinx.components.tasks._obj_position_task
     :members:
