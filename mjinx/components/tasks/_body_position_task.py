@@ -17,7 +17,7 @@ class JaxPositionTask(JaxObjTask):
     A JAX-based implementation of a position task for inverse kinematics.
 
     This class represents a task that aims to achieve a specific target position
-    for a body in the robot model.
+    for an object (body, geometry, or site) in the robot model.
 
     :param target_pos: The target position to be achieved.
     """
@@ -39,12 +39,12 @@ class PositionTask(ObjTask[JaxPositionTask]):
     A high-level representation of a position task for inverse kinematics.
 
     This class provides an interface for creating and manipulating position tasks,
-    which aim to achieve a specific target position for a body in the robot model.
+    which aim to achieve a specific target position for an object in the robot model.
 
     :param name: The name of the task.
     :param cost: The cost associated with the task.
     :param gain: The gain for the task.
-    :param body_name: The name of the body to which the task is applied.
+    :param obj_name: The name of the object to which the task is applied.
     :param gain_fn: A function to compute the gain dynamically.
     :param lm_damping: The Levenberg-Marquardt damping factor.
     :param mask: A sequence of integers to mask certain dimensions of the task.

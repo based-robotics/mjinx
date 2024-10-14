@@ -38,13 +38,13 @@ class TestBodyTask(unittest.TestCase):
         self.set_model(body_task_1)
 
         self.assertEqual(body_task_1.obj_id, 1)
-        self.assertEqual(body_task_1.Obj_name, mj.mj_id2name(self.mj_model, mj.mjtObj.mjOBJ_BODY, body_task_1.obj_id))
+        self.assertEqual(body_task_1.obj_name, mj.mj_id2name(self.mj_model, mj.mjtObj.mjOBJ_BODY, body_task_1.obj_id))
 
         body_task_2 = DummyBodyTask("body_task", gain=1.0, obj_name="body2")
         self.set_model(body_task_2)
 
         self.assertEqual(body_task_2.obj_id, 2)
-        self.assertEqual(body_task_2.Obj_name, mj.mj_id2name(self.mj_model, mj.mjtObj.mjOBJ_BODY, body_task_2.obj_id))
+        self.assertEqual(body_task_2.obj_name, mj.mj_id2name(self.mj_model, mj.mjtObj.mjOBJ_BODY, body_task_2.obj_id))
 
     def test_update_model_invalid_body(self):
         """Test trying to set invalid body as desired one"""

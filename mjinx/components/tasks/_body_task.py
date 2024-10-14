@@ -16,18 +16,27 @@ from mjinx.typing import ArrayOrFloat
 @jdc.pytree_dataclass
 class JaxObjTask(JaxTask):
     """
-    A JAX-based implementation of a body task for inverse kinematics.
+    A JAX-based implementation of an object task for inverse kinematics.
 
-    This class serves as a base for tasks that are applied to specific bodies
-    in the robot model.
+    This class serves as a base for tasks that are applied to specific objects
+    (bodies, geometries, or sites) in the robot model.
 
-    :param body_id: The ID of the body to which the task is applied.
+    :param obj_id: The ID of the object (body, geometry, or site) to which the task is applied.
+    :param obj_type: The type of the object (mjOBJ_BODY, mjOBJ_GEOM, or mjOBJ_SITE).
     """
 
     obj_id: jdc.Static[int]
     obj_type: jdc.Static[mj.mjtObj]
 
     def get_pos(self, data: mjx.Data) -> jnp.ndarray:
+        """
+        Get the position of the object in the world frame.
+
+        This method returns the position based on the object type (body, geom, or site).
+
+        :param data: The MuJoCo simulation data.
+        :return: A 3D vector representing the object's position in the world frame.
+        """
         match self.obj_type:
             case mj.mjtObj.mjOBJ_GEOM:
                 return data.geom_xpos[self.obj_id]
@@ -37,6 +46,14 @@ class JaxObjTask(JaxTask):
                 return data.xpos[self.obj_id]
 
     def get_rotation(self, data: mjx.Data) -> SO3:
+        """
+        Get the rotation of the object in the world frame.
+
+        This method returns the rotation based on the object type (body, geom, or site).
+
+        :param data: The MuJoCo simulation data.
+        :return: An SO3 object representing the object's rotation in the world frame.
+        """
         match self.obj_type:
             case mj.mjtObj.mjOBJ_GEOM:
                 return SO3.from_matrix(data.geom_xmat[self.obj_id])
@@ -46,6 +63,14 @@ class JaxObjTask(JaxTask):
                 return SO3.from_matrix(data.xmat[self.obj_id])
 
     def get_frame(self, data: mjx.Data) -> SE3:
+        """
+        Get the full pose (position and rotation) of the object in the world frame.
+
+        This method combines the position and rotation to return a complete pose.
+
+        :param data: The MuJoCo simulation data.
+        :return: An SE3 object representing the object's pose in the world frame.
+        """
         return SE3.from_rotation_and_translation(self.get_rotation(data), self.get_pos(data))
 
 
@@ -54,15 +79,16 @@ AtomicObjTaskType = TypeVar("AtomicObjTaskType", bound=JaxObjTask)
 
 class ObjTask(Generic[AtomicObjTaskType], Task[AtomicObjTaskType]):
     """
-    A high-level representation of a body task for inverse kinematics.
+    A high-level representation of an object task for inverse kinematics.
 
     This class provides an interface for creating and manipulating tasks
-    that are applied to specific bodies in the robot model.
+    that are applied to specific objects (bodies, geometries, or sites) in the robot model.
 
     :param name: The name of the task.
     :param cost: The cost associated with the task.
     :param gain: The gain for the task.
-    :param body_name: The name of the body to which the task is applied.
+    :param obj_name: The name of the object (body, geometry, or site) to which the task is applied.
+    :param obj_type: The type of the object (mjOBJ_BODY, mjOBJ_GEOM, or mjOBJ_SITE).
     :param gain_fn: A function to compute the gain dynamically.
     :param lm_damping: The Levenberg-Marquardt damping factor.
     :param mask: A sequence of integers to mask certain dimensions of the task.
@@ -92,34 +118,39 @@ class ObjTask(Generic[AtomicObjTaskType], Task[AtomicObjTaskType]):
     @property
     def obj_name(self) -> str:
         """
-        Get the name of the body to which the task is applied.
+        Get the name of the object to which the task is applied.
 
-        :return: The name of the body.
+        :return: The name of the object.
         """
         return self._obj_name
 
     @property
     def obj_id(self) -> int:
         """
-        Get the ID of the body to which the task is applied.
+        Get the ID of the object to which the task is applied.
 
-        :return: The ID of the body.
+        :return: The ID of the object.
         """
         return self._obj_id
 
     @property
     def obj_type(self) -> mj.mjtObj:
+        """
+        Get the type of the object associated with the task.
+
+        :return: The MuJoCo object type (mjOBJ_BODY, mjOBJ_GEOM, or mjOBJ_SITE).
+        """
         return self._obj_type
 
     def update_model(self, model: mjx.Model):
         """
-        Update the MuJoCo model and set the body ID for the task.
+        Update the MuJoCo model and set the object ID for the task.
 
         This method is called when the model is updated or when the task
         is first added to the problem.
 
         :param model: The new MuJoCo model.
-        :raises ValueError: If the body with the specified name is not found in the model.
+        :raises ValueError: If the object with the specified name is not found in the model.
         """
         self._obj_id = mjx.name2id(
             model,

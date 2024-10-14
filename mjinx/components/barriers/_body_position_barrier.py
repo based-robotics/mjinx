@@ -16,9 +16,9 @@ from mjinx.typing import ArrayOrFloat, PositionLimitType
 @jdc.pytree_dataclass
 class JaxPositionBarrier(JaxObjBarrier):
     """
-    A JAX implementation of a position barrier function for a specific body.
+    A JAX implementation of a position barrier function for a specific object (body, geometry, or site).
 
-    This class extends JaxBodyBarrier to provide position-specific barrier functions.
+    This class extends JaxObjBarrier to provide position-specific barrier functions.
 
     :param p_min: The minimum allowed position.
     :param p_max: The maximum allowed position.
@@ -79,7 +79,7 @@ class PositionBarrier(ObjBarrier[JaxPositionBarrier]):
 
         :param name: The name of the barrier.
         :param gain: The gain for the barrier function.
-        :param body_name: The name of the body to which this barrier applies.
+        :param obj_name: The name of the object (body, geometry, or site) to which this barrier applies.
         :param p_min: The minimum allowed position.
         :param p_max: The maximum allowed position.
         :param limit_type: The type of limit to apply ('min', 'max', or 'both').

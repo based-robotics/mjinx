@@ -39,7 +39,7 @@ class TestPositionBarrier(unittest.TestCase):
         barrier.update_model(self.model)
 
         self.assertEqual(barrier.name, "test_barrier")
-        self.assertEqual(barrier.Obj_name, "body1")
+        self.assertEqual(barrier.obj_name, "body1")
         self.assertEqual(barrier.obj_id, 1)
         np.testing.assert_array_equal(barrier.p_min, jnp.array([-1.0, -1.0, -1.0]))
         np.testing.assert_array_equal(barrier.p_max, jnp.array([1.0, 1.0, 1.0]))
