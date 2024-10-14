@@ -1,4 +1,6 @@
-"""Typings which are utilized in the mjinx"""
+"""
+This module contains type definitions and aliases used throughout the mjinx library.
+"""
 
 from __future__ import annotations
 
@@ -10,12 +12,19 @@ import jax.numpy as jnp
 import numpy as np
 
 ndarray: TypeAlias = np.ndarray | jnp.ndarray
-ArrayOrFloat: TypeAlias = ndarray | float
-# Class K function is a scalar function
-ClassKFunctions: TypeAlias = Callable[[ndarray], ndarray]
+"""Type alias for numpy or JAX numpy arrays."""
 
-CollisionBody = int | str  # body id, or body name
-CollisionPair = tuple[int, int]  # pair body ids
+ArrayOrFloat: TypeAlias = ndarray | float
+"""Type alias for an array or a float value."""
+
+ClassKFunctions: TypeAlias = Callable[[ndarray], ndarray]
+"""Type alias for Class K functions, which are scalar functions that take and return ndarrays."""
+
+CollisionBody: TypeAlias = int | str
+"""Type alias for collision body representation, either as an integer ID or a string name."""
+
+CollisionPair: TypeAlias = tuple[int, int]
+"""Type alias for a pair of collision body IDs."""
 
 
 class PositionLimitType(Enum):

@@ -22,6 +22,7 @@ extensions = [
     "sphinx_rtd_theme",
 ]
 
+
 # List of modules to be mocked up
 autodoc_mock_imports = []
 
@@ -327,7 +328,6 @@ intersphinx_mapping = {
     "numpy": ("https://numpy.org/doc/stable", None),
     "jax": ("https://jax.readthedocs.io/en/latest", None),
     "optax": ("https://optax.readthedocs.io/en/latest", None),
-    "mujoco": ("https://mujoco.readthedocs.io/en/latest", None),
     "jaxopt": ("https://jaxopt.github.io/stable", None),
     "jaxlie": ("https://brentyi.github.io/jaxlie", None),
     "chex": ("https://chex.readthedocs.io/en/latest", None),
@@ -335,6 +335,5 @@ intersphinx_mapping = {
 
 # Treat warnings as errors, in particular when a reference target (such as a
 # :func:`something`) is not found.
-# TODO: reference to the mujoco model
 # nitpicky = True
 # nitpick_ignore = [("py:class", "type")]

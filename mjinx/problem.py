@@ -42,7 +42,7 @@ class Problem:
     :param v_max: Maximum velocity limit (default: 1e3).
     """
 
-    def __init__(self, model: mjx.Model, v_min: ArrayOrFloat = 1e-3, v_max: ArrayOrFloat = 1e3):
+    def __init__(self, model: mjx.Model, v_min: ArrayOrFloat = -1e3, v_max: ArrayOrFloat = 1e3):
         self.__model = model
         self.__components: dict[str, Component] = {}
         self.update_v_min(v_min)

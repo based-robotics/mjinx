@@ -23,14 +23,13 @@ class MarkerData:
     """
     A dataclass for storing marker data.
 
-    Attributes:
-        :param name: The name of the marker.
-        :param id: The unique identifier of the marker.
-        :param type: The type of geometry for the marker.
-        :param size: The size of the marker.
-        :param pos: The position of the marker in 3D space. Defaults to [0, 0, 0].
-        :param rot: The rotation of the marker. Defaults to [1, 0, 0, 0] (identity quaternion).
-        :param rgba: The RGBA color values of the marker. Defaults to [0.5, 0.5, 0.5, 0.3].
+    :param name: The name of the marker.
+    :param id: The unique identifier of the marker.
+    :param type: The type of geometry for the marker.
+    :param size: The size of the marker.
+    :param pos: The position of the marker in 3D space. Defaults to [0, 0, 0].
+    :param rot: The rotation of the marker. Defaults to [1, 0, 0, 0] (identity quaternion).
+    :param rgba: The RGBA color values of the marker. Defaults to [0.5, 0.5, 0.5, 0.3].
     """
 
     name: str
@@ -81,6 +80,22 @@ class MarkerData:
 
 
 class BatchVisualizer:
+    """
+    A class for batch visualization of multiple MuJoCo model instances.
+
+    This class allows for the visualization of multiple instances of a given model,
+    with customizable transparency and marker options. It also supports recording
+    the visualization as a video.
+
+    :param model_path: Path to the MuJoCo model file.
+    :param n_models: Number of model instances to visualize.
+    :param geom_group: Geometry group to render, defaults to 2.
+    :param alpha: Transparency value for the models, defaults to 0.5.
+    :param record: If True, records and saves mp4 scene recording, defaults to False.
+    :param filename: Name of the file to save without extension, defaults to current datetime.
+    :param record_res: Resolution of recorded video (width, height), defaults to (1024, 1024).
+    """
+
     def __init__(
         self,
         model_path: str,
@@ -91,21 +106,6 @@ class BatchVisualizer:
         filename: str = "",
         record_res: tuple[int, int] = (1024, 1024),
     ):
-        """
-        A class for batch visualization of multiple models using MuJoCo.
-
-        This class allows for the visualization of multiple instances of a given model,
-        with customizable transparency and marker options. It also supports recording
-        the visualization as a video.
-
-        :param model_path: Path to the MuJoCo model file.
-        :param n_models: Number of model instances to visualize.
-        :param geom_group: Geometry group to render, defaults to 2.
-        :param alpha: Transparency value for the models, defaults to 0.5.
-        :param record: if True, records and saves mp4 scene recording, defaults to False.
-        :param filename: name of the file to save the file without extension, defaults to datetime.
-        :param record_res: resolution of recorded video (width, height), defaults to (1024, 1024).
-        """
         self.n_models = n_models
 
         # Generate the model, by stacking several provided models
@@ -131,12 +131,36 @@ class BatchVisualizer:
             self.mj_renderer = mj.Renderer(self.mj_model, width=record_res[0], height=record_res[1])
 
     def __find_asset(self, asset_root: str, asset_name: str) -> str:
+        """
+        Find the full path of an asset file within a given root directory.
+
+        :param asset_root: The root directory to search in.
+        :param asset_name: The name of the asset file to find.
+        :return: The full path to the asset file.
+        :raises ValueError: If the asset is not found in the given root directory.
+        """
+
         for root, _, files in os.walk(asset_root):
             if asset_name in files:
                 return os.path.join(root, asset_name)
         raise ValueError(f"asset {asset_name} not found in {asset_root}")
 
     def remove_high_level_body_tags(self, mjcf_str: str, model_directory: str) -> tuple[str, dict[str, bytes]]:
+        """
+        Remove high-level body tags from the MJCF XML string and process mesh assets.
+
+        This method modifies the XML structure by moving children of high-level body tags
+        directly under the worldbody tag. It also processes mesh elements, updating their
+        file attributes and collecting asset data.
+
+        Note that this solution is obviously very hacky and dirty, however the author
+        considers this easier and (barely) enough to complete the required task.
+        The attempts to solve this using dm_control failed, see: https://github.com/google-deepmind/dm_control/issues/407
+
+        :param mjcf_str: The MJCF XML string to process.
+        :param model_directory: The directory containing the model and its assets.
+        :return: A tuple containing the modified XML string and a dictionary of asset data.
+        """
         # Parse the XML string
         root = ET.fromstring(mjcf_str)
 
@@ -153,6 +177,7 @@ class BatchVisualizer:
                         worldbody.append(subchild)
                     worldbody.remove(child)
 
+        # Try to find and load meshes from the xml file directory
         mesh_elements = root.findall(".//mesh")
         assets: dict[str, bytes] = {}
         for mesh in mesh_elements:
