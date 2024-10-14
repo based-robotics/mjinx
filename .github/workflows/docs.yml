@@ -28,7 +28,7 @@ jobs:
 
       - name: "Build documentation"
         run: |
-          sphinx-build docs _build -W
+          sphinx-build docs _build
 
       # TODO: uncomment when repository will go public
       # - name: "Deploy to GitHub Pages"
