@@ -24,6 +24,7 @@ visual = [
     "dm_control",
     "mediapy",
 ]
+all = ["mjinx[dev, visual, docs]"]
 
 [build-system]
 requires = ["setuptools>=43.0.0", "wheel"]
