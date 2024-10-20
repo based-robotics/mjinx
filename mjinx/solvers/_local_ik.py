@@ -124,68 +124,6 @@ class LocalIKSolver(Solver[LocalIKData, LocalIKSolution]):
         super().__init__(model)
         self._solver = OSQP(**kwargs)
 
-    def __parse_component_objective(
-        self,
-        model: mjx.Model,
-        model_data: mjx.Data,
-        component: JaxComponent,
-    ) -> tuple[jnp.ndarray, jnp.ndarray]:
-        """Parse the objective terms for a given component.
-
-        :param model: The MuJoCo model.
-        :param model_data: The MuJoCo model data.
-        :param component: The component to parse.
-        :return: A tuple containing the quadratic and linear terms of the objective.
-        """
-        if isinstance(component, JaxTask):
-            jacobian = component.compute_jacobian(model_data)
-            minus_gain_error = -component.vector_gain * jax.lax.map(component.gain_fn, component(model_data))
-
-            weighted_jacobian = component.matrix_cost @ jacobian
-            weighted_error = component.matrix_cost @ minus_gain_error
-
-            mu = component.lm_damping * weighted_error @ weighted_error
-            eye_tg = jnp.eye(model.nv)
-            H = weighted_jacobian.T @ weighted_jacobian + mu * eye_tg
-            c = -weighted_error.T @ weighted_jacobian
-
-            return H, c
-
-        elif isinstance(component, JaxBarrier):
-            gain_over_jacobian = (
-                component.safe_displacement_gain / jnp.linalg.norm(component.compute_jacobian(model_data)) ** 2
-            )
-
-            return (
-                gain_over_jacobian * jnp.eye(model.nv),
-                -gain_over_jacobian * component.compute_safe_displacement(model_data),
-            )
-        else:
-            return jnp.zeros(model.nv, model.nv), jnp.zeros(model.nv)
-
-    def __parse_component_constraints(
-        self,
-        model: mjx.Model,
-        model_data: mjx.Data,
-        component: JaxComponent,
-    ) -> tuple[jnp.ndarray, jnp.ndarray]:
-        """Parse the constraint terms for a given component.
-
-        :param model: The MuJoCo model.
-        :param model_data: The MuJoCo model data.
-        :param component: The component to parse.
-        :return: A tuple containing the constraint matrix and right-hand side.
-        """
-        if isinstance(component, JaxBarrier):
-            barrier = component.compute_barrier(model_data)
-
-            return (
-                -component.compute_jacobian(model_data),
-                component.vector_gain * jax.lax.map(component.gain_fn, barrier),
-            )
-        else:
-            return jnp.empty((0, model.nv)), jnp.empty(0)
-
     def __compute_qp_matrices(
         self,
         problem_data: JaxProblemData,
@@ -193,10 +131,57 @@ class LocalIKSolver(Solver[LocalIKData, LocalIKSolution]):
     ) -> tuple[jnp.ndarray, jnp.ndarray, jnp.ndarray, jnp.ndarray]:
         """Compute the matrices for the Quadratic Program.
 
-        :param problem_data: The problem-specific data.
-        :param model_data: The MuJoCo model data.
-        :return: A tuple containing the quadratic term, linear term, constraint matrix, and right-hand side.
+        :param problem_data: The problem-specific data containing model and component information.
+        :param model_data: The MuJoCo model data for the current state.
+        :return: A tuple containing:
+            - P: The quadratic term matrix (H_total in the code)
+            - q: The linear term vector (c_total in the code)
+            - G: The inequality constraint matrix
+            - h: The inequality constraint vector
         """
+        nv = problem_data.model.nv
+
+        def process_task(task: JaxTask) -> tuple[jnp.ndarray, jnp.ndarray]:
+            """
+            Process a task component to compute its contribution to the QP matrices.
+
+            :param task: The task component to process.
+            :return: Tuple of (H, c) where H is the quadratic term and c is the linear term.
+            """
+            jacobian = task.compute_jacobian(model_data)
+            minus_gain_error = -task.vector_gain * jax.vmap(task.gain_fn)(task(model_data))
+
+            weighted_jacobian = task.matrix_cost @ jacobian
+            weighted_error = task.matrix_cost @ minus_gain_error
+
+            # Levenberg-Marquardt damping
+            mu = task.lm_damping * jnp.dot(weighted_error, weighted_error)
+            H = weighted_jacobian.T @ weighted_jacobian + mu * jnp.eye(nv)
+            c = -weighted_error.T @ weighted_jacobian
+            return H, c
+
+        def process_barrier(barrier: JaxBarrier) -> tuple[jnp.ndarray, jnp.ndarray, jnp.ndarray, jnp.ndarray]:
+            """
+            Process a barrier component to compute its contribution to the QP matrices.
+
+            :param barrier: The barrier component to process.
+            :return: Tuple of (H, c, G, h) where H and c contribute to the objective,
+                    and G and h contribute to the inequality constraints.
+            """
+            jacobian = barrier.compute_jacobian(model_data)
+            gain_over_jacobian = barrier.safe_displacement_gain / (jnp.linalg.norm(jacobian) ** 2)
+
+            # Computing objective term
+            H = gain_over_jacobian * jnp.eye(nv)
+            c = -gain_over_jacobian * barrier.compute_safe_displacement(model_data)
+
+            # Computing the constraint
+            barrier_value = barrier(model_data)
+            G = -barrier.compute_jacobian(model_data)
+            h = barrier.vector_gain * jax.vmap(barrier.gain_fn)(barrier_value)
+
+            return H, c, G, h
+
         H_total = jnp.zeros((self.model.nv, self.model.nv))
         c_total = jnp.zeros(self.model.nv)
 
@@ -209,17 +194,20 @@ class LocalIKSolver(Solver[LocalIKData, LocalIKSolution]):
         h_list.append(-problem_data.v_min)
         h_list.append(problem_data.v_max)
 
+        # Process each component
         for component in problem_data.components.values():
-            # The objective
-            H, c = self.__parse_component_objective(problem_data.model, model_data, component)
+            # Tasks
+            if isinstance(component, JaxTask):
+                H, c = process_task(component)
+            # Barriers
+            elif isinstance(component, JaxBarrier):
+                H, c, G, h = process_barrier(component)
+                G_list.append(G)
+                h_list.append(h)
             H_total = H_total + H
             c_total = c_total + c
 
-            # The constraints
-            G, h = self.__parse_component_constraints(problem_data.model, model_data, component)
-            G_list.append(G)
-            h_list.append(h)
-
+        # Combine all inequality constraints
         return H_total, c_total, jnp.vstack(G_list), jnp.concatenate(h_list)
 
     def solve_from_data(
