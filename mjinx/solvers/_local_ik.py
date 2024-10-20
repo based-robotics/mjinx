@@ -149,7 +149,7 @@ class LocalIKSolver(Solver[LocalIKData, LocalIKSolution]):
             :return: Tuple of (H, c) where H is the quadratic term and c is the linear term.
             """
             jacobian = task.compute_jacobian(model_data)
-            minus_gain_error = -task.vector_gain * jax.vmap(task.gain_fn)(task(model_data))
+            minus_gain_error = -task.vector_gain * jax.vmap(task.gain_fn)(task(model_data))  # type: ignore[arg-type]
 
             weighted_jacobian = task.matrix_cost @ jacobian
             weighted_error = task.matrix_cost @ minus_gain_error
@@ -178,7 +178,7 @@ class LocalIKSolver(Solver[LocalIKData, LocalIKSolution]):
             # Computing the constraint
             barrier_value = barrier(model_data)
             G = -barrier.compute_jacobian(model_data)
-            h = barrier.vector_gain * jax.vmap(barrier.gain_fn)(barrier_value)
+            h = barrier.vector_gain * jax.vmap(barrier.gain_fn)(barrier_value)  # type: ignore[arg-type]
 
             return H, c, G, h
 
