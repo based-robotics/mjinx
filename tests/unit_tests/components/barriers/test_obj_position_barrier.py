@@ -161,6 +161,7 @@ class TestPositionBarrier(unittest.TestCase):
             obj_type=mj.mjtObj.mjOBJ_BODY,
             p_min=jnp.array([-1.0, -1.0, -1.0]),
             p_max=jnp.array([1.0, 1.0, 1.0]),
+            limit_type_mask_idxs=tuple(i for i in range(6)),
         )
 
         self.data = self.data.replace(qpos=jnp.array([0.0, 0.5, -0.5, 1.0, 0.0, 0.0, 0.0]))
