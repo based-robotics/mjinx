@@ -3,6 +3,7 @@ from __future__ import annotations
 from collections.abc import Callable, Sequence
 from typing import final
 
+import jax
 import jax.numpy as jnp
 import jax_dataclasses as jdc
 import mujoco as mj
@@ -27,6 +28,7 @@ class JaxSelfCollisionBarrier(JaxBarrier):
 
     d_min_vec: jnp.ndarray
     collision_pairs: jdc.Static[list[CollisionPair]]
+    n_closest_pairs: jdc.Static[int]
 
     @final
     def __call__(self, data: mjx.Data) -> jnp.ndarray:
@@ -36,7 +38,11 @@ class JaxSelfCollisionBarrier(JaxBarrier):
         :param data: The MuJoCo simulation data.
         :return: The computed self-collision barrier value.
         """
-        return get_distance(self.model, data, self.collision_pairs) - self.d_min_vec
+        dist = get_distance(self.model, data, self.collision_pairs)
+        return -jax.lax.top_k(-dist, self.n_closest_pairs)[0] - self.d_min_vec
+
+    def compute_jacobian(self, data):
+        return super().compute_jacobian(data)
 
 
 class SelfCollisionBarrier(Barrier[JaxSelfCollisionBarrier]):
@@ -45,9 +51,15 @@ class SelfCollisionBarrier(Barrier[JaxSelfCollisionBarrier]):
 
     This class provides a high-level interface for self-collision barrier functions.
 
-    :param d_min: The minimum allowed distance between collision pairs.
-    :param collision_bodies: A sequence of bodies to check for collisions.
+    :param name: The name of the barrier.
+    :param gain: The gain for the barrier function.
+    :param gain_fn: A function to compute the gain dynamically.
+    :param safe_displacement_gain: The gain for computing safe displacements. Defaults to identity function
+    :param d_min: The minimum allowed distance between collision pairs. Defaults to zero.
+    :param collision_bodies: A sequence of bodies to check for collisions. Defaults to zero.
     :param excluded_collisions: A sequence of body pairs to exclude from collision checking.
+        Defaults to no excluded pairs.
+    :param n_closest_pairs: amount of closest pairs to consider. Defaults to all pairs considered.
     """
 
     JaxComponentType: type = JaxSelfCollisionBarrier
@@ -55,6 +67,7 @@ class SelfCollisionBarrier(Barrier[JaxSelfCollisionBarrier]):
     collision_bodies: Sequence[CollisionBody]
     exclude_collisions: set[CollisionPair]
     collision_pairs: list[CollisionPair]
+    n_closest_pairs: int
 
     def __init__(
         self,
@@ -65,19 +78,10 @@ class SelfCollisionBarrier(Barrier[JaxSelfCollisionBarrier]):
         d_min: float = 0,
         collision_bodies: Sequence[CollisionBody] = (),
         excluded_collisions: Sequence[tuple[CollisionBody, CollisionBody]] = (),
+        n_closest_pairs: int = -1,
     ):
-        """
-        Initialize the SelfCollisionBarrier object.
-
-        :param name: The name of the barrier.
-        :param gain: The gain for the barrier function.
-        :param gain_fn: A function to compute the gain dynamically.
-        :param safe_displacement_gain: The gain for computing safe displacements.
-        :param d_min: The minimum allowed distance between collision pairs.
-        :param collision_bodies: A sequence of bodies to check for collisions.
-        :param excluded_collisions: A sequence of body pairs to exclude from collision checking.
-        """
         self.collision_bodies = collision_bodies
+        self.n_closest_pairs = n_closest_pairs
         self.__exclude_collisions_raw: Sequence[tuple[CollisionBody, CollisionBody]] = excluded_collisions
 
         super().__init__(name, gain, gain_fn, safe_displacement_gain)
@@ -202,7 +206,9 @@ class SelfCollisionBarrier(Barrier[JaxSelfCollisionBarrier]):
             self.collision_bodies,
             self.exclude_collisions,
         )
-        self._dim = len(self.collision_pairs)
+        if self.n_closest_pairs == -1:
+            self.n_closest_pairs = len(self.collision_pairs)
+        self._dim = self.n_closest_pairs
 
     @property
     def d_min_vec(self) -> jnp.ndarray:
