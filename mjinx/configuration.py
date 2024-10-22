@@ -260,7 +260,11 @@ def sorted_pair(x: int, y: int) -> tuple[int, int]:
     return (min(x, y), max(x, y))
 
 
-def get_distance(model: mjx.Model, data: mjx.Data, collision_pairs: list[CollisionPair]) -> jnp.ndarray:
+def get_distance(
+    model: mjx.Model,
+    data: mjx.Data,
+    collision_pairs: list[CollisionPair],
+) -> tuple[jnp.ndarray, jnp.ndarray, jnp.ndarray]:
     """
     Compute the distances for the given collision pairs.
 
@@ -270,6 +274,8 @@ def get_distance(model: mjx.Model, data: mjx.Data, collision_pairs: list[Collisi
     :return: An array of distances for each collision pair.
     """
     dists = []
+    poses = []
+    frames = []
     for g1, g2 in collision_pairs:
         if model.geom_type[g1] > model.geom_type[g2]:
             g1, g2 = g2, g1
@@ -288,15 +294,16 @@ def get_distance(model: mjx.Model, data: mjx.Data, collision_pairs: list[Collisi
         key = mjx._src.collision_types.FunctionKey(types, data_ids, condim)
 
         collision_fn = mjx._src.collision_driver._COLLISION_FUNC[types]
-        dists.append(
-            collision_fn(
-                model,
-                data,
-                key,
-                jnp.array((g1, g2)).reshape(1, -1),
-            )[0].min()
+        dist, pos, frame = collision_fn(
+            model,
+            data,
+            key,
+            jnp.array((g1, g2)).reshape(1, -1),
         )
-    return jnp.array(dists).ravel()
+        dists.append(dist.min())
+        poses.append(pos)
+        frames.append(frame)
+    return jnp.array(dists), jnp.vstack(poses), jnp.vstack(frames)
 
 
 def skew_symmetric(v: jnp.ndarray) -> jnp.ndarray:
@@ -374,3 +381,11 @@ def jac_dq2v(model: mjx.Model, q: jnp.ndarray):
                 row_idx += 1
                 col_idx += 1
     return jac
+
+
+def body_point_jacobian(
+    model: mjx.Model, data: mjx.Data, point: jnp.ndarray, body_id: jnp.ndarray
+) -> tuple[jnp.ndarray, jnp.ndarray]:
+    jacobian = mjx._src.support.jac(model, data, point, body_id)
+    print(jacobian[0].shape, jacobian[1].shape)
+    return jacobian
