@@ -387,5 +387,4 @@ def body_point_jacobian(
     model: mjx.Model, data: mjx.Data, point: jnp.ndarray, body_id: jnp.ndarray
 ) -> tuple[jnp.ndarray, jnp.ndarray]:
     jacobian = mjx._src.support.jac(model, data, point, body_id)
-    print(jacobian[0].shape, jacobian[1].shape)
     return jacobian

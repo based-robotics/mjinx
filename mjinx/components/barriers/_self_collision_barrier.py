@@ -73,7 +73,7 @@ class JaxSelfCollisionBarrier(JaxBarrier):
         dists, points, frames = get_distance(self.model, data, self.collision_pairs)
         col_bodies = self.model.geom_bodyid[self.collision_pairs]
         jac = jax.vmap(jac_row)(dists, points, frames[:, 2], col_bodies[:, 0], col_bodies[:, 1])
-        print(jac.shape)
+
         return jac
 
 
