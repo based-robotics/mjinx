@@ -100,7 +100,7 @@ class LocalIKSolution(SolverSolution):
     v_opt: jnp.ndarray
     dual_var_eq: jnp.ndarray
     dual_var_ineq: jnp.ndarray
-    iter_num: int
+    iterations: int
     error: float
     status: int
 
@@ -236,7 +236,7 @@ class LocalIKSolver(Solver[LocalIKData, LocalIKSolution]):
                 v_opt=solution.params.primal,
                 dual_var_eq=solution.params.dual_eq,
                 dual_var_ineq=solution.params.dual_ineq,
-                iter_num=solution.state.iter_num,
+                iterations=solution.state.iter_num,
                 error=solution.state.error,
                 status=solution.state.status,
             ),
