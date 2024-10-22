@@ -16,3 +16,4 @@ Base Component
 --------------
 .. automodule:: mjinx.components._base
     :members:
+    :special-members: __call__

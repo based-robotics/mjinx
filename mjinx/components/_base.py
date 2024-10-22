@@ -15,10 +15,25 @@ from mjinx.typing import ArrayOrFloat
 
 @jdc.pytree_dataclass
 class JaxComponent(abc.ABC):
-    """
+    r"""
     A base class for JAX-based components in the optimization problem.
     This class provides a framework for creating differentiable components
     that can be used in optimization problems, particularly for robotics applications.
+
+    The component is always a function :math:`f(q, t)`. The exact meaning of this function
+    depends on inherited class, while its utilization in Optimal Control Problem
+    depends on the Solver class. Note that time dependence comes only from desired component values.
+
+    One of the solvers, :py:class:`local QP solver <mjinx.solvers._local_ik.LocalIKSolver>`, is built
+    around the concept of using Jacobian:
+
+    .. math::
+
+        J(q, t) = \frac{\partial f}{\partial q}
+
+    Those are the only values that has to be implemented for any compunent. They are computed by
+    :func:`__call__` and :func:`compute_jacobian` methods.
+
 
     :param dim: The dimension of the component's output.
     :param model: The MuJoCo model.
@@ -36,7 +51,7 @@ class JaxComponent(abc.ABC):
     @abc.abstractmethod
     def __call__(self, data: mjx.Data) -> jnp.ndarray:  # pragma: no cover
         """
-        Compute the component's value.
+        Compute the component's value :math:`f(q, t)`.
 
         This method should be implemented by subclasses to provide specific
         component calculations.
@@ -57,12 +72,25 @@ class JaxComponent(abc.ABC):
         return self.__class__(**new_args)
 
     def compute_jacobian(self, data: mjx.Data) -> jnp.ndarray:
-        """
+        r"""
         Compute the Jacobian of the component with respect to the joint positions.
+        The jacobian is a matrix :math:`J \in R^{dim \times nv}` that is defined as:
+
+        .. math::
+
+            J(q, t) = \frac{\partial f}{\partial q}
+
+        The main property that is desirable for us is that given this matrix, we obtain
+        component derivative as a linear matrix w.r.t. velocities:
+
+        .. math::
+
+            \dot{f}(q, t) = \frac{\partial f}{\partial q} v = J(q, t)
+
 
         The jacobian is calculated via automatic differentiation, if it is not overwritten.
-        If :math:`nq \\neq nv`, a special mapping :py:meth:`mjinx.configuration.jac_dq2v` is computed,
-        to transform :math:`J_{dq}` into :math:`J_v`.
+        If :math:`nq \\neq nv`, a special mapping is computed to transform :math:`J_{dq}` into :math:`J_v`.
+        For details, see :py:meth:`mjinx.configuration.jac_dq2v`.
 
         :param data: The MuJoCo simulation data.
         :return: The computed Jacobian matrix.
