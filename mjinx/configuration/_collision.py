@@ -24,25 +24,23 @@ def _geom_groups(
     model: mjx.Model,
     collision_pairs: list[CollisionPair],
 ) -> dict[FunctionKey, SimplifiedContact]:
-    """Returns geom pairs to check for collision grouped by collision function.
-
-    The grouping consists of:
-      - The collision function to run, which is determined by geom types
-      - For mesh geoms, convex functions are run for each distinct mesh in the
-        model, because the convex functions expect static mesh size. If a sphere
-        collides with a cube and a tetrahedron, sphere_convex is called twice.
-      - The condim of the collision. This ensures that the size of the resulting
-        constraint jacobian is determined at compile time.
-
-    Args:
-      m: a MuJoCo or MJX model
-
-    Returns:
-      a dict with grouping key and values geom1, geom2, pair index
     """
+    Group geometry pairs by their collision function characteristics.
+
+    Groups collision pairs based on geometry types, mesh properties, and collision
+    dimensions. For mesh geometries, convex functions are executed separately for
+    each distinct mesh in the model since convex functions require static mesh sizes.
+
+    :param model: The MuJoCo model containing geometry information.
+    :param collision_pairs: List of collision pairs to be grouped.
+    :return: Dictionary mapping function keys to simplified contact information.
+    """
+
     groups_geoms: dict[FunctionKey, list[tuple[int, int]]] = {}
 
     for g1, g2 in collision_pairs:
+        if model.geom_type[g1] > model.geom_type[g2]:
+            g1, g2 = g2, g1
         types = model.geom_type[g1], model.geom_type[g2]
         data_ids = model.geom_dataid[g1], model.geom_dataid[g2]
         if model.geom_priority[g1] > model.geom_priority[g2]:
@@ -79,8 +77,21 @@ def compute_collision_pairs(
     d: mjx.Data,
     collision_pairs: list[CollisionPair],
 ) -> SimplifiedContact:
-    """Collides geometries."""
+    """
+    Process and compute collisions between specified geometry pairs.
 
+    Executes collision detection by grouping geometry pairs, applying appropriate
+    collision functions, and combining the results. Handles multiple collision
+    contacts and ensures proper grouping by collision dimensions.
+
+    :param m: The MuJoCo model containing simulation parameters.
+    :param d: The MuJoCo data containing current state information.
+    :param collision_pairs: List of geometry pairs to check for collisions.
+    :return: Simplified contact information containing collision results.
+    """
+
+    if len(collision_pairs) == 0:
+        return SimplifiedContact(geom=np.zeros(0), dist=jnp.zeros(0), pos=jnp.zeros(0), frame=jnp.zeros(0))
     groups = _geom_groups(m, collision_pairs)
 
     # run collision functions on groups
@@ -99,7 +110,7 @@ def compute_collision_pairs(
         groups[key] = contact.replace(dist=dist, pos=pos, frame=frame)
 
     # collapse contacts together, ensuring they are grouped by condim
-    condim_groups = {}
+    condim_groups: dict[FunctionKey, list[SimplifiedContact]] = {}
     for key, contact in groups.items():
         condim_groups.setdefault(key.condim, []).append(contact)
 
