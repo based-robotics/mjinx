@@ -20,7 +20,7 @@ def sorted_pair(x: int, y: int) -> tuple[int, int]:
     return (min(x, y), max(x, y))
 
 
-def _geom_groups(
+def geom_groups(
     model: mjx.Model,
     collision_pairs: list[CollisionPair],
 ) -> dict[FunctionKey, SimplifiedContact]:
@@ -30,6 +30,8 @@ def _geom_groups(
     Groups collision pairs based on geometry types, mesh properties, and collision
     dimensions. For mesh geometries, convex functions are executed separately for
     each distinct mesh in the model since convex functions require static mesh sizes.
+
+    This function is greatly inspired by mujoco.mjx._src.collision_driver module.
 
     :param model: The MuJoCo model containing geometry information.
     :param collision_pairs: List of collision pairs to be grouped.
@@ -84,6 +86,8 @@ def compute_collision_pairs(
     collision functions, and combining the results. Handles multiple collision
     contacts and ensures proper grouping by collision dimensions.
 
+    This function is greatly inspired by mujoco.mjx._src.collision_driver module.
+
     :param m: The MuJoCo model containing simulation parameters.
     :param d: The MuJoCo data containing current state information.
     :param collision_pairs: List of geometry pairs to check for collisions.
@@ -92,7 +96,7 @@ def compute_collision_pairs(
 
     if len(collision_pairs) == 0:
         return SimplifiedContact(geom=np.zeros(0), dist=jnp.zeros(0), pos=jnp.zeros(0), frame=jnp.zeros(0))
-    groups = _geom_groups(m, collision_pairs)
+    groups = geom_groups(m, collision_pairs)
 
     # run collision functions on groups
     for key, contact in groups.items():
@@ -127,6 +131,8 @@ def get_distance(
 ) -> tuple[jnp.ndarray, jnp.ndarray, jnp.ndarray]:
     """
     Compute the distances for the given collision pairs.
+
+    This function is greatly inspired by mujoco.mjx._src.collision_driver module.
 
     :param model: The MuJoCo model.
     :param data: The MuJoCo data.
