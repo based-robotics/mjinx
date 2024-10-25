@@ -10,7 +10,7 @@ import mujoco as mj
 import mujoco.mjx as mjx
 
 from mjinx.components.barriers import Barrier, JaxBarrier
-from mjinx.configuration import compute_collision_pairs, sorted_pair, body_point_jacobian
+from mjinx.configuration import body_point_jacobian, compute_collision_pairs, sorted_pair
 from mjinx.typing import ArrayOrFloat, CollisionBody, CollisionPair
 
 
@@ -44,9 +44,11 @@ class JaxSelfCollisionBarrier(JaxBarrier):
     def compute_jacobian(self, data: mjx.Data) -> jnp.ndarray:
         """
         Compute the Jacobian of the barrier function with respect to joint positions.
+
         This method implements an analytical Jacobian computation which is more efficient
         than autodifferentiation. It computes the Jacobian by calculating how changes in
         joint positions affect the distances between collision pairs.
+
         :param data: The MuJoCo simulation data containing the current state of the system.
         :return: The Jacobian matrix of shape (n_collision_pairs, n_joints) where each entry (i,j)
                 represents how the i-th collision distance changes with respect to the j-th joint position.
