@@ -39,7 +39,6 @@ class JaxSelfCollisionBarrier(JaxBarrier):
         :return: The computed self-collision barrier value.
         """
         dists = compute_collision_pairs(self.model, data, self.collision_pairs).dist
-        print(dists.shape)
         return -jax.lax.top_k(-dists, self.n_closest_pairs)[0] - self.d_min_vec
 
     def compute_jacobian(self, data: mjx.Data) -> jnp.ndarray:
@@ -74,7 +73,6 @@ class JaxSelfCollisionBarrier(JaxBarrier):
         jac = jax.vmap(jac_row)(
             collisions.dist, collisions.pos, collisions.frame[:, 2], col_bodies[:, 0], col_bodies[:, 1]
         )
-        print(jac.shape)
         return jac
 
 
