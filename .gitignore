@@ -164,3 +164,4 @@ _build
 MUJOCO_LOG.TXT
 *.mp4
 *.prof
+benchmarks/logs/*.npz

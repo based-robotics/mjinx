@@ -41,41 +41,6 @@ class JaxSelfCollisionBarrier(JaxBarrier):
         dists = get_distance(self.model, data, self.collision_pairs)[0]
         return -jax.lax.top_k(-dists, self.n_closest_pairs)[0] - self.d_min_vec
 
-    def compute_jacobian(self, data: mjx.Data) -> jnp.ndarray:
-        """
-        Compute the Jacobian of the barrier function with respect to joint positions.
-
-        This method implements an analytical Jacobian computation which is more efficient
-        than autodifferentiation. It computes the Jacobian by calculating how changes in
-        joint positions affect the distances between collision pairs.
-
-        :param data: The MuJoCo simulation data containing the current state of the system.
-        :return: The Jacobian matrix of shape (n_collision_pairs, n_joints) where each entry (i,j)
-                represents how the i-th collision distance changes with respect to the j-th joint position.
-        """
-
-        def jac_row(
-            dist: jnp.ndarray,  # Scalar distance between collision pair
-            point: jnp.ndarray,  # (3,) array of contact point
-            normal: jnp.ndarray,  # (3,) array of contact normal
-            body_id1: jnp.ndarray,  # Scalar body index for first body
-            body_id2: jnp.ndarray,  # Scalar body index for second body
-        ) -> jnp.ndarray:
-            """
-            Compute a single row of the Jacobian matrix for one collision pair.
-            """
-            p1 = point - jnp.repeat(dist, 3) * normal / 2
-            p2 = point + jnp.repeat(dist, 3) * normal / 2
-            p_jac1 = body_point_jacobian(self.model, data, p1, body_id1)[0]
-            p_jac2 = body_point_jacobian(self.model, data, p2, body_id2)[0]
-            return normal @ (p_jac2 - p_jac1).T
-
-        dists, points, frames = get_distance(self.model, data, self.collision_pairs)
-        col_bodies = self.model.geom_bodyid[self.collision_pairs]
-        jac = jax.vmap(jac_row)(dists, points, frames[:, 2], col_bodies[:, 0], col_bodies[:, 1])
-
-        return jac
-
 
 class SelfCollisionBarrier(Barrier[JaxSelfCollisionBarrier]):
     """
