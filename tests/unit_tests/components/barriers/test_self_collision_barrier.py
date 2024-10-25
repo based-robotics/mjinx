@@ -169,6 +169,7 @@ class TestSelfCollisionBarrier(unittest.TestCase):
             safe_displacement_gain=0.0,
             d_min_vec=jnp.array([0.1]),
             collision_pairs=collision_pairs,
+            n_closest_pairs=len(collision_pairs),
         )
 
         result = barrier(self.data)
