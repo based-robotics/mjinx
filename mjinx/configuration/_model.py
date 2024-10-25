@@ -173,3 +173,11 @@ def get_configuration_limit(model: mjx.Model, limit: jnp.ndarray | float) -> tup
         jnp.vstack((-1 * jnp.eye(model.nv), jnp.eye(model.nv))),
         jnp.concatenate((limit_array, limit_array)),
     )
+
+
+def body_point_jacobian(
+    model: mjx.Model, data: mjx.Data, point: jnp.ndarray, body_id: jnp.ndarray
+) -> tuple[jnp.ndarray, jnp.ndarray]:
+    jacobian = mjx._src.support.jac(model, data, point, body_id)
+    print(jacobian[0].shape, jacobian[1].shape)
+    return jacobian
