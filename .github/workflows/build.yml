@@ -20,6 +20,7 @@ jobs:
     # needs: [tests]  # require tests to pass before deploy runs
     permissions:
       id-token: write  # IMPORTANT: mandatory for trusted publishing
+      contents: read
     environment:
       name: pypi
       url: https://pypi.org/p/mjinx 
