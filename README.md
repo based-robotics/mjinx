@@ -6,8 +6,13 @@
 [![PyPI downloads](https://img.shields.io/pypi/dm/jaxadi?color=blue)](https://pypistats.org/packages/jaxadi) -->
 
 
-**Mjinx** is a library for auto-differentiable numerical inverse kinematics, powered by **JAX** and **Mujoco MJX**. The library was heavily inspired by the similar Pinocchio-based tool [pink](https://github.com/stephane-caron/pink/tree/main). 
+**Mjinx** is a library for auto-differentiable numerical inverse kinematics, powered by **JAX** and **Mujoco MJX**. The library was heavily inspired by the similar Pinocchio-based tool [pink](https://github.com/stephane-caron/pink/tree/main) and Mujoco-based analogue [mink](https://github.com/kevinzakka/mink/tree/main).
 
+<p align="center">
+  <img src="img/local_ik_output.gif" style="width: 200px" />
+  <img src="img/go2_stance.gif" style="width: 200px" /> 
+  <img src="img/local_ik_input.gif" style="width: 200px"/>
+</p>
 
 ## Key features
 1. *Flexibility*. Each control problem is assembled via `Components`, which enforce desired behaviour or keeps system in a safety set. 
@@ -21,10 +26,11 @@ The package is available in PyPI registry, and could be installed via `pip`:
 pip install mjinx
 ```
 
-To run an examples or tests, please install the development version by running:
+To use visualizatoin tool `mjinx.visualization.BatchVisualizer`, please install `[visual]` version:
 ```python
-pip install mjinx[dev]
+pip install mjinx[visual]
 ```
+To start developing the `mjinx`, install the `[dev]` version. 
 
 ## Usage
 Here is the example of `mjinx` usage:
@@ -84,6 +90,7 @@ for t in np.arange(0, 5, 1e-2):
 The list of examples includes:
    1. `Kuka iiwa` local inverse kinematics ([single item](examples/local_ik.py), [vmap over desired trajectory](examples/local_ik_vmapped_output.py))
    2. `Kuka iiwa` global inverse kinematics ([single item](examples/global_ik.py), [vmap over desired trajectory](examples/global_ik_vmapped_output.py))
+   3. `Go2` [batched squats](examples/go2_squat.py) example
    
 
 ## Contributing
@@ -93,16 +100,14 @@ We are always open for the suggestions and contributions. For contribution guide
 The repostiory is under active development, the current plans before release are:
 - [ ] Add examples for:
   - [ ] Quadrotor
-  - [ ] Quadruped robot
   - [ ] Bipedal robot
+  - [ ] An MPPI example
   - [ ] (?) Collaboration of several robots
-- [ ] Add MPPI solver
-  - [ ] Add an MPPI example
-  - [ ] Wrap it as a solver
 - [ ] Add github pages
   - [ ] Extend mathematical descriptions in docstrings
-  - [ ] Add the `sphinx` website template
 - [ ] Add potential fields example
 
 ## Acknowledgement
-The repository was highly inspired by [`pink`](https://github.com/stephane-caron/pink) and [`mink`](https://github.com/kevinzakka/mink). 
+The repository was highly inspired by [`pink`](https://github.com/stephane-caron/pink) and [`mink`](https://github.com/kevinzakka/mink). Both authors, Stéphane Caron and Kevin Zakka, deeply inspire me to study robotics and contribute to the open source. Without them, this repository would not exist.
+
+Some utility functions in this code are taken from source code of [`MuJoCo MJX`](https://github.com/google-deepmind/mujoco/tree/main/mjx). Apart from being a wonderful tool for batched computations and ML, the source code is compact yet readable and informative, and I encourage everyone to take a look at it to learn a little bit more about physical simulations, `jax`, and MuJoCo in general. 
