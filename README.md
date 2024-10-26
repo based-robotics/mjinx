@@ -13,9 +13,9 @@
   <img src="img/go2_stance.gif" style="width: 45%; max-width: 300px" /> 
 </div> -->
 <p align="center">
-  <img src="img/local_ik_output.gif" style="width: 300px" />
-  <img src="img/go2_stance.gif" style="width: 300px" /> 
-  <img src="img/local_ik_input.gif" style="width: 300px"/>
+  <img src="img/local_ik_output.gif" style="width: 200px" />
+  <img src="img/go2_stance.gif" style="width: 200px" /> 
+  <img src="img/local_ik_input.gif" style="width: 200px"/>
 </p>
 
 ## Key features
