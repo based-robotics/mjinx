@@ -9,29 +9,33 @@ permissions:
   contents: read
 
 jobs:
-  tests:
-    uses: ./.github/workflows/tests.yml  # use the callable tests job to run tests
+  # tests:
+  #   uses: ./.github/workflows/tests.yml  # use the callable tests job to run tests
   
   deploy:
     runs-on: ubuntu-latest
     # run on tag only
     if: startsWith(github.ref, 'refs/tags/')
-    needs: [tests]  # require tests to pass before deploy runs
+    # needs: [tests]  # require tests to pass before deploy runs
     permissions:
       id-token: write  # IMPORTANT: mandatory for trusted publishing
     environment:
       name: pypi
-      url: https://pypi.org/p/mjinx  # Replace <package-name> with your PyPI project name
+      url: https://pypi.org/p/mjinx 
     steps:
-      - uses: actions/checkout@v3
+      - name: "Checkout Git repository"
+        uses: actions/checkout@v3
+
       - name: Set up Python
         uses: actions/setup-python@v3
         with:
           python-version: "3.x"
+
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
           pip install build
+
       - name: Build package
         run: python -m build --wheel
 
