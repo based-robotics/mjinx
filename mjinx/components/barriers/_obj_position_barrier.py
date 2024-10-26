@@ -26,6 +26,7 @@ class JaxPositionBarrier(JaxObjBarrier):
 
     p_min: jnp.ndarray
     p_max: jnp.ndarray
+    limit_type_mask_idxs: jdc.Static[tuple[int, ...]]
 
     @final
     def __call__(self, data: mjx.Data) -> jnp.ndarray:
@@ -41,7 +42,7 @@ class JaxPositionBarrier(JaxObjBarrier):
                 obj_pos - self.p_min,
                 self.p_max - obj_pos,
             ]
-        )
+        )[self.limit_type_mask_idxs,]
 
 
 class PositionBarrier(ObjBarrier[JaxPositionBarrier]):
@@ -95,16 +96,26 @@ class PositionBarrier(ObjBarrier[JaxPositionBarrier]):
         # Setting up the dimension, using mask and limit type
         self._limit_type = PositionLimitType.from_str(limit_type)
         n_axes = len(self.mask_idxs)
-        self._dim = 2 * n_axes if self.limit_type == PositionLimitType.BOTH else n_axes
 
-        self.update_p_min(
-            p_min if p_min is not None else jnp.empty(len(self.mask_idxs)),
-            ignore_warnings=True,
-        )
-        self.update_p_max(
-            p_max if p_max is not None else jnp.empty(len(self.mask_idxs)),
-            ignore_warnings=True,
-        )
+        self._limit_type_mask_idxs: tuple[int, ...]
+        match self.limit_type:
+            case PositionLimitType.MIN:
+                self._limit_type_mask_idxs = tuple(i for i in range(n_axes))
+                self._dim = n_axes
+            case PositionLimitType.MAX:
+                self._limit_type_mask_idxs = tuple(i for i in range(n_axes, 2 * n_axes))
+                self._dim = n_axes
+            case PositionLimitType.BOTH:
+                self._limit_type_mask_idxs = tuple(i for i in range(2 * n_axes))
+                self._dim = 2 * n_axes
+
+        self._p_min = jnp.zeros(n_axes)
+        self._p_max = jnp.zeros(n_axes)
+        if p_min is not None:
+            self.update_p_min(p_min)
+
+        if p_max is not None:
+            self.update_p_max(p_max)
 
     @property
     def limit_type(self) -> PositionLimitType:
@@ -114,6 +125,10 @@ class PositionBarrier(ObjBarrier[JaxPositionBarrier]):
         :return: The limit type.
         """
         return self._limit_type
+
+    @property
+    def limit_type_mask_idxs(self) -> tuple[int, ...]:
+        return self._limit_type_mask_idxs
 
     @property
     def p_min(self) -> jnp.ndarray:
@@ -134,12 +149,11 @@ class PositionBarrier(ObjBarrier[JaxPositionBarrier]):
 
         self.update_p_min(value)
 
-    def update_p_min(self, p_min: ArrayOrFloat, ignore_warnings: bool = False):
+    def update_p_min(self, p_min: ArrayOrFloat):
         """
         Update the minimum allowed position.
 
         :param p_min: The new minimum position.
-        :param ignore_warnings: Whether to ignore warnings about limit type.
         :raises ValueError: If the dimension of p_min is incorrect.
         """
 
@@ -151,7 +165,7 @@ class PositionBarrier(ObjBarrier[JaxPositionBarrier]):
             raise ValueError(
                 f"[PositionBarrier] wrong dimension of p_min: expected {len(self.mask_idxs)}, got {p_min_jnp.shape[-1]}"
             )
-        if not ignore_warnings and not PositionLimitType.includes_min(self.limit_type):
+        if not PositionLimitType.includes_min(self.limit_type):
             warnings.warn(
                 "[PositionBarrier] type of the limit does not include minimum bound. Assignment is ignored",
                 stacklevel=2,
@@ -173,12 +187,11 @@ class PositionBarrier(ObjBarrier[JaxPositionBarrier]):
     def p_max(self, value: ArrayOrFloat):
         self.update_p_max(value)
 
-    def update_p_max(self, p_max: ArrayOrFloat, ignore_warnings: bool = False):
+    def update_p_max(self, p_max: ArrayOrFloat):
         """
         Update the maximum allowed position.
 
         :param p_max: The new maximum position.
-        :param ignore_warnings: Whether to ignore warnings about limit type.
         :raises ValueError: If the dimension of p_max is incorrect.
         """
         p_max_jnp = jnp.array(p_max)
@@ -189,7 +202,7 @@ class PositionBarrier(ObjBarrier[JaxPositionBarrier]):
             raise ValueError(
                 f"[PositionBarrier] wrong dimension of p_max: expected {len(self.mask_idxs)}, got {p_max_jnp.shape[-1]}"
             )
-        if not ignore_warnings and not PositionLimitType.includes_max(self.limit_type):
+        if not PositionLimitType.includes_max(self.limit_type):
             warnings.warn(
                 "[PositionBarrier] type of the limit does not include maximum bound. Assignment is ignored",
                 stacklevel=2,

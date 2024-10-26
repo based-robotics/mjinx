@@ -3,13 +3,14 @@ from __future__ import annotations
 from collections.abc import Callable, Sequence
 from typing import final
 
+import jax
 import jax.numpy as jnp
 import jax_dataclasses as jdc
 import mujoco as mj
 import mujoco.mjx as mjx
 
 from mjinx.components.barriers import Barrier, JaxBarrier
-from mjinx.configuration import get_distance, sorted_pair
+from mjinx.configuration import body_point_jacobian, compute_collision_pairs, sorted_pair
 from mjinx.typing import ArrayOrFloat, CollisionBody, CollisionPair
 
 
@@ -27,6 +28,7 @@ class JaxSelfCollisionBarrier(JaxBarrier):
 
     d_min_vec: jnp.ndarray
     collision_pairs: jdc.Static[list[CollisionPair]]
+    n_closest_pairs: jdc.Static[int]
 
     @final
     def __call__(self, data: mjx.Data) -> jnp.ndarray:
@@ -36,7 +38,44 @@ class JaxSelfCollisionBarrier(JaxBarrier):
         :param data: The MuJoCo simulation data.
         :return: The computed self-collision barrier value.
         """
-        return get_distance(self.model, data, self.collision_pairs) - self.d_min_vec
+        dists = compute_collision_pairs(self.model, data, self.collision_pairs).dist
+        return -jax.lax.top_k(-dists, self.n_closest_pairs)[0] - self.d_min_vec
+
+    def compute_jacobian(self, data: mjx.Data) -> jnp.ndarray:
+        """
+        Compute the Jacobian of the barrier function with respect to joint positions.
+
+        This method implements an analytical Jacobian computation which is more efficient
+        than autodifferentiation. It computes the Jacobian by calculating how changes in
+        joint positions affect the distances between collision pairs.
+
+        :param data: The MuJoCo simulation data containing the current state of the system.
+        :return: The Jacobian matrix of shape (n_collision_pairs, n_joints) where each entry (i,j)
+                represents how the i-th collision distance changes with respect to the j-th joint position.
+        """
+
+        def jac_row(
+            dist: jnp.ndarray,  # Scalar distance between collision pair
+            point: jnp.ndarray,  # (3,) array of contact point
+            normal: jnp.ndarray,  # (3,) array of contact normal
+            body_id1: jnp.ndarray,  # Scalar body index for first body
+            body_id2: jnp.ndarray,  # Scalar body index for second body
+        ) -> jnp.ndarray:
+            """
+            Compute a single row of the Jacobian matrix for one collision pair.
+            """
+            p1 = point - jnp.repeat(dist, 3) * normal / 2
+            p2 = point + jnp.repeat(dist, 3) * normal / 2
+            p_jac1 = body_point_jacobian(self.model, data, p1, body_id1)[0]
+            p_jac2 = body_point_jacobian(self.model, data, p2, body_id2)[0]
+            return normal @ (p_jac2 - p_jac1).T
+
+        collisions = compute_collision_pairs(self.model, data, self.collision_pairs)
+        col_bodies = self.model.geom_bodyid[self.collision_pairs]
+        jac = jax.vmap(jac_row)(
+            collisions.dist, collisions.pos, collisions.frame[:, 2], col_bodies[:, 0], col_bodies[:, 1]
+        )
+        return jac
 
 
 class SelfCollisionBarrier(Barrier[JaxSelfCollisionBarrier]):
@@ -45,9 +84,15 @@ class SelfCollisionBarrier(Barrier[JaxSelfCollisionBarrier]):
 
     This class provides a high-level interface for self-collision barrier functions.
 
-    :param d_min: The minimum allowed distance between collision pairs.
-    :param collision_bodies: A sequence of bodies to check for collisions.
+    :param name: The name of the barrier.
+    :param gain: The gain for the barrier function.
+    :param gain_fn: A function to compute the gain dynamically.
+    :param safe_displacement_gain: The gain for computing safe displacements. Defaults to identity function
+    :param d_min: The minimum allowed distance between collision pairs. Defaults to zero.
+    :param collision_bodies: A sequence of bodies to check for collisions. Defaults to zero.
     :param excluded_collisions: A sequence of body pairs to exclude from collision checking.
+        Defaults to no excluded pairs.
+    :param n_closest_pairs: amount of closest pairs to consider. Defaults to all pairs considered.
     """
 
     JaxComponentType: type = JaxSelfCollisionBarrier
@@ -55,6 +100,7 @@ class SelfCollisionBarrier(Barrier[JaxSelfCollisionBarrier]):
     collision_bodies: Sequence[CollisionBody]
     exclude_collisions: set[CollisionPair]
     collision_pairs: list[CollisionPair]
+    n_closest_pairs: int
 
     def __init__(
         self,
@@ -65,19 +111,10 @@ class SelfCollisionBarrier(Barrier[JaxSelfCollisionBarrier]):
         d_min: float = 0,
         collision_bodies: Sequence[CollisionBody] = (),
         excluded_collisions: Sequence[tuple[CollisionBody, CollisionBody]] = (),
+        n_closest_pairs: int = -1,
     ):
-        """
-        Initialize the SelfCollisionBarrier object.
-
-        :param name: The name of the barrier.
-        :param gain: The gain for the barrier function.
-        :param gain_fn: A function to compute the gain dynamically.
-        :param safe_displacement_gain: The gain for computing safe displacements.
-        :param d_min: The minimum allowed distance between collision pairs.
-        :param collision_bodies: A sequence of bodies to check for collisions.
-        :param excluded_collisions: A sequence of body pairs to exclude from collision checking.
-        """
         self.collision_bodies = collision_bodies
+        self.n_closest_pairs = n_closest_pairs
         self.__exclude_collisions_raw: Sequence[tuple[CollisionBody, CollisionBody]] = excluded_collisions
 
         super().__init__(name, gain, gain_fn, safe_displacement_gain)
@@ -202,7 +239,9 @@ class SelfCollisionBarrier(Barrier[JaxSelfCollisionBarrier]):
             self.collision_bodies,
             self.exclude_collisions,
         )
-        self._dim = len(self.collision_pairs)
+        if self.n_closest_pairs == -1:
+            self.n_closest_pairs = len(self.collision_pairs)
+        self._dim = self.n_closest_pairs
 
     @property
     def d_min_vec(self) -> jnp.ndarray:
