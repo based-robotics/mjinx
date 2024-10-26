@@ -1,6 +1,6 @@
 [project]
 name = "mjinx"
-version = "0.1.0"
+version = "1.0.0"
 description = "Numerical Inverse Kinematics based on JAX + MJX"
 authors = [
   { name = "Ivan Domrachev", email = "domrachev10@gmail.com" },
