@@ -111,4 +111,6 @@ The repostiory is under active development, the current plans before release are
 - [ ] Add potential fields example
 
 ## Acknowledgement
-The repository was highly inspired by [`pink`](https://github.com/stephane-caron/pink) and [`mink`](https://github.com/kevinzakka/mink). 
+The repository was highly inspired by [`pink`](https://github.com/stephane-caron/pink) and [`mink`](https://github.com/kevinzakka/mink). Both authors, Stéphane Caron and Kevin Zakka, deeply inspire me to study robotics and contribute to the open source. Without them, this repository would not exist.
+
+Some utility functions in this code are taken from source code of [`MuJoCo MJX`](https://github.com/google-deepmind/mujoco/tree/main/mjx). Apart from being a wonderful tool for batched computations and ML, the source code is compact yet readable and informative, and I encourage everyone to take a look at it to learn a little bit more about physical simulations, `jax`, and MuJoCo in general. 
