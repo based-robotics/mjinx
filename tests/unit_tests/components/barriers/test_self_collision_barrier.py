@@ -173,5 +173,5 @@ class TestSelfCollisionBarrier(unittest.TestCase):
         )
 
         result = barrier(self.data)
-        expected = get_distance(self.model, self.data, collision_pairs) - barrier.d_min_vec
+        expected = get_distance(self.model, self.data, collision_pairs)[0] - barrier.d_min_vec
         np.testing.assert_array_almost_equal(result, expected)
