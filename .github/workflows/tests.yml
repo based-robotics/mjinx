@@ -6,14 +6,7 @@ on:
   pull_request:
     branches: [ main ]
   workflow_call: # allow this workflow to be called from other workflows
-
-    inputs:
-      config-path:
-        required: true
-        type: string
-    secrets:
-      personal_access_token:
-        required: true
+  
 
 jobs:
   unit-tests:
