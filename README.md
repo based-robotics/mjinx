@@ -8,10 +8,6 @@
 
 **Mjinx** is a library for auto-differentiable numerical inverse kinematics, powered by **JAX** and **Mujoco MJX**. The library was heavily inspired by the similar Pinocchio-based tool [pink](https://github.com/stephane-caron/pink/tree/main) and Mujoco-based analogue [mink](https://github.com/kevinzakka/mink/tree/main).
 
-<!-- <div align="center">
-  <img src="img/local_ik_output.gif" style="width: 45%; max-width: 300px" />
-  <img src="img/go2_stance.gif" style="width: 45%; max-width: 300px" /> 
-</div> -->
 <p align="center">
   <img src="img/local_ik_output.gif" style="width: 300px" />
   <img src="img/go2_stance.gif" style="width: 300px" /> 
@@ -30,10 +26,11 @@ The package is available in PyPI registry, and could be installed via `pip`:
 pip install mjinx
 ```
 
-To run an examples or tests, please install the development version by running:
+To use visualizatoin tool `mjinx.visualization.BatchVisualizer`, please install `[visual]` version:
 ```python
-pip install mjinx[dev]
+pip install mjinx[visual]
 ```
+To start developing the `mjinx`, install the `[dev]` version. 
 
 ## Usage
 Here is the example of `mjinx` usage:
