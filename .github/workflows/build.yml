@@ -16,7 +16,7 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     # run on tag only
-    if: startsWith(github.ref, 'refs/tags/')
+    # if: startsWith(github.ref, 'refs/tags/')
     # needs: [tests]  # require tests to pass before deploy runs
     permissions:
       id-token: write  # IMPORTANT: mandatory for trusted publishing
