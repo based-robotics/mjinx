@@ -12,11 +12,11 @@
   <img src="img/local_ik_output.gif" style="width: 45%; max-width: 300px" />
   <img src="img/go2_stance.gif" style="width: 45%; max-width: 300px" /> 
 </div> -->
-<div align="center">
-  <img src="img/local_ik_output.gif" style="width: 30%; max-width: 300px" />
-  <img src="img/go2_stance.gif" style="width: 30%; max-width: 300px" /> 
-  <img src="img/local_ik_input.gif" style="width: 30%; max-width: 300px"/>
-</div>
+<p align="center">
+  <img src="img/local_ik_output.gif" style="width: 300px" />
+  <img src="img/go2_stance.gif" style="width: 300px" /> 
+  <img src="img/local_ik_input.gif" style="width: 300px"/>
+</p>
 
 ## Key features
 1. *Flexibility*. Each control problem is assembled via `Components`, which enforce desired behaviour or keeps system in a safety set. 
