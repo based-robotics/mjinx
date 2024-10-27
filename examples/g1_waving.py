@@ -1,4 +1,5 @@
 import traceback
+from time import perf_counter
 
 import jax
 import jax.numpy as jnp
@@ -8,7 +9,7 @@ import numpy as np
 from jaxlie import SE3, SO3
 
 from mjinx.components.barriers import JointBarrier
-from mjinx.components.tasks import FrameTask
+from mjinx.components.tasks import ComTask, FrameTask
 from mjinx.configuration import integrate, update
 from mjinx.problem import Problem
 from mjinx.solvers import LocalIKSolver
@@ -25,51 +26,73 @@ q_max = mj_model.jnt_range[:, 1].copy()
 
 # --- Mujoco visualization ---
 # Initialize render window and launch it at the background
-vis = BatchVisualizer("examples/g1_description/g1.xml", n_models=5, alpha=0.2)
+vis = BatchVisualizer("examples/g1_description/g1.xml", n_models=1, alpha=1.0)
+vis.add_markers(
+    name=[f"left_arm_{i}" for i in range(vis.n_models)],
+    size=0.05,
+    marker_alpha=0.5,
+    color_begin=np.array([1.0, 0.0, 0.0]),
+    color_end=np.array([1.0, 0.27, 0.27]),
+    n_markers=vis.n_models,
+)
+
+vis.add_markers(
+    name=[f"right_arm_{i}" for i in range(vis.n_models)],
+    size=0.05,
+    marker_alpha=0.5,
+    color_begin=np.array([0.0, 1.0, 0.0]),
+    color_end=np.array([0.27, 1.0, 0.27]),
+    n_markers=vis.n_models,
+)
 
 # === Mjinx ===
 # --- Constructing the problem ---
 # Creating problem formulation
-problem = Problem(mjx_model, v_min=-1, v_max=1)
+problem = Problem(mjx_model, v_min=-10, v_max=10)
 
 # Creating components of interest and adding them to the problem
-body_task = FrameTask("body_task", cost=1.0, gain=10, obj_name="torso_link")
 joints_barrier = JointBarrier("jnt_range", gain=0.1, floating_base=True)
+
+com_task = ComTask("com_task", cost=20.0, gain=50.0, mask=[1, 1, 0])
+torso_task = FrameTask("torso_task", cost=1.0, gain=20.0, obj_name="pelvis", mask=[0, 0, 0, 1, 1, 1])
 
 # Arms (moving)
 left_arm_task = FrameTask(
     "left_arm_task",
-    cost=1.0,
-    gain=10,
+    cost=10.0,
+    gain=25.0,
     obj_type=mj.mjtObj.mjOBJ_SITE,
     obj_name="left_wrist",
+    # mask=[1, 1, 1, 0, 0, 0],
 )
 right_arm_task = FrameTask(
     "right_arm_task",
-    cost=1.0,
-    gain=10,
+    cost=10.0,
+    gain=25,
     obj_type=mj.mjtObj.mjOBJ_SITE,
     obj_name="right_wrist",
+    # mask=[1, 1, 1, 0, 0, 0],
 )
 
 # Feet (in stance)
 left_foot_task = FrameTask(
     "left_foot_task",
-    cost=20.0,
-    gain=10.0,
+    cost=50.0,
+    gain=100.0,
     obj_type=mj.mjtObj.mjOBJ_SITE,
     obj_name="left_foot",
 )
 right_foot_task = FrameTask(
     "right_foot_task",
-    cost=20.0,
-    gain=10.0,
+    cost=50.0,
+    gain=100.0,
     obj_type=mj.mjtObj.mjOBJ_SITE,
     obj_name="right_foot",
 )
 
 
-problem.add_component(body_task)
+problem.add_component(com_task)
+problem.add_component(torso_task)
 problem.add_component(joints_barrier)
 problem.add_component(left_arm_task)
 problem.add_component(right_arm_task)
@@ -83,29 +106,23 @@ problem_data = problem.compile()
 solver = LocalIKSolver(mjx_model, maxiter=10)
 
 # Initializing initial condition
-N_batch = 5
+N_batch = 1
 q0 = mj_model.keyframe("stand").qpos
 q = jnp.tile(q0, (N_batch, 1))
 
 # TODO: implement update_from_model_data
 mjx_data = update(mjx_model, jnp.array(q0))
 
-left_foot_pos = mjx_data.geom_xpos[mjx.name2id(mjx_model, mj.mjtObj.mjOBJ_SITE, "left_foot")]
-problem.component("left_foot_task").target_frame = jnp.array([*left_foot_pos, 1, 0, 0, 0])
+com_pos = mjx_data.subtree_com[mjx_model.body_rootid[0]]
+com_task.target_com = com_pos[:2]
 
-right_foot_pos = mjx_data.geom_xpos[mjx.name2id(mjx_model, mj.mjtObj.mjOBJ_SITE, "right_foot")]
-problem.component("right_foot_task").target_frame = jnp.array([*right_foot_pos, 1, 0, 0, 0])
+torso_task.target_frame = np.array([0, 0, 0, 1, 0, 0, 0])
 
-left_wrist_id = mjx.name2id(mjx_model, mj.mjtObj.mjOBJ_SITE, "left_wrist")
-left_wrist_0 = SE3.from_rotation_and_translation(
-    rotation=SO3.from_matrix(mjx_data.site_xmat[left_wrist_id]),
-    translation=mjx_data.site_xpos[left_wrist_id],
-)
-right_wrist_id = mjx.name2id(mjx_model, mj.mjtObj.mjOBJ_SITE, "right_wrist")
-right_wrist_0 = SE3.from_rotation_and_translation(
-    rotation=SO3.from_matrix(mjx_data.site_xmat[right_wrist_id]),
-    translation=mjx_data.site_xpos[right_wrist_id],
-)
+left_foot_pos = mjx_data.site_xpos[mjx.name2id(mjx_model, mj.mjtObj.mjOBJ_SITE, "left_foot")]
+left_foot_task.target_frame = jnp.array([*left_foot_pos, 1, 0, 0, 0])
+
+right_foot_pos = mjx_data.site_xpos[mjx.name2id(mjx_model, mj.mjtObj.mjOBJ_SITE, "right_foot")]
+right_foot_task.target_frame = jnp.array([*right_foot_pos, 1, 0, 0, 0])
 
 # --- Batching ---
 solver_data = jax.vmap(solver.init, in_axes=0)(v_init=jnp.zeros((N_batch, mjx_model.nv)))
@@ -127,23 +144,65 @@ dt = 1e-2
 ts = np.arange(0, 20, dt)
 
 
+def heart_curve(t: np.ndarray, p0: np.ndarray | None = None) -> np.ndarray:
+    """Heart-like function.
+
+    Function is shifted so that heart_curve(0) = p0.
+
+    :param t: time, a.k.a phase
+    :param p0: initial heart shift, defaults to zero
+    :return: point on the heart contour
+    :ref: https://pavpanchekha.com/blog/heart-polar-coordinates.html
+    """
+    # Shift the phase
+    t += np.pi / 2
+
+    # Polar coordinates formula
+    r = 0.1 * (np.sin(t) * np.sqrt(abs(np.cos(t))) / (np.sin(t) + 7 / 5) - 2 * np.sin(t) + 2)
+    # Cartesian coordinates formula
+    pts = np.array([np.zeros_like(t), r * np.cos(t), r * np.sin(t)])
+
+    # Shift the cartesian point w.r.t. initial point
+    p0 = p0 if p0 is not None else np.zeros(3)
+
+    return np.tile(p0, (len(t), 1)) + pts.T
+
+
+def triangle_wave(t: np.ndarray) -> np.ndarray:
+    return np.where(t % (2 * np.pi) < np.pi, t % np.pi, np.pi - (t % np.pi))
+
+
+p0 = np.array([0.35, 0.0, 1.0])
+
 try:
     for t in ts:
-        print(left_wrist_0.wxyz_xyz.shape)
         # Changing desired values
-        left_arm_task.target_frame = jnp.tile(
-            left_wrist_0.wxyz_xyz + jnp.array([0, 0, 0, 0, 0, 0.2 * jnp.sin(t), 0]), (N_batch, 1)
+        right_series = np.pi * triangle_wave(np.linspace(t, np.pi + t, N_batch))
+        left_series = 2 * np.pi - right_series
+        left_arm_task.target_frame = np.concatenate(
+            (
+                heart_curve(left_series, p0),
+                np.tile(np.array((1, 0, 0, 0)), (N_batch, 1)),
+            ),
+            axis=1,
         )
-        right_arm_task.target_frame = jnp.tile(
-            right_wrist_0.wxyz_xyz + jnp.array([0, 0, 0, 0, 0, -0.2 * jnp.sin(t), 0]), (N_batch, 1)
+        right_arm_task.target_frame = np.concatenate(
+            (
+                heart_curve(right_series, p0),
+                np.tile(np.array((1, 0, 0, 0)), (N_batch, 1)),
+            ),
+            axis=1,
         )
 
         # After changes, recompiling the model
         problem_data = problem.compile()
 
         # Solving the instance of the problem
+        t0 = perf_counter()
         opt_solution, solver_data = solve_jit(q, solver_data, problem_data)
+        t1 = perf_counter()
 
+        print(f"{(t1 - t0) * 1e3 :0.2f}")
         # Integrating
         q = integrate_jit(
             mjx_model,
@@ -153,7 +212,14 @@ try:
         )
 
         # --- MuJoCo visualization ---
-        vis.update(q[:: N_batch // vis.n_models])
+        indices = np.arange(0, N_batch, N_batch // vis.n_models)
+        left_arm_viz = left_arm_task.target_frame.translation()[indices]
+        right_arm_viz = right_arm_task.target_frame.translation()[indices]
+        for i in range(vis.n_models):
+            vis.marker_data[f"left_arm_{i}"].pos = left_arm_viz[i]
+            vis.marker_data[f"right_arm_{i}"].pos = right_arm_viz[i]
+
+        vis.update(q[indices])
 
 except KeyboardInterrupt:
     print("Finalizing the simulation as requested...")
