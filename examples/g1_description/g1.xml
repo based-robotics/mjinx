@@ -281,7 +281,6 @@
                       <body name="right_two_link" pos="0 0.0431 0">
                         <inertial pos="-0.00135257 0.0237591 -0.000119669" quat="0.695316 0.717995 0.0263741 0.0180122"
                           mass="0.0138584" diaginertia="2.55338e-06 2.04399e-06 9.3995e-07"/>
-                        <joint name="right_two_joint" axis="0 0 1" range="-1.84 0"/>
                         <geom type="mesh" class="visual" mesh="right_two_link"/>
                       </body>
                     </body>
@@ -356,10 +355,10 @@
       qpos="
       0 0 0.75
       1 0 0 0
-      0 0 0 0 0 0
-      0
-      0 0 0 0 0
-      0 0 0 0 0
-      0 0 0 0 0 0 0"/>
+      -0.3 0 0 0.6 -0.3 0 
+      -0.3 0 0 0.6 -0.3 0
+      0 
+      0 0 0 0 0 
+      0 0 0 0 0"/>
   </keyframe>
 </mujoco>

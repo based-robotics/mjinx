@@ -8,7 +8,7 @@ import mujoco.mjx as mjx
 import numpy as np
 from jaxlie import SE3, SO3
 
-from mjinx.components.barriers import JointBarrier
+from mjinx.components.barriers import JointBarrier, SelfCollisionBarrier
 from mjinx.components.tasks import ComTask, FrameTask
 from mjinx.configuration import integrate, update
 from mjinx.problem import Problem
@@ -48,30 +48,30 @@ vis.add_markers(
 # === Mjinx ===
 # --- Constructing the problem ---
 # Creating problem formulation
-problem = Problem(mjx_model, v_min=-10, v_max=10)
+problem = Problem(mjx_model, v_min=-5, v_max=5)
 
 # Creating components of interest and adding them to the problem
-joints_barrier = JointBarrier("jnt_range", gain=0.1, floating_base=True)
+joints_barrier = JointBarrier("jnt_range", gain=0.0005, floating_base=True)
 
 com_task = ComTask("com_task", cost=20.0, gain=50.0, mask=[1, 1, 0])
-torso_task = FrameTask("torso_task", cost=1.0, gain=20.0, obj_name="pelvis", mask=[0, 0, 0, 1, 1, 1])
+torso_task = FrameTask("torso_task", cost=10.0, gain=10.0, obj_name="pelvis", mask=[0, 0, 0, 1, 1, 1])
 
 # Arms (moving)
 left_arm_task = FrameTask(
     "left_arm_task",
-    cost=10.0,
+    cost=50.0,
     gain=25.0,
-    obj_type=mj.mjtObj.mjOBJ_SITE,
-    obj_name="left_wrist",
-    # mask=[1, 1, 1, 0, 0, 0],
+    obj_type=mj.mjtObj.mjOBJ_BODY,
+    obj_name="left_one_link",
+    mask=[1, 1, 1, 1, 1, 0],
 )
 right_arm_task = FrameTask(
     "right_arm_task",
-    cost=10.0,
-    gain=25,
-    obj_type=mj.mjtObj.mjOBJ_SITE,
-    obj_name="right_wrist",
-    # mask=[1, 1, 1, 0, 0, 0],
+    cost=50.0,
+    gain=25.0,
+    obj_type=mj.mjtObj.mjOBJ_BODY,
+    obj_name="right_one_link",
+    mask=[1, 1, 1, 1, 1, 0],
 )
 
 # Feet (in stance)
@@ -158,7 +158,7 @@ def heart_curve(t: np.ndarray, p0: np.ndarray | None = None) -> np.ndarray:
     t += np.pi / 2
 
     # Polar coordinates formula
-    r = 0.1 * (np.sin(t) * np.sqrt(abs(np.cos(t))) / (np.sin(t) + 7 / 5) - 2 * np.sin(t) + 2)
+    r = 0.07 * (np.sin(t) * np.sqrt(abs(np.cos(t))) / (np.sin(t) + 7 / 5) - 2 * np.sin(t) + 2)
     # Cartesian coordinates formula
     pts = np.array([np.zeros_like(t), r * np.cos(t), r * np.sin(t)])
 
@@ -172,12 +172,12 @@ def triangle_wave(t: np.ndarray) -> np.ndarray:
     return np.where(t % (2 * np.pi) < np.pi, t % np.pi, np.pi - (t % np.pi))
 
 
-p0 = np.array([0.35, 0.0, 1.0])
+p0 = np.array([0.3, 0.0, 0.9])
 
 try:
     for t in ts:
         # Changing desired values
-        right_series = np.pi * triangle_wave(np.linspace(t, np.pi + t, N_batch))
+        right_series = triangle_wave(np.linspace(t, np.pi + t, N_batch))
         left_series = 2 * np.pi - right_series
         left_arm_task.target_frame = np.concatenate(
             (
