@@ -26,22 +26,22 @@ q_max = mj_model.jnt_range[:, 1].copy()
 
 # --- Mujoco visualization ---
 # Initialize render window and launch it at the background
-vis = BatchVisualizer("examples/g1_description/g1.xml", n_models=1, alpha=1.0)
+vis = BatchVisualizer("examples/g1_description/g1.xml", n_models=8, alpha=0.2, record=True)
 vis.add_markers(
     name=[f"left_arm_{i}" for i in range(vis.n_models)],
-    size=0.05,
-    marker_alpha=0.5,
-    color_begin=np.array([1.0, 0.0, 0.0]),
-    color_end=np.array([1.0, 0.27, 0.27]),
+    size=0.035,
+    marker_alpha=0.8,
+    color_begin=np.array([1.000, 0.059, 0.482]),
+    color_end=np.array([0.973, 0.608, 0.161]),
     n_markers=vis.n_models,
 )
 
 vis.add_markers(
     name=[f"right_arm_{i}" for i in range(vis.n_models)],
-    size=0.05,
-    marker_alpha=0.5,
-    color_begin=np.array([0.0, 1.0, 0.0]),
-    color_end=np.array([0.27, 1.0, 0.27]),
+    size=0.035,
+    marker_alpha=0.8,
+    color_begin=np.array([1.000, 0.059, 0.482]),
+    color_end=np.array([0.973, 0.608, 0.161]),
     n_markers=vis.n_models,
 )
 
@@ -51,24 +51,24 @@ vis.add_markers(
 problem = Problem(mjx_model, v_min=-5, v_max=5)
 
 # Creating components of interest and adding them to the problem
-joints_barrier = JointBarrier("jnt_range", gain=0.0005, floating_base=True)
+joints_barrier = JointBarrier("jnt_range", gain=1.0, floating_base=True)
 
-com_task = ComTask("com_task", cost=20.0, gain=50.0, mask=[1, 1, 0])
-torso_task = FrameTask("torso_task", cost=10.0, gain=10.0, obj_name="pelvis", mask=[0, 0, 0, 1, 1, 1])
+com_task = ComTask("com_task", cost=1.0, gain=2.0, mask=[1, 1, 0])
+torso_task = FrameTask("torso_task", cost=1.0, gain=2.0, obj_name="pelvis", mask=[0, 0, 0, 1, 1, 1])
 
 # Arms (moving)
 left_arm_task = FrameTask(
     "left_arm_task",
-    cost=50.0,
-    gain=25.0,
+    cost=1.0,
+    gain=20.0,
     obj_type=mj.mjtObj.mjOBJ_BODY,
     obj_name="left_one_link",
     mask=[1, 1, 1, 1, 1, 0],
 )
 right_arm_task = FrameTask(
     "right_arm_task",
-    cost=50.0,
-    gain=25.0,
+    cost=1.0,
+    gain=20.0,
     obj_type=mj.mjtObj.mjOBJ_BODY,
     obj_name="right_one_link",
     mask=[1, 1, 1, 1, 1, 0],
@@ -77,19 +77,37 @@ right_arm_task = FrameTask(
 # Feet (in stance)
 left_foot_task = FrameTask(
     "left_foot_task",
-    cost=50.0,
-    gain=100.0,
+    cost=2.0,
+    gain=5.0,
     obj_type=mj.mjtObj.mjOBJ_SITE,
     obj_name="left_foot",
 )
 right_foot_task = FrameTask(
     "right_foot_task",
-    cost=50.0,
-    gain=100.0,
+    cost=2.0,
+    gain=5.0,
     obj_type=mj.mjtObj.mjOBJ_SITE,
     obj_name="right_foot",
 )
 
+# Avoiding collision between arms and torso
+self_collision_barrier = SelfCollisionBarrier(
+    "self_collision_barrier",
+    gain=20.0,
+    safe_displacement_gain=1e-2,
+    d_min=0.01,
+    collision_bodies=[
+        "torso_link",
+        "left_shoulder_roll_link",
+        "left_elbow_roll_link",
+        "right_shoulder_roll_link",
+        "right_elbow_roll_link",
+    ],
+    excluded_collisions=[
+        ("left_shoulder_roll_link", "left_elbow_roll_link"),
+        ("right_shoulder_roll_link", "right_elbow_roll_link"),
+    ],
+)
 
 problem.add_component(com_task)
 problem.add_component(torso_task)
@@ -98,15 +116,17 @@ problem.add_component(left_arm_task)
 problem.add_component(right_arm_task)
 problem.add_component(left_foot_task)
 problem.add_component(right_foot_task)
+problem.add_component(self_collision_barrier)
 
 # Compiling the problem upon any parameters update
 problem_data = problem.compile()
+print(self_collision_barrier.n_closest_pairs)
 
 # Initializing solver and its initial state
 solver = LocalIKSolver(mjx_model, maxiter=10)
 
 # Initializing initial condition
-N_batch = 1
+N_batch = 1000
 q0 = mj_model.keyframe("stand").qpos
 q = jnp.tile(q0, (N_batch, 1))
 
@@ -172,7 +192,7 @@ def triangle_wave(t: np.ndarray) -> np.ndarray:
     return np.where(t % (2 * np.pi) < np.pi, t % np.pi, np.pi - (t % np.pi))
 
 
-p0 = np.array([0.3, 0.0, 0.9])
+p0 = np.array([0.25, 0.0, 0.85])
 
 try:
     for t in ts:
