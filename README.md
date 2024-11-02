@@ -11,7 +11,7 @@
 <p align="center">
   <img src="img/local_ik_output.gif" style="width: 200px" />
   <img src="img/go2_stance.gif" style="width: 200px" /> 
-  <img src="img/local_ik_input.gif" style="width: 200px"/>
+  <img src="img/g1_heart.gif" style="width: 200px"/>
 </p>
 
 ## Key features

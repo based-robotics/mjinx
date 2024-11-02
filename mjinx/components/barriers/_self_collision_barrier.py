@@ -10,7 +10,7 @@ import mujoco as mj
 import mujoco.mjx as mjx
 
 from mjinx.components.barriers import Barrier, JaxBarrier
-from mjinx.configuration import body_point_jacobian, compute_collision_pairs, sorted_pair
+from mjinx.configuration import geom_point_jacobian, compute_collision_pairs, sorted_pair
 from mjinx.typing import ArrayOrFloat, CollisionBody, CollisionPair
 
 
@@ -64,16 +64,22 @@ class JaxSelfCollisionBarrier(JaxBarrier):
             """
             Compute a single row of the Jacobian matrix for one collision pair.
             """
-            p1 = point - jnp.repeat(dist, 3) * normal / 2
-            p2 = point + jnp.repeat(dist, 3) * normal / 2
-            p_jac1 = body_point_jacobian(self.model, data, p1, body_id1)[0]
-            p_jac2 = body_point_jacobian(self.model, data, p2, body_id2)[0]
+            p1 = point - jnp.repeat(dist / 2, 3) * normal
+            p2 = point + jnp.repeat(dist / 2, 3) * normal
+            p_jac1 = geom_point_jacobian(self.model, data, p1, body_id1)[:, :3]
+            p_jac2 = geom_point_jacobian(self.model, data, p2, body_id2)[:, :3]
             return normal @ (p_jac2 - p_jac1).T
 
         collisions = compute_collision_pairs(self.model, data, self.collision_pairs)
-        col_bodies = self.model.geom_bodyid[self.collision_pairs]
+        topk_idxs = jax.lax.top_k(-collisions.dist, self.n_closest_pairs)[1]
+        col_bodies = jnp.array(self.model.geom_bodyid[self.collision_pairs])
+
         jac = jax.vmap(jac_row)(
-            collisions.dist, collisions.pos, collisions.frame[:, 2], col_bodies[:, 0], col_bodies[:, 1]
+            collisions.dist[topk_idxs,],
+            collisions.pos[topk_idxs,],
+            collisions.frame[topk_idxs, 0],
+            col_bodies[topk_idxs, 0],
+            col_bodies[topk_idxs, 1],
         )
         return jac
 
