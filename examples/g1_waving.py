@@ -26,13 +26,13 @@ q_max = mj_model.jnt_range[:, 1].copy()
 
 # --- Mujoco visualization ---
 # Initialize render window and launch it at the background
-vis = BatchVisualizer("examples/g1_description/g1.xml", n_models=8, alpha=0.2, record=True)
+vis = BatchVisualizer("examples/g1_description/g1.xml", n_models=10, alpha=0.1, record=True)
 vis.add_markers(
     name=[f"left_arm_{i}" for i in range(vis.n_models)],
     size=0.035,
     marker_alpha=0.8,
-    color_begin=np.array([1.000, 0.059, 0.482]),
-    color_end=np.array([0.973, 0.608, 0.161]),
+    color_begin=np.array([1.0, 0.0, 0.0]),
+    color_end=np.array([1.0, 0.0, 0.0]),
     n_markers=vis.n_models,
 )
 
@@ -40,8 +40,8 @@ vis.add_markers(
     name=[f"right_arm_{i}" for i in range(vis.n_models)],
     size=0.035,
     marker_alpha=0.8,
-    color_begin=np.array([1.000, 0.059, 0.482]),
-    color_end=np.array([0.973, 0.608, 0.161]),
+    color_begin=np.array([1.0, 0.0, 0.0]),
+    color_end=np.array([1.0, 0.0, 0.0]),
     n_markers=vis.n_models,
 )
 
@@ -77,15 +77,15 @@ right_arm_task = FrameTask(
 # Feet (in stance)
 left_foot_task = FrameTask(
     "left_foot_task",
-    cost=2.0,
-    gain=5.0,
+    cost=5.0,
+    gain=50.0,
     obj_type=mj.mjtObj.mjOBJ_SITE,
     obj_name="left_foot",
 )
 right_foot_task = FrameTask(
     "right_foot_task",
-    cost=2.0,
-    gain=5.0,
+    cost=5.0,
+    gain=50.0,
     obj_type=mj.mjtObj.mjOBJ_SITE,
     obj_name="right_foot",
 )
@@ -93,9 +93,8 @@ right_foot_task = FrameTask(
 # Avoiding collision between arms and torso
 self_collision_barrier = SelfCollisionBarrier(
     "self_collision_barrier",
-    gain=20.0,
+    gain=50.0,
     safe_displacement_gain=1e-2,
-    d_min=0.01,
     collision_bodies=[
         "torso_link",
         "left_shoulder_roll_link",
@@ -178,7 +177,7 @@ def heart_curve(t: np.ndarray, p0: np.ndarray | None = None) -> np.ndarray:
     t += np.pi / 2
 
     # Polar coordinates formula
-    r = 0.07 * (np.sin(t) * np.sqrt(abs(np.cos(t))) / (np.sin(t) + 7 / 5) - 2 * np.sin(t) + 2)
+    r = 0.1 * (np.sin(t) * np.sqrt(abs(np.cos(t))) / (np.sin(t) + 7 / 5) - 2 * np.sin(t) + 2)
     # Cartesian coordinates formula
     pts = np.array([np.zeros_like(t), r * np.cos(t), r * np.sin(t)])
 
@@ -192,7 +191,7 @@ def triangle_wave(t: np.ndarray) -> np.ndarray:
     return np.where(t % (2 * np.pi) < np.pi, t % np.pi, np.pi - (t % np.pi))
 
 
-p0 = np.array([0.25, 0.0, 0.85])
+p0 = np.array([0.25, 0.0, 0.9])
 
 try:
     for t in ts:
