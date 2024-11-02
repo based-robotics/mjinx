@@ -188,6 +188,11 @@ def heart_curve(t: np.ndarray, p0: np.ndarray | None = None) -> np.ndarray:
 
 
 def triangle_wave(t: np.ndarray) -> np.ndarray:
+    """Triangle wave, amplitude is from 0 to pi, and frequency pi
+
+    :param t: input variable
+    :return: output variable
+    """
     return np.where(t % (2 * np.pi) < np.pi, t % np.pi, np.pi - (t % np.pi))
 
 
@@ -221,7 +226,6 @@ try:
         opt_solution, solver_data = solve_jit(q, solver_data, problem_data)
         t1 = perf_counter()
 
-        print(f"{(t1 - t0) * 1e3 :0.2f}")
         # Integrating
         q = integrate_jit(
             mjx_model,
