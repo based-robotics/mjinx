@@ -243,7 +243,7 @@ class LocalIKSolver(Solver[LocalIKData, LocalIKSolution]):
             # TODO: warm start is not working
             # init_params=self._solver.init_params(solver_data.v_prev, (P, c), (A, b), (G, h)),
             params_obj=(P, c),
-            params_eq=(A, b) if A is not None and b is not None else Noneо,
+            params_eq=(A, b) if A is not None and b is not None else None,
             params_ineq=(G, h),
         )
 
