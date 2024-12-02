@@ -6,7 +6,7 @@ from __future__ import annotations
 
 from collections.abc import Callable
 from enum import Enum
-from typing import NamedTuple, TypeAlias
+from typing import TypeAlias
 
 import jax.numpy as jnp
 import numpy as np
@@ -87,3 +87,12 @@ class PositionLimitType(Enum):
         """
 
         return type == PositionLimitType.MAX or type == PositionLimitType.BOTH
+
+
+class ConstarintType(Enum):
+    EQUALITY = 0
+    INEQUALITY = 1
+
+    @property
+    def value(self) -> int:
+        return int(self._value_)
