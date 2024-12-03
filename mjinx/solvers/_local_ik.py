@@ -13,8 +13,8 @@ from jaxopt import OSQP
 from typing_extensions import Unpack
 
 import mjinx.typing as mjt
+from mjinx.components._base import JaxComponent
 from mjinx.components.barriers._base import JaxBarrier
-from mjinx.typing import ConstarintType
 from mjinx.components.tasks._base import JaxTask
 from mjinx.problem import JaxProblemData
 from mjinx.solvers._base import Solver, SolverData, SolverSolution
@@ -128,7 +128,7 @@ class LocalIKSolver(Solver[LocalIKData, LocalIKSolution]):
         self,
         problem_data: JaxProblemData,
         model_data: mjx.Data,
-    ) -> tuple[jnp.ndarray, jnp.ndarray, jnp.ndarray | None, jnp.ndarray | None, jnp.ndarray, jnp.ndarray]:
+    ) -> tuple[jnp.ndarray, jnp.ndarray, jnp.ndarray, jnp.ndarray]:
         """Compute the matrices for the Quadratic Program.
 
         :param problem_data: The problem-specific data containing model and component information.
@@ -188,9 +188,6 @@ class LocalIKSolver(Solver[LocalIKData, LocalIKSolution]):
         G_list = []
         h_list = []
 
-        A_list = []
-        b_list = []
-
         # Adding velocity limit
         G_list.append(jnp.eye(problem_data.model.nv))
         G_list.append(-jnp.eye(problem_data.model.nv))
@@ -204,25 +201,14 @@ class LocalIKSolver(Solver[LocalIKData, LocalIKSolution]):
                 H, c = process_task(component)
             # Barriers
             elif isinstance(component, JaxBarrier):
-                H, c, cnstr_gain, cnstr_bias = process_barrier(component)
-                if component.constraint_code == ConstarintType.INEQUALITY.value:
-                    G_list.append(cnstr_gain)
-                    h_list.append(cnstr_bias)
-                if component.constraint_code == ConstarintType.EQUALITY.value:
-                    A_list.append(cnstr_gain)
-                    b_list.append(cnstr_bias)
+                H, c, G, h = process_barrier(component)
+                G_list.append(G)
+                h_list.append(h)
             H_total = H_total + H
             c_total = c_total + c
 
         # Combine all inequality constraints
-        return (
-            H_total,
-            c_total,
-            jnp.vstack(A_list) if len(b_list) != 0 else None,
-            jnp.concatenate(b_list) if len(b_list) != 0 else None,
-            jnp.vstack(G_list),
-            jnp.concatenate(h_list),
-        )
+        return H_total, c_total, jnp.vstack(G_list), jnp.concatenate(h_list)
 
     def solve_from_data(
         self,
@@ -237,13 +223,11 @@ class LocalIKSolver(Solver[LocalIKData, LocalIKSolution]):
         :param model_data: The MuJoCo model data.
         :return: A tuple containing the solver solution and updated solver data.
         """
-        P, c, A, b, G, h = self.__compute_qp_matrices(problem_data, model_data)
-        print(P.shape, c.shape, G.shape, h.shape)
+        P, c, G, h = self.__compute_qp_matrices(problem_data, model_data)
         solution = self._solver.run(
             # TODO: warm start is not working
-            # init_params=self._solver.init_params(solver_data.v_prev, (P, c), (A, b), (G, h)),
+            # init_params=self._solver.init_params(solver_data.v_prev, (P, c), None, (G, h)),
             params_obj=(P, c),
-            params_eq=(A, b) if A is not None and b is not None else None,
             params_ineq=(G, h),
         )
 

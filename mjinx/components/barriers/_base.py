@@ -1,3 +1,4 @@
+from collections.abc import Callable  # noqa: F401
 from typing import Generic, TypeVar
 
 import jax.numpy as jnp
@@ -5,7 +6,6 @@ import jax_dataclasses as jdc
 import mujoco.mjx as mjx
 
 from mjinx.components import Component, JaxComponent
-from mjinx.typing import ConstarintType
 
 
 @jdc.pytree_dataclass
@@ -22,7 +22,6 @@ class JaxBarrier(JaxComponent):
     """
 
     safe_displacement_gain: float
-    constraint_code: jdc.Static[int]
 
     def compute_barrier(self, data: mjx.Data) -> jnp.ndarray:
         """
@@ -53,15 +52,7 @@ class Barrier(Generic[AtomicBarrierType], Component[AtomicBarrierType]):
 
     safe_displacement_gain: float
 
-    def __init__(
-        self,
-        name,
-        gain,
-        gain_fn=None,
-        safe_displacement_gain=0,
-        mask=None,
-        constraint_type: ConstarintType = ConstarintType.INEQUALITY,
-    ):
+    def __init__(self, name, gain, gain_fn=None, safe_displacement_gain=0, mask=None):
         """
         Initialize the Barrier object.
 
@@ -73,8 +64,3 @@ class Barrier(Generic[AtomicBarrierType], Component[AtomicBarrierType]):
         """
         super().__init__(name, gain, gain_fn, mask)
         self.safe_displacement_gain = safe_displacement_gain
-        self.constraint_type = constraint_type
-
-    @property
-    def constraint_code(self) -> int:
-        return self.constraint_type.value
