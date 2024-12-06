@@ -69,7 +69,7 @@ class EqualityConstraint(Generic[AtomicEqualityConstraintType], Constraint[Atomi
         name: str,
         gain: ArrayOrFloat,
         obj1_name: str,
-        obj2_name: str = "",
+        obj2_name: str,
         obj_type: mj.mjtObj = mj.mjtObj.mjOBJ_BODY,
         mask: Sequence[int] | None = None,
     ):
@@ -112,14 +112,10 @@ class EqualityConstraint(Generic[AtomicEqualityConstraintType], Constraint[Atomi
             self._obj_type,
             self._obj1_name,
         )
-        self._obj2_id = (
-            mjx.name2id(
-                model,
-                self._obj_type,
-                self._obj2_name,
-            )
-            if self.obj2_name
-            else 0
+        self._obj2_id = mjx.name2id(
+            model,
+            self._obj_type,
+            self._obj2_name,
         )
         if self._obj1_id == -1:
             raise ValueError(f"object with type {self._obj_type} and name {self._obj1_name} is not found.")
