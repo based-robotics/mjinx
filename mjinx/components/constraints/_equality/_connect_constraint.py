@@ -35,7 +35,7 @@ class JaxConnectConstraint(JaxEqualityConstraint):
         return frame1_jac - frame2_jac
 
 
-class ConnectConstraint(EqualityConstraint[JaxEqualityConstraint]):
+class ConnectConstraint(EqualityConstraint[JaxConnectConstraint]):
     JaxComponentType: type = JaxConnectConstraint
     _refpos1: jnp.ndarray
 

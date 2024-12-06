@@ -44,7 +44,7 @@ class JaxWeldConstraint(JaxEqualityConstraint):
         return (jlog @ frame2_jac.T - jlog_inv @ frame1_jac.T)[self.mask_idxs,]
 
 
-class WeldConstraint(EqualityConstraint[JaxEqualityConstraint]):
+class WeldConstraint(EqualityConstraint[JaxWeldConstraint]):
     JaxComponentType: type = JaxWeldConstraint
     _relframe1: SE3
     _relframe2: SE3
