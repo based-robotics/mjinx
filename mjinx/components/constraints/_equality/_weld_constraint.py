@@ -30,7 +30,7 @@ class JaxWeldConstraint(JaxEqualityConstraint):
 
     @final
     def compute_jacobian(self, data: mjx.Data) -> jnp.ndarray:
-        T_bt = self.get_frame1(data).inverse() @ self.get_frame2(data).inverse()
+        T_bt = self.get_frame1(data).inverse() @ self.get_frame2(data)
 
         def transform_log(tau: jnp.ndarray, frame: SE3) -> jnp.ndarray:
             return (T_bt.multiply(SE3.exp(tau))).log()
