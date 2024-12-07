@@ -5,7 +5,7 @@ import jax_dataclasses as jdc
 import mujoco.mjx as mjx
 
 from mjinx.components.barriers._base import Barrier, JaxBarrier
-from mjinx.configuration import get_joint_zero, joint_difference
+from mjinx.configuration import get_joint_zero
 from mjinx.typing import ArrayOrFloat, ndarray
 
 
@@ -40,8 +40,8 @@ class JaxJointBarrier(JaxBarrier):
         mask_idxs = tuple(idx + 6 for idx in self.mask_idxs) if self.floating_base else self.mask_idxs
         return jnp.concatenate(
             [
-                joint_difference(self.model, data.qpos, self.full_q_min)[mask_idxs,],
-                joint_difference(self.model, self.full_q_max, data.qpos)[mask_idxs,],
+                (data.qpos - self.full_q_min)[mask_idxs,],
+                (self.full_q_max - data.qpos)[mask_idxs,],
             ]
         )
 

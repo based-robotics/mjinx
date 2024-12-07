@@ -7,7 +7,7 @@ import jax_dataclasses as jdc
 import mujoco.mjx as mjx
 
 from mjinx.components.tasks._base import JaxTask, Task
-from mjinx.configuration import get_joint_zero, joint_difference
+from mjinx.configuration import get_joint_zero
 from mjinx.typing import ArrayOrFloat
 
 
@@ -34,7 +34,7 @@ class JaxJointTask(JaxTask):
         :return: The error vector representing the difference between the current and target joint positions.
         """
         mask_idxs = tuple(idx + 6 for idx in self.mask_idxs) if self.floating_base else self.mask_idxs
-        return joint_difference(self.model, data.qpos, self.full_target_q)[mask_idxs,]
+        return (data.qpos - self.full_target_q)[mask_idxs,]
 
     def compute_jacobian(self, data: mjx.Data) -> jnp.ndarray:
         """
