@@ -17,7 +17,6 @@ from mjinx.configuration import get_frame_jacobian_local
 
 @jdc.pytree_dataclass
 class JaxFrameConstraint(JaxObjConstraint):
-    limit_type_mask_idxs: jdc.Static[tuple[int, ...]]
     refframe: SE3
 
     @final
@@ -26,15 +25,13 @@ class JaxFrameConstraint(JaxObjConstraint):
 
     @final
     def compute_jacobian(self, data: mjx.Data) -> jnp.ndarray:
-        T_bt = self.get_frame(data).inverse() @ self.refframe
+        T_bt = self.refframe.inverse() @ self.get_frame(data).inverse()
 
-        def transform_log(tau: jnp.ndarray, frame: SE3) -> jnp.ndarray:
+        def transform_log(tau):
             return (T_bt.multiply(SE3.exp(tau))).log()
 
         frame_jac = get_frame_jacobian_local(self.model, data, self.obj_id, self.obj_type)
-
-        jlog = jax.jacobian(transform_log)(jnp.zeros(SE3.tangent_dim), T_bt)
-
+        jlog = jax.jacobian(transform_log)(jnp.zeros(SE3.tangent_dim))
         return (-jlog @ frame_jac.T)[self.mask_idxs,]
 
 
@@ -64,9 +61,18 @@ class FrameConstraint(ObjConstraint[JaxFrameConstraint]):
         self.update_refframe(value)
 
     def update_refframe(self, refframe: typing.ArrayOrFloat | SE3):
-        if isinstance(refframe, SE3):
-            self._relframe1 = refframe
-        elif isinstance(refframe, typing.ndarray):
-            self._relframe1 = SE3.from_rotation_and_translation(
-                SO3.from_quaternion_xyzw(refframe[[1, 2, 3, 0]]), refframe[:3]
+        if not isinstance(refframe, SE3):
+            refframe_jnp = jnp.array(refframe)
+            if refframe_jnp.shape[-1] != SE3.parameters_dim:
+                raise ValueError("target frame provided via array must has length 7 (xyz + quaternion (scalar first))")
+
+            xyz, quat = refframe_jnp[..., :3], refframe_jnp[..., 3:]
+            refframe_se3 = SE3.from_rotation_and_translation(
+                SO3.from_quaternion_xyzw(
+                    quat[..., [1, 2, 3, 0]],
+                ),
+                xyz,
             )
+        else:
+            refframe_se3 = refframe
+        self._refframe = refframe_se3
