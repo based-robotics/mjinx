@@ -10,6 +10,8 @@ from mjinx.typing import ArrayOrFloat
 
 @jdc.pytree_dataclass
 class JaxConstraint(JaxComponent):
+    active: bool
+
     def compute_constraint(self, data: mjx.Data) -> jnp.ndarray:
         return self.__call__(data)
 
@@ -18,6 +20,8 @@ AtomicConstraintType = TypeVar("AtomicConstraintType", bound=JaxConstraint)
 
 
 class Constraint(Generic[AtomicConstraintType], Component[AtomicConstraintType]):
+    active: bool
+
     def __init__(
         self,
         name: str,
@@ -25,3 +29,4 @@ class Constraint(Generic[AtomicConstraintType], Component[AtomicConstraintType])
         mask=None,
     ):
         super().__init__(name, gain, gain_fn=None, mask=mask)
+        self.active = True
