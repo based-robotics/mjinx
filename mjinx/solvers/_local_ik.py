@@ -220,7 +220,6 @@ class LocalIKSolver(Solver[LocalIKData, LocalIKSolution]):
                 c_total = c_total + c
             elif isinstance(component, JaxConstraint):
                 A, b = process_constraint(component)
-                jax.debug.print("{A}", A=A[0])
                 A_list.append(A)
                 b_list.append(b)
 
