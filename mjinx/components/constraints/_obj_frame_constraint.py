@@ -38,8 +38,8 @@ class JaxFrameConstraint(JaxObjConstraint):
         return (-jlog @ frame_jac.T)[self.mask_idxs,]
 
 
-class FrameBarrier(ObjConstraint[JaxObjConstraint]):
-    JaxComponentType: type = JaxObjConstraint
+class FrameConstraint(ObjConstraint[JaxFrameConstraint]):
+    JaxComponentType: type = JaxFrameConstraint
     _refframe: SE3
 
     def __init__(

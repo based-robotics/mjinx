@@ -184,7 +184,7 @@ class LocalIKSolver(Solver[LocalIKData, LocalIKSolution]):
 
         def process_constraint(constraint: JaxConstraint) -> tuple[jnp.ndarray, jnp.ndarray]:
             jacobian = constraint.compute_jacobian(model_data)
-            bias = constraint.vector_gain * jax.vmap(constraint.gain_fn)(
+            bias = -constraint.vector_gain * jax.vmap(constraint.gain_fn)(
                 constraint(model_data)  # type: ignore[arg-type]
             )
 
@@ -220,6 +220,7 @@ class LocalIKSolver(Solver[LocalIKData, LocalIKSolution]):
                 c_total = c_total + c
             elif isinstance(component, JaxConstraint):
                 A, b = process_constraint(component)
+                jax.debug.print("{A}", A=A[0])
                 A_list.append(A)
                 b_list.append(b)
 
@@ -251,7 +252,7 @@ class LocalIKSolver(Solver[LocalIKData, LocalIKSolution]):
             # TODO: warm start is not working
             # init_params=self._solver.init_params(solver_data.v_prev, (P, c), None, (G, h)),
             params_obj=(P, c),
-            params_eq=(A, b) if A is not None and b is not None else None,
+            params_eq=(A, b) if (A is not None and b is not None) else None,
             params_ineq=(G, h),
         )
 

@@ -22,7 +22,7 @@ class JaxObjConstraint(JaxConstraint):
                 return data.geom_xpos[self.obj_id]
             case mj.mjtObj.mjOBJ_SITE:
                 return data.site_xpos[self.obj_id]
-            case mj.mhtObj.mjOBJ_BODY:
+            case mj.mjtObj.mjOBJ_BODY:
                 return data.xpos[self.obj_id]
             case _:
                 return jnp.zeros(3)

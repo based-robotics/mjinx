@@ -15,20 +15,19 @@ from mjinx.configuration import get_frame_jacobian_world_aligned
 
 @jdc.pytree_dataclass
 class JaxPositionConstraint(JaxObjConstraint):
-    limit_type_mask_idxs: jdc.Static[tuple[int, ...]]
     refpos: jnp.ndarray
 
     @final
     def __call__(self, data: mjx.Data) -> jnp.ndarray:
-        return self.get_pos(data) - self.refpos
+        return self.get_pos(data)[self.mask_idxs,] - self.refpos
 
     @final
     def compute_jacobian(self, data: mjx.Data) -> jnp.ndarray:
-        return get_frame_jacobian_world_aligned(self.model, data, self.obj_id, self.obj_type)
+        return get_frame_jacobian_world_aligned(self.model, data, self.obj_id, self.obj_type)[:, self.mask_idxs].T
 
 
-class PositionBarrier(ObjConstraint[JaxObjConstraint]):
-    JaxComponentType: type = JaxObjConstraint
+class PositionConstraint(ObjConstraint[JaxPositionConstraint]):
+    JaxComponentType: type = JaxPositionConstraint
     _refpos: jnp.ndarray
 
     def __init__(
