@@ -3,11 +3,11 @@ import jax.numpy as jnp
 import jax_dataclasses as jdc
 import mujoco.mjx as mjx
 import optax
-from chex import ArrayTree  # noqa: F401
 
 import mjinx.typing as mjt
 from mjinx import configuration
 from mjinx.components.barriers._base import JaxBarrier
+from mjinx.components.constraints._base import JaxConstraint
 from mjinx.components.tasks._base import JaxTask
 from mjinx.problem import JaxProblemData
 from mjinx.solvers._base import Solver, SolverData, SolverSolution
@@ -84,6 +84,9 @@ class GlobalIKSolver(Solver[GlobalIKData, GlobalIKSolution]):
                 loss = loss + component.vector_gain * err.T @ err  # type: ignore
             if isinstance(component, JaxBarrier):
                 loss = loss - self.__log_barrier(jnp.clip(component(model_data), 1e-9, 1), gain=component.vector_gain)
+            if isinstance(component, JaxConstraint):
+                # TODO: implement
+                raise NotImplementedError("constraints are not supported by Global IK")
         return loss
 
     def solve_from_data(
