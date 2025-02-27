@@ -22,7 +22,7 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-dev = ["pre-commit", "ruff", "pytest"]
+dev = ["pre-commit", "ruff", "pytest", "robot_descriptions>=1.12"]
 docs = [
   "sphinx>=8",
   "sphinx-mathjax-offline",
