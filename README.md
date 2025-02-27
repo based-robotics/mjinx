@@ -1,7 +1,7 @@
 # MJINX
-[![mypy](https://img.shields.io/github/actions/workflow/status/based-robotics/mjinx/mypy.yaml?branch=main)](https://github.com/based-robotics/mjinx/actions)
-[![ruff](https://img.shields.io/github/actions/workflow/status/based-robotics/mjinx/ruff.yaml?branch=main)](https://github.com/based-robotics/mjinx/actions)
-[![build](https://img.shields.io/github/actions/workflow/status/based-robotics/mjinx/build.yaml?branch=main)](https://github.com/based-robotics/mjinx/actions)
+[![mypy](https://img.shields.io/github/actions/workflow/status/based-robotics/mjinx/mypy.yml?branch=main)](https://github.com/based-robotics/mjinx/actions)
+[![ruff](https://img.shields.io/github/actions/workflow/status/based-robotics/mjinx/ruff.yml?branch=main)](https://github.com/based-robotics/mjinx/actions)
+[![build](https://img.shields.io/github/actions/workflow/status/based-robotics/mjinx/build.yml?branch=main)](https://github.com/based-robotics/mjinx/actions)
 [![PyPI version](https://img.shields.io/pypi/v/jaxadi?color=blue)](https://pypi.org/project/jaxadi/)
 [![PyPI downloads](https://img.shields.io/pypi/dm/jaxadi?color=blue)](https://pypistats.org/packages/jaxadi)
 
@@ -26,8 +26,8 @@ The package is available in PyPI registry, and could be installed via `pip`:
 pip install mjinx
 ```
 
-Different isntallation versions:
-1. Visualizatoin tool `mjinx.visualization.BatchVisualizer` is available in `mjinx[visual]` 
+Different installation versions:
+1. Visualization tool `mjinx.visualization.BatchVisualizer` is available in `mjinx[visual]` 
 2. To run examples, install `mjinx[examples]`
 3. To install development version, install `mjinx[dev]` (preferably in editable mode)
 4. To build docs, install `mjinx[docs]`
@@ -54,7 +54,7 @@ problem.add_component(frame_task)
 
 # Add barriers to keep robot in a safety set
 joints_barrier = JointBarrier("jnt_range", gain=10)
-problem.add_component(joitns_barrier)
+problem.add_component(joints_barrier)
 
 # Initialize the solver
 solver = LocalIKSolver(mjx_model)
