@@ -1,9 +1,9 @@
 # MJINX
-<!-- [![mypy](https://img.shields.io/github/actions/workflow/status/based-robotics/mjinx/mypy.yaml?branch=main)](https://github.com/based-robotics/mjinx/actions)
+[![mypy](https://img.shields.io/github/actions/workflow/status/based-robotics/mjinx/mypy.yaml?branch=main)](https://github.com/based-robotics/mjinx/actions)
 [![ruff](https://img.shields.io/github/actions/workflow/status/based-robotics/mjinx/ruff.yaml?branch=main)](https://github.com/based-robotics/mjinx/actions)
 [![build](https://img.shields.io/github/actions/workflow/status/based-robotics/mjinx/build.yaml?branch=main)](https://github.com/based-robotics/mjinx/actions)
 [![PyPI version](https://img.shields.io/pypi/v/jaxadi?color=blue)](https://pypi.org/project/jaxadi/)
-[![PyPI downloads](https://img.shields.io/pypi/dm/jaxadi?color=blue)](https://pypistats.org/packages/jaxadi) -->
+[![PyPI downloads](https://img.shields.io/pypi/dm/jaxadi?color=blue)](https://pypistats.org/packages/jaxadi)
 
 
 **Mjinx** is a library for auto-differentiable numerical inverse kinematics, powered by **JAX** and **Mujoco MJX**. The library was heavily inspired by the similar Pinocchio-based tool [pink](https://github.com/stephane-caron/pink/tree/main) and Mujoco-based analogue [mink](https://github.com/kevinzakka/mink/tree/main).
