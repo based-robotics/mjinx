@@ -26,11 +26,12 @@ The package is available in PyPI registry, and could be installed via `pip`:
 pip install mjinx
 ```
 
-To use visualizatoin tool `mjinx.visualization.BatchVisualizer`, please install `[visual]` version:
-```python
-pip install mjinx[visual]
-```
-To start developing the `mjinx`, install the `[dev]` version. 
+Different isntallation versions:
+1. Visualizatoin tool `mjinx.visualization.BatchVisualizer` is available in `mjinx[visual]` 
+2. To run examples, install `mjinx[examples]`
+3. To install development version, install `mjinx[dev]` (preferably in editable mode)
+4. To build docs, install `mjinx[docs]`
+5. To install the repository with all dependencies, install `mjikx[all]`
 
 ## Usage
 Here is the example of `mjinx` usage:
@@ -95,17 +96,6 @@ The list of examples includes:
 
 ## Contributing
 We are always open for the suggestions and contributions. For contribution guidelines, see the [CONTRIBUTING.md](CONTRIBUTING.md) file. 
-
-### TODO
-The repostiory is under active development, the current plans before release are:
-- [ ] Add examples for:
-  - [ ] Quadrotor
-  - [ ] Bipedal robot
-  - [ ] An MPPI example
-  - [ ] (?) Collaboration of several robots
-- [ ] Add github pages
-  - [ ] Extend mathematical descriptions in docstrings
-- [ ] Add potential fields example
 
 ## Acknowledgement
 The repository was highly inspired by [`pink`](https://github.com/stephane-caron/pink) and [`mink`](https://github.com/kevinzakka/mink). Both authors, Stéphane Caron and Kevin Zakka, deeply inspire me to study robotics and contribute to the open source. Without them, this repository would not exist.
