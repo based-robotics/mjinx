@@ -1,4 +1,5 @@
 from ._base import Constraint, JaxConstraint
+from ._equality_constraint import JaxModelEqualityConstraint, ModelEqualityConstraint
 from ._joint_constraint import JaxJointConstraint, JointConstraint
 from ._obj_constraint import JaxObjConstraint, ObjConstraint
 from ._obj_frame_constraint import FrameConstraint, JaxFrameConstraint
@@ -15,4 +16,6 @@ __all__ = [
     "JaxFrameConstraint",
     "JaxPositionConstraint",
     "PositionConstraint",
+    "JaxModelEqualityConstraint",
+    "ModelEqualityConstraint",
 ]
