@@ -187,7 +187,7 @@ finally:
     if vis.record:
         vis.save_video(round(1 / dt))
     vis.close()
-    
+
     # Print performance report
     print("\n=== Performance Report ===")
     print(f"Total steps completed: {n_steps}")
@@ -200,7 +200,7 @@ finally:
         avg_integrate = sum(integrate_times) / len(integrate_times)
         std_integrate = np.std(integrate_times)
         print(f"integrate      : {avg_integrate*1000:8.3f} ± {std_integrate*1000:8.3f} ms")
-    
+
     if solve_times and integrate_times:
         avg_total = sum(t1 + t2 for t1, t2 in zip(solve_times, integrate_times)) / len(solve_times)
         print(f"\nAverage computation time per step: {avg_total*1000:.3f} ms")

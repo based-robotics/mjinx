@@ -180,7 +180,7 @@ except Exception as e:
     print(f"\nError occurred: {e}")
 finally:
     renderer.close()
-    
+
     # Print performance report
     print("\n=== Performance Report ===")
     print(f"Total steps completed: {n_steps}")
@@ -189,7 +189,7 @@ finally:
         avg_solve = sum(solve_times) / len(solve_times)
         std_solve = np.std(solve_times)
         print(f"solve          : {avg_solve*1000:8.3f} ± {std_solve*1000:8.3f} ms")
-    
+
     if solve_times:
         print(f"\nAverage computation time per step: {avg_solve*1000:.3f} ms")
         print(f"Effective computation rate: {1/avg_solve:.1f} Hz")

@@ -184,6 +184,7 @@ p0 = np.array([0.25, 0.0, 0.9])
 right_series = np.linspace(0, np.pi, N_batch)
 left_series = 2 * np.pi - right_series
 
+
 def heart_curve(t: np.ndarray, p0: np.ndarray | None = None) -> np.ndarray:
     """Heart-like function.
 
@@ -217,7 +218,6 @@ def triangle_wave(t: np.ndarray) -> np.ndarray:
     return np.where(t % (2 * np.pi) < np.pi, t % np.pi, np.pi - (t % np.pi))
 
 
-
 left_arm_task.target_frame = np.concatenate(
     (
         heart_curve(left_series, p0),
@@ -243,7 +243,6 @@ print(f"Warmup completed in {t_warmup_duration:.3f} seconds")
 print("\n=== Starting main loop ===")
 dt = 2e-2
 ts = np.arange(0, 10, dt)
-
 
 
 p0 = np.array([0.25, 0.0, 0.9])
@@ -312,7 +311,7 @@ finally:
     if vis.record:
         vis.save_video(round(1 / dt))
     vis.close()
-    
+
     # Print performance report
     print("\n=== Performance Report ===")
     print(f"Total steps completed: {n_steps}")
@@ -325,7 +324,7 @@ finally:
         avg_integrate = sum(integrate_times) / len(integrate_times)
         std_integrate = np.std(integrate_times)
         print(f"integrate      : {avg_integrate*1000:8.3f} ± {std_integrate*1000:8.3f} ms")
-    
+
     if solve_times and integrate_times:
         avg_total = sum(t1 + t2 for t1, t2 in zip(solve_times, integrate_times)) / len(solve_times)
         print(f"\nAverage computation time per step: {avg_total*1000:.3f} ms")

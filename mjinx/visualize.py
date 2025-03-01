@@ -372,15 +372,15 @@ class BatchVisualizer:
 
         if self.record:
             if self.mj_viewer is not None:
-                self.mj_renderer.update_scene(self.mj_data, scene_option=self.mj_viewer._opt, camera=self.mj_viewer._cam)
+                self.mj_renderer.update_scene(
+                    self.mj_data, scene_option=self.mj_viewer._opt, camera=self.mj_viewer._cam
+                )
             else:
                 self.mj_renderer.update_scene(self.mj_data, scene_option=self.scene_option, camera=self.camera)
             self._draw_markers(self.mj_renderer.scene)
 
             rendered_frame = self.mj_renderer.render()
             self.frames.append(rendered_frame)
-  
-
 
     def _draw_markers(self, scene: mj.MjvScene):
         """
