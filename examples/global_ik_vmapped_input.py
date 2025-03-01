@@ -36,7 +36,7 @@ q_max = mj_model.jnt_range[:, 1].copy()
 
 # --- Mujoco visualization ---
 print("Setting up visualization...")
-vis = BatchVisualizer(MJCF_PATH, n_models=5, alpha=0.5, record=True)
+vis = BatchVisualizer(MJCF_PATH, n_models=5, alpha=0.5, record=False)
 
 # Initialize a sphere marker for end-effector task
 vis.add_markers(
@@ -193,8 +193,8 @@ finally:
     if solve_times:
         avg_solve = sum(solve_times) / len(solve_times)
         std_solve = np.std(solve_times)
-        print(f"solve          : {avg_solve*1000:8.3f} ± {std_solve*1000:8.3f} ms")
+        print(f"solve          : {avg_solve * 1000:8.3f} ± {std_solve * 1000:8.3f} ms")
 
     if solve_times:
-        print(f"\nAverage computation time per step: {avg_solve*1000:.3f} ms")
-        print(f"Effective computation rate: {1/avg_solve:.1f} Hz")
+        print(f"\nAverage computation time per step: {avg_solve * 1000:.3f} ms")
+        print(f"Effective computation rate: {1 / avg_solve:.1f} Hz")
