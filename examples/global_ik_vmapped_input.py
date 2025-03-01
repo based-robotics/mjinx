@@ -14,7 +14,6 @@ import numpy as np
 from optax import adam
 from robot_descriptions.iiwa14_mj_description import MJCF_PATH
 from time import perf_counter
-from collections import defaultdict
 
 from mjinx.components.barriers import JointBarrier, PositionBarrier
 from mjinx.components.tasks import FrameTask

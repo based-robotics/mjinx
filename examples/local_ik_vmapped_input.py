@@ -13,7 +13,6 @@ import mujoco.mjx as mjx
 import numpy as np
 from robot_descriptions.iiwa14_mj_description import MJCF_PATH
 from time import perf_counter
-from collections import defaultdict
 
 from mjinx.components.barriers import JointBarrier, PositionBarrier
 from mjinx.components.tasks import FrameTask
@@ -71,7 +70,7 @@ position_barrier = PositionBarrier(
     mask=[1, 0, 0],
 )
 # Set plane coodinate same to limiting one
-vis.marker_data["blocking_plane"].pos = np.array([0.4, 0, 0.3])
+vis.marker_data["blocking_plane"].pos = np.array([position_barrier.p_max[0], 0, 0.3])
 vis.marker_data["blocking_plane"].rot = np.array(
     [
         [0, 0, -1],
