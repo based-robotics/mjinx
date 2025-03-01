@@ -103,6 +103,7 @@ class BatchVisualizer:
         geom_group: int = 2,
         alpha: float = 0.5,
         record: bool = False,
+        passive_viewer: bool = True,
         filename: str = "",
         record_res: tuple[int, int] = (1024, 1024),
     ):
@@ -113,12 +114,15 @@ class BatchVisualizer:
         self.mj_data = mj.MjData(self.mj_model)
 
         # Initializing visualization
-        self.mj_viewer = viewer.launch_passive(
-            self.mj_model,
-            self.mj_data,
-            show_left_ui=False,
-            show_right_ui=False,
-        )
+        if passive_viewer:
+            self.mj_viewer = viewer.launch_passive(
+                self.mj_model,
+                self.mj_data,
+                show_left_ui=False,
+                show_right_ui=False,
+            )
+        else:
+            self.mj_viewer = None
         # For markers
         self.n_markers: int = 0
         self.marker_data: dict[str, MarkerData] = {}
@@ -127,6 +131,8 @@ class BatchVisualizer:
         self.record = record
         self.filename = filename
         self.frames: list = []
+        self.camera = mj.MjvCamera()
+        self.scene_option = mj.MjvOption()
         if self.record:
             self.mj_renderer = mj.Renderer(self.mj_model, width=record_res[0], height=record_res[1])
 
@@ -335,7 +341,8 @@ class BatchVisualizer:
                 rgba=np.array([*color, marker_alpha]),
             )
         self.n_markers += n_markers
-        self.mj_viewer.user_scn.ngeom += n_markers
+        if self.mj_viewer is not None:
+            self.mj_viewer.user_scn.ngeom += n_markers
         if self.record:
             self.mj_renderer.scene.ngeom += n_markers
 
@@ -359,16 +366,21 @@ class BatchVisualizer:
         self.mj_data.qpos = q_raveled
         mj.mj_fwdPosition(self.mj_model, self.mj_data)
 
-        self._draw_markers(self.mj_viewer.user_scn)
+        if self.mj_viewer is not None:
+            self._draw_markers(self.mj_viewer.user_scn)
+            self.mj_viewer.sync()
 
         if self.record:
-            self.mj_renderer.update_scene(self.mj_data, scene_option=self.mj_viewer._opt, camera=self.mj_viewer._cam)
+            if self.mj_viewer is not None:
+                self.mj_renderer.update_scene(self.mj_data, scene_option=self.mj_viewer._opt, camera=self.mj_viewer._cam)
+            else:
+                self.mj_renderer.update_scene(self.mj_data, scene_option=self.scene_option, camera=self.camera)
             self._draw_markers(self.mj_renderer.scene)
 
             rendered_frame = self.mj_renderer.render()
             self.frames.append(rendered_frame)
+  
 
-        self.mj_viewer.sync()
 
     def _draw_markers(self, scene: mj.MjvScene):
         """
@@ -412,7 +424,8 @@ class BatchVisualizer:
         """
         Close the viewer and clean up resources.
         """
-        self.mj_viewer.close()
+        if self.mj_viewer is not None:
+            self.mj_viewer.close()
         if self.record:
             del self.frames
             self.mj_renderer.close()
