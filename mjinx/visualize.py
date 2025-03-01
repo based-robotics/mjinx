@@ -190,7 +190,6 @@ class BatchVisualizer:
             file_attr = mesh.get("file")
             if file_attr:
                 # Remove the hash from the file attribute
-                print(file_attr)
                 new_file_attr = file_attr[: file_attr.rfind("-")] + file_attr[file_attr.rfind(".") :]
 
                 asset_path = self.__find_asset(model_directory, new_file_attr)

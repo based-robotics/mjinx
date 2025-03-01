@@ -63,7 +63,7 @@ right_foot_task = FrameTask(
     obj_name="right-foot",
 )
 
-model_equality_constraint = ModelEqualityConstraint("model_eq_constraint", gain=1.0)
+model_equality_constraint = ModelEqualityConstraint("model_eq_constraint", gain=100.0)
 
 problem.add_component(com_task)
 problem.add_component(torso_task)
