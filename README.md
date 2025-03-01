@@ -2,8 +2,8 @@
 [![mypy](https://img.shields.io/github/actions/workflow/status/based-robotics/mjinx/mypy.yml?branch=main)](https://github.com/based-robotics/mjinx/actions)
 [![ruff](https://img.shields.io/github/actions/workflow/status/based-robotics/mjinx/ruff.yml?branch=main)](https://github.com/based-robotics/mjinx/actions)
 [![build](https://img.shields.io/github/actions/workflow/status/based-robotics/mjinx/build.yml?branch=main)](https://github.com/based-robotics/mjinx/actions)
-[![PyPI version](https://img.shields.io/pypi/v/jaxadi?color=blue)](https://pypi.org/project/jaxadi/)
-[![PyPI downloads](https://img.shields.io/pypi/dm/jaxadi?color=blue)](https://pypistats.org/packages/jaxadi)
+[![PyPI version](https://img.shields.io/pypi/v/mjinx?color=blue)](https://pypi.org/project/mjinx/)
+[![PyPI downloads](https://img.shields.io/pypi/dm/mjinx?color=blue)](https://pypistats.org/packages/mjinx)
 
 
 **Mjinx** is a library for auto-differentiable numerical inverse kinematics, powered by **JAX** and **Mujoco MJX**. The library was heavily inspired by the similar Pinocchio-based tool [pink](https://github.com/stephane-caron/pink/tree/main) and Mujoco-based analogue [mink](https://github.com/kevinzakka/mink/tree/main).
@@ -31,7 +31,7 @@ Different installation versions:
 2. To run examples, install `mjinx[examples]`
 3. To install development version, install `mjinx[dev]` (preferably in editable mode)
 4. To build docs, install `mjinx[docs]`
-5. To install the repository with all dependencies, install `mjikx[all]`
+5. To install the repository with all dependencies, install `mjinx[all]`
 
 ## Usage
 Here is the example of `mjinx` usage:
@@ -93,11 +93,16 @@ The list of examples includes:
    2. `Kuka iiwa` global inverse kinematics ([single item](examples/global_ik.py), [vmap over desired trajectory](examples/global_ik_vmapped_output.py))
    3. `Go2` [batched squats](examples/go2_squat.py) example
    
+> **Note:** The Global IK functionality is currently under development and not yet working properly as expected. It needs proper tuning and will be fixed in future updates. Use the Global IK examples with caution and expect suboptimal results.
 
 ## Contributing
 We are always open for the suggestions and contributions. For contribution guidelines, see the [CONTRIBUTING.md](CONTRIBUTING.md) file. 
 
 ## Acknowledgement
+First of all, I would like to thank Simeon Nedelchev for his guidance and contributions during the development. Without his expertise and help, the repository would not exist.
+
 The repository was highly inspired by [`pink`](https://github.com/stephane-caron/pink) and [`mink`](https://github.com/kevinzakka/mink). Both authors, Stéphane Caron and Kevin Zakka, deeply inspire me to study robotics and contribute to the open source. Without them, this repository would not exist.
 
 Some utility functions in this code are taken from source code of [`MuJoCo MJX`](https://github.com/google-deepmind/mujoco/tree/main/mjx). Apart from being a wonderful tool for batched computations and ML, the source code is compact yet readable and informative, and I encourage everyone to take a look at it to learn a little bit more about physical simulations, `jax`, and MuJoCo in general. 
+
+Finally, I would like to thank [IRIS lab](http://iris.kaist.ac.kr/). 

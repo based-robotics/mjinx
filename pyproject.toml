@@ -1,6 +1,6 @@
 [project]
 name = "mjinx"
-version = "0.1.0"
+version = "0.1.1"
 description = "Numerical Inverse Kinematics based on JAX + MJX"
 authors = [
   { name = "Ivan Domrachev", email = "domrachev10@gmail.com" },
@@ -13,9 +13,8 @@ requires-python = ">=3.10"
 dependencies = [
   "mujoco",
   "mujoco_mjx",
-  "jaxlib>=0.4",
   "jaxopt",
-  "jax>=0.4",
+  "jax[cuda]>=0.4",
   "jaxlie>=1.4",
   "jax_dataclasses>=1.6.0",
   "optax>=0.2",

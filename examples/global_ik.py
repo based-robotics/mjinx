@@ -1,4 +1,13 @@
+"""
+Example of Global inverse kinematics for a Kuka iiwa robot.
+
+NOTE: The Global IK functionality is not yet working properly as expected and needs proper tuning.
+This example will be fixed in future updates. Use with caution and expect suboptimal results.
+"""
+
 import time
+from time import perf_counter
+from collections import defaultdict
 
 import jax
 import jax.numpy as jnp
@@ -15,8 +24,10 @@ from mjinx.configuration import integrate
 from mjinx.problem import Problem
 from mjinx.solvers import GlobalIKSolver
 
-# === Mujoco ===
+print("=== Initializing ===")
 
+# === Mujoco ===
+print("Loading MuJoCo model...")
 mj_model = mj.MjModel.from_xml_path(MJCF_PATH)
 mj_data = mj.MjData(mj_model)
 
@@ -27,6 +38,7 @@ q_max = mj_model.jnt_range[:, 1].copy()
 
 
 # --- Mujoco visualization ---
+print("Setting up visualization...")
 # Initialize render window and launch it at the background
 mj_data = mj.MjData(mj_model)
 renderer = mj.Renderer(mj_model)
@@ -50,13 +62,13 @@ mj.mjv_initGeom(
 )
 
 # === Mjinx ===
-
+print("Setting up optimization problem...")
 # --- Constructing the problem ---
 # Creating problem formulation
 problem = Problem(mjx_model, v_min=-100, v_max=100)
 
 # Creating components of interest and adding them to the problem
-frame_task = FrameTask("ee_task", cost=1, gain=50, obj_name="link7")
+frame_task = FrameTask("ee_task", cost=1, gain=20, obj_name="link7")
 position_barrier = PositionBarrier(
     "ee_barrier",
     gain=0.1,
@@ -69,7 +81,7 @@ position_barrier = PositionBarrier(
 joints_barrier = JointBarrier("jnt_range", gain=0.1)
 self_collision_barrier = SelfCollisionBarrier(
     "self_collision_barrier",
-    gain=0.01,
+    gain=1e-4,
     d_min=0.01,
 )
 
@@ -82,6 +94,7 @@ problem.add_component(self_collision_barrier)
 problem_data = problem.compile()
 
 # Initializing solver and its initial state
+print("Initializing solver...")
 solver = GlobalIKSolver(mjx_model, adam(learning_rate=1e-2), dt=1e-2)
 
 # Initial condition
@@ -102,9 +115,25 @@ solver_data = solver.init(q)
 solve_jit = jax.jit(solver.solve)
 integrate_jit = jax.jit(integrate, static_argnames=["dt"])
 
+t_warmup = perf_counter()
+print("Performing warmup calls...")
+# Warmup iterations for JIT compilation
+frame_task.target_frame = np.array([0.2, 0.2, 0.2, 1, 0, 0, 0])
+problem_data = problem.compile()
+opt_solution, solver_data = solve_jit(q, solver_data, problem_data)
+q_warmup = opt_solution.q_opt
+
+t_warmup_duration = perf_counter() - t_warmup
+print(f"Warmup completed in {t_warmup_duration:.3f} seconds")
+
 # === Control loop ===
+print("\n=== Starting main loop ===")
 dt = 1e-2
 ts = np.arange(0, 20, dt)
+
+# Performance tracking
+solve_times = []
+n_steps = 0
 
 try:
     for t in ts:
@@ -115,8 +144,11 @@ try:
         problem_data = problem.compile()
 
         # Solving the instance of the problem
+        t1 = perf_counter()
         for _ in range(1):
             opt_solution, solver_data = solve_jit(q, solver_data, problem_data)
+        t2 = perf_counter()
+        solve_times.append(t2 - t1)
 
         # Two options for retriving q:
         # Option 1, integrating:
@@ -141,9 +173,23 @@ try:
         # the updated state in the data
         mj.mj_forward(mj_model, mj_data)
         mj_viewer.sync()
+        n_steps += 1
 except KeyboardInterrupt:
-    print("Finalizing the simulation as requested...")
+    print("\nSimulation interrupted by user")
 except Exception as e:
-    print(e)
+    print(f"\nError occurred: {e}")
 finally:
     renderer.close()
+
+    # Print performance report
+    print("\n=== Performance Report ===")
+    print(f"Total steps completed: {n_steps}")
+    print("\nComputation times per step:")
+    if solve_times:
+        avg_solve = sum(solve_times) / len(solve_times)
+        std_solve = np.std(solve_times)
+        print(f"solve          : {avg_solve * 1000:8.3f} ± {std_solve * 1000:8.3f} ms")
+
+    if solve_times:
+        print(f"\nAverage computation time per step: {avg_solve * 1000:.3f} ms")
+        print(f"Effective computation rate: {1 / avg_solve:.1f} Hz")
