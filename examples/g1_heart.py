@@ -1,5 +1,7 @@
 import traceback
 from time import perf_counter
+import os.path
+from collections import defaultdict
 
 import jax
 import jax.numpy as jnp
@@ -15,18 +17,25 @@ from mjinx.problem import Problem
 from mjinx.solvers import LocalIKSolver
 from mjinx.visualize import BatchVisualizer
 
-# === Mujoco ===
+print("=== Initializing ===")
+# t_start = perf_counter()
 
-mj_model = mj.MjModel.from_xml_path("examples/g1_description/g1.xml")
+# === Mujoco ===
+print("Loading MuJoCo model...")
+# Define workspace root for absolute paths
+WORKSPACE_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+MODEL_PATH = os.path.join(WORKSPACE_ROOT, "examples/g1_description/g1.xml")
+
+mj_model = mj.MjModel.from_xml_path(MODEL_PATH)
 mjx_model = mjx.put_model(mj_model)
-print(mjx_model.nq, mjx_model.nv)
 
 q_min = mj_model.jnt_range[:, 0].copy()
 q_max = mj_model.jnt_range[:, 1].copy()
 
 # --- Mujoco visualization ---
+print("Setting up visualization...")
 # Initialize render window and launch it at the background
-vis = BatchVisualizer("examples/g1_description/g1.xml", n_models=10, alpha=0.1, record=True)
+vis = BatchVisualizer(MODEL_PATH, n_models=10, alpha=0.1, record=True)
 vis.add_markers(
     name=[f"left_arm_{i}" for i in range(vis.n_models)],
     size=0.035,
@@ -46,6 +55,7 @@ vis.add_markers(
 )
 
 # === Mjinx ===
+print("Setting up optimization problem...")
 # --- Constructing the problem ---
 # Creating problem formulation
 problem = Problem(mjx_model, v_min=-5, v_max=5)
@@ -119,13 +129,13 @@ problem.add_component(self_collision_barrier)
 
 # Compiling the problem upon any parameters update
 problem_data = problem.compile()
-print(self_collision_barrier.n_closest_pairs)
 
 # Initializing solver and its initial state
+print("Initializing solver...")
 solver = LocalIKSolver(mjx_model, maxiter=10)
 
 # Initializing initial condition
-N_batch = 1000
+N_batch = 500
 q0 = mj_model.keyframe("stand").qpos
 q = jnp.tile(q0, (N_batch, 1))
 
@@ -144,6 +154,7 @@ right_foot_pos = mjx_data.site_xpos[mjx.name2id(mjx_model, mj.mjtObj.mjOBJ_SITE,
 right_foot_task.target_frame = jnp.array([*right_foot_pos, 1, 0, 0, 0])
 
 # --- Batching ---
+print("Setting up batched computations...")
 solver_data = jax.vmap(solver.init, in_axes=0)(v_init=jnp.zeros((N_batch, mjx_model.nv)))
 
 with problem.set_vmap_dimension() as empty_problem_data:
@@ -158,10 +169,12 @@ solve_jit = jax.jit(
 )
 integrate_jit = jax.jit(jax.vmap(integrate, in_axes=(None, 0, 0, None)), static_argnames=["dt"])
 
-# === Control loop ===
-dt = 1e-2
-ts = np.arange(0, 20, dt)
-
+t_warmup = perf_counter()
+print("Performing warmup calls...")
+# Warmup iterations for JIT compilation
+p0 = np.array([0.25, 0.0, 0.9])
+right_series = np.linspace(0, np.pi, N_batch)
+left_series = 2 * np.pi - right_series
 
 def heart_curve(t: np.ndarray, p0: np.ndarray | None = None) -> np.ndarray:
     """Heart-like function.
@@ -196,7 +209,41 @@ def triangle_wave(t: np.ndarray) -> np.ndarray:
     return np.where(t % (2 * np.pi) < np.pi, t % np.pi, np.pi - (t % np.pi))
 
 
+
+left_arm_task.target_frame = np.concatenate(
+    (
+        heart_curve(left_series, p0),
+        np.tile(np.array((1, 0, 0, 0)), (N_batch, 1)),
+    ),
+    axis=1,
+)
+right_arm_task.target_frame = np.concatenate(
+    (
+        heart_curve(right_series, p0),
+        np.tile(np.array((1, 0, 0, 0)), (N_batch, 1)),
+    ),
+    axis=1,
+)
+problem_data = problem.compile()
+opt_solution, solver_data = solve_jit(q, solver_data, problem_data)
+q_warmup = integrate_jit(mjx_model, q, opt_solution.v_opt, 1e-2)
+
+t_warmup_duration = perf_counter() - t_warmup
+print(f"Warmup completed in {t_warmup_duration:.3f} seconds")
+
+# === Control loop ===
+print("\n=== Starting main loop ===")
+dt = 2e-2
+ts = np.arange(0, 10, dt)
+
+
+
 p0 = np.array([0.25, 0.0, 0.9])
+
+# Performance tracking
+solve_times = []
+integrate_times = []
+n_steps = 0
 
 try:
     for t in ts:
@@ -222,17 +269,21 @@ try:
         problem_data = problem.compile()
 
         # Solving the instance of the problem
-        t0 = perf_counter()
-        opt_solution, solver_data = solve_jit(q, solver_data, problem_data)
         t1 = perf_counter()
+        opt_solution, solver_data = solve_jit(q, solver_data, problem_data)
+        t2 = perf_counter()
+        solve_times.append(t2 - t1)
 
         # Integrating
+        t1 = perf_counter()
         q = integrate_jit(
             mjx_model,
             q,
             opt_solution.v_opt,
             dt,
         )
+        t2 = perf_counter()
+        integrate_times.append(t2 - t1)
 
         # --- MuJoCo visualization ---
         indices = np.arange(0, N_batch, N_batch // vis.n_models)
@@ -243,12 +294,31 @@ try:
             vis.marker_data[f"right_arm_{i}"].pos = right_arm_viz[i]
 
         vis.update(q[indices])
+        n_steps += 1
 
 except KeyboardInterrupt:
-    print("Finalizing the simulation as requested...")
+    print("\nSimulation interrupted by user")
 except Exception:
     print(traceback.format_exc())
 finally:
     if vis.record:
         vis.save_video(round(1 / dt))
     vis.close()
+    
+    # Print performance report
+    print("\n=== Performance Report ===")
+    print(f"Total steps completed: {n_steps}")
+    print("\nComputation times per step:")
+    if solve_times:
+        avg_solve = sum(solve_times) / len(solve_times)
+        std_solve = np.std(solve_times)
+        print(f"solve          : {avg_solve*1000:8.3f} ± {std_solve*1000:8.3f} ms")
+    if integrate_times:
+        avg_integrate = sum(integrate_times) / len(integrate_times)
+        std_integrate = np.std(integrate_times)
+        print(f"integrate      : {avg_integrate*1000:8.3f} ± {std_integrate*1000:8.3f} ms")
+    
+    if solve_times and integrate_times:
+        avg_total = sum(t1 + t2 for t1, t2 in zip(solve_times, integrate_times)) / len(solve_times)
+        print(f"\nAverage computation time per step: {avg_total*1000:.3f} ms")
+        print(f"Effective computation rate: {1/avg_total:.1f} Hz")
