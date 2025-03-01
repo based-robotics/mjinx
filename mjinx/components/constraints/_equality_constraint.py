@@ -13,10 +13,13 @@ from mjinx.typing import ArrayOrFloat
 @jdc.pytree_dataclass
 class JaxModelEqualityConstraint(JaxConstraint):
     def __call__(self, data: mjx.Data) -> jnp.ndarray:
-        return data.efc_pos[self.mask_idxs]
+        return data.efc_pos[data.efc_type == mj.mjtConstraint.mjCNSTR_EQUALITY]
 
     def compute_jacobian(self, data):
-        return data.efc_J.reshape(data.nefc, self.model.nv)[self.mask_idxs]
+        print(data.efc_J.shape)
+        print(data.nefc, self.model.nv)
+        print(data.efc_type == mj.mjtConstraint.mjCNSTR_EQUALITY)
+        return data.efc_J[data.efc_type == mj.mjtConstraint.mjCNSTR_EQUALITY, :]
 
 
 AtomicModelEqualityConstraintType = TypeVar("AtomicModelEqualityConstraintType", bound=JaxModelEqualityConstraint)
@@ -26,11 +29,6 @@ class ModelEqualityConstraint(Constraint[AtomicModelEqualityConstraintType]):
     """Accumulates all equality constraints present in the model."""
 
     JaxComponentType = JaxModelEqualityConstraint
-    SUPPORTED_EQ_TYPES: tuple[mj.mjtEq] = (
-        mj.mjtEq.mjEQ_CONNECT,
-        mj.mjtEq.mjEQ_WELD,
-        mj.mjtEq.mjEQ_JOINT,
-    )
 
     def __init__(
         self,
@@ -43,7 +41,17 @@ class ModelEqualityConstraint(Constraint[AtomicModelEqualityConstraintType]):
     def update_model(self, model):
         super().update_model(model)
 
-        self._mask = jnp.isin(model.eq_type, jnp.array(self.SUPPORTED_EQ_TYPES, dtype=jnp.int16)).astype(jnp.uint16)
-        self._mask_idxs = jnp.argwhere(self._mask).flatten()
-        print(self._mask_idxs)
-        self._dim = len(self.mask)
+        nefc = 0
+        for i in range(self.model.neq):
+            match self.model.eq_type[i]:
+                case mj.mjtEq.mjEQ_CONNECT:
+                    nefc += 3
+                case mj.mjtEq.mjEQ_WELD:
+                    nefc += 6
+                case mj.mjtEq.mjEQ_JOINT:
+                    nefc += 1
+                case _:
+                    raise ValueError(f"Unsupported equality constraint type {self.model.eq_type[i]}")
+
+        self._mask_idxs = jnp.arange(nefc)
+        self._dim = nefc
