@@ -31,7 +31,7 @@ Different installation versions:
 2. To run examples, install `mjinx[examples]`
 3. To install development version, install `mjinx[dev]` (preferably in editable mode)
 4. To build docs, install `mjinx[docs]`
-5. To install the repository with all dependencies, install `mjikx[all]`
+5. To install the repository with all dependencies, install `mjinx[all]`
 
 ## Usage
 Here is the example of `mjinx` usage:
