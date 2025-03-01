@@ -93,7 +93,7 @@ print("Initializing solver...")
 solver = LocalIKSolver(mjx_model, maxiter=10)
 
 # Initializing initial condition
-N_batch = 1000
+N_batch = 100
 q0 = np.array(
     [
         -1.4238753,

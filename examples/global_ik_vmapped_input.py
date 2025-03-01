@@ -93,7 +93,7 @@ print("Initializing solver...")
 solver = GlobalIKSolver(mjx_model, adam(learning_rate=1e-2), dt=1e-2)
 
 # Initializing initial condition
-N_batch = 10000
+N_batch = 100
 q0 = np.array(
     [
         -1.4238753,
@@ -110,12 +110,12 @@ q = jnp.array(
         np.clip(
             q0
             + np.random.uniform(
-                -1.0,
-                1.0,
+                -0.1,
+                0.1,
                 size=(mj_model.nq),
             ),
-            q_min,
-            q_max,
+            q_min + 1e-1,
+            q_max - 1e-1,
         )
         for _ in range(N_batch)
     ]
@@ -161,7 +161,7 @@ try:
 
         # Solving the instance of the problem
         t1 = perf_counter()
-        for _ in range(1):
+        for _ in range(3):
             opt_solution, solver_data = solve_jit(q, solver_data, problem_data)
         t2 = perf_counter()
         solve_times.append(t2 - t1)
