@@ -93,6 +93,7 @@ The list of examples includes:
    2. `Kuka iiwa` global inverse kinematics ([single item](examples/global_ik.py), [vmap over desired trajectory](examples/global_ik_vmapped_output.py))
    3. `Go2` [batched squats](examples/go2_squat.py) example
    
+> **Note:** The Global IK functionality is currently under development and not yet working properly as expected. It needs proper tuning and will be fixed in future updates. Use the Global IK examples with caution and expect suboptimal results.
 
 ## Contributing
 We are always open for the suggestions and contributions. For contribution guidelines, see the [CONTRIBUTING.md](CONTRIBUTING.md) file. 

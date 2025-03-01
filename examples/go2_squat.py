@@ -1,3 +1,11 @@
+"""
+Example of batched squats for a Go2 quadruped robot.
+
+This example demonstrates how to use the mjinx library to generate squatting motions
+for a Go2 quadruped robot. It shows how to set up the problem with multiple tasks
+for different parts of the robot, and visualize the results using the BatchVisualizer.
+"""
+
 import traceback
 from os.path import join
 from time import perf_counter

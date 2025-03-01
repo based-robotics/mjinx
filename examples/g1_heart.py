@@ -1,3 +1,11 @@
+"""
+Example of a G1 robot drawing a heart shape.
+
+This example demonstrates how to use the mjinx library to make a G1 robot's end effector
+follow a heart-shaped trajectory. It shows how to set up the problem with custom
+trajectory functions, add tasks and barriers, and visualize the results using the BatchVisualizer.
+"""
+
 import traceback
 from time import perf_counter
 import os.path

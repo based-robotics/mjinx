@@ -1,3 +1,11 @@
+"""
+Example of Global inverse kinematics for a Kuka iiwa robot with vmapped output.
+This demonstrates how to use JAX's vmap to efficiently compute IK solutions for multiple target poses.
+
+NOTE: The Global IK functionality is not yet working properly as expected and needs proper tuning.
+This example will be fixed in future updates. Use with caution and expect suboptimal results.
+"""
+
 import jax
 import jax.numpy as jnp
 import mujoco as mj

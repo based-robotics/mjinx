@@ -1,3 +1,10 @@
+"""
+Example of Global inverse kinematics for a Kuka iiwa robot.
+
+NOTE: The Global IK functionality is not yet working properly as expected and needs proper tuning.
+This example will be fixed in future updates. Use with caution and expect suboptimal results.
+"""
+
 import time
 from time import perf_counter
 from collections import defaultdict

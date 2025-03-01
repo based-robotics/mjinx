@@ -1,3 +1,11 @@
+"""
+Example of Local inverse kinematics for a Kuka iiwa robot.
+
+This example demonstrates how to use the mjinx library to solve local inverse kinematics
+for a Kuka iiwa robot. It shows how to set up the problem, add tasks and barriers,
+and visualize the results using MuJoCo's viewer.
+"""
+
 import jax
 import jax.numpy as jnp
 import mujoco as mj

@@ -1,3 +1,11 @@
+"""
+Example of Local inverse kinematics for a Kuka iiwa robot with vmapped output.
+
+This example demonstrates how to use JAX's vmap to efficiently compute IK solutions
+for multiple target poses. It shows how to set up the problem with batched outputs
+and visualize the results using the BatchVisualizer.
+"""
+
 import jax
 import jax.numpy as jnp
 import mujoco as mj
