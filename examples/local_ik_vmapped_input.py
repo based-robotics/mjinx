@@ -65,7 +65,7 @@ position_barrier = PositionBarrier(
     gain=100,
     obj_name="link7",
     limit_type="max",
-    p_max=0.4,
+    p_max=0.5,
     safe_displacement_gain=1e-2,
     mask=[1, 0, 0],
 )

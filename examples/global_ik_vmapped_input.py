@@ -65,13 +65,13 @@ position_barrier = PositionBarrier(
     gain=0.1,
     obj_name="link7",
     limit_type="max",
-    p_max=0.4,
+    p_max=0.5,
     safe_displacement_gain=1e-2,
     mask=[1, 0, 0],
 )
 joints_barrier = JointBarrier("jnt_range", gain=0.1)
 # Set plane coodinate same to limiting one
-vis.marker_data["blocking_plane"].pos = np.array([0.4, 0, 0.3])
+vis.marker_data["blocking_plane"].pos = np.array([position_barrier.p_max[0], 0, 0.3])
 vis.marker_data["blocking_plane"].rot = np.array(
     [
         [0, 0, -1],

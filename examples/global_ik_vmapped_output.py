@@ -14,7 +14,6 @@ import numpy as np
 from optax import adam
 from robot_descriptions.iiwa14_mj_description import MJCF_PATH
 from time import perf_counter
-from collections import defaultdict
 
 from mjinx.components.barriers import JointBarrier, PositionBarrier
 from mjinx.components.tasks import FrameTask
@@ -70,13 +69,13 @@ position_barrier = PositionBarrier(
     gain=0.1,
     obj_name="link7",
     limit_type="max",
-    p_max=0.4,
+    p_max=0.5,
     safe_displacement_gain=1e-2,
     mask=[1, 0, 0],
 )
 joints_barrier = JointBarrier("jnt_range", gain=0.1)
 # Set plane coodinate same to limiting one
-vis.marker_data["blocking_plane"].pos = np.array([0.4, 0, 0.3])
+vis.marker_data["blocking_plane"].pos = np.array([position_barrier.p_max[0], 0, 0.3])
 vis.marker_data["blocking_plane"].rot = np.array(
     [
         [0, 0, -1],
@@ -184,7 +183,8 @@ try:
 
         # Solving the instance of the problem
         t1 = perf_counter()
-        for _ in range(3):
+        # several iterations are needed to get stable results
+        for _ in range(5):
             opt_solution, solver_data = solve_jit(q, solver_data, problem_data)
         t2 = perf_counter()
         solve_times.append(t2 - t1)
