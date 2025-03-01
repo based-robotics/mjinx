@@ -35,7 +35,7 @@ q_max = mj_model.jnt_range[:, 1].copy()
 
 # --- Mujoco visualization ---
 print("Setting up visualization...")
-vis = BatchVisualizer(MJCF_PATH, n_models=5, alpha=0.5, record=True)
+vis = BatchVisualizer(MJCF_PATH, n_models=5, alpha=0.5, record=False)
 
 # Initialize a sphere marker for end-effector task
 vis.add_markers(
@@ -92,7 +92,7 @@ print("Initializing solver...")
 solver = GlobalIKSolver(mjx_model, adam(learning_rate=1e-2), dt=1e-2)
 
 # Initializing initial condition
-N_batch = 10000
+N_batch = 100
 q0 = np.array(
     [
         -1.4238753,
@@ -109,12 +109,12 @@ q = jnp.array(
         np.clip(
             q0
             + np.random.uniform(
-                -1.0,
-                1.0,
+                -0.1,
+                0.1,
                 size=(mj_model.nq),
             ),
-            q_min,
-            q_max,
+            q_min + 1e-1,
+            q_max - 1e-1,
         )
         for _ in range(N_batch)
     ]
@@ -160,7 +160,7 @@ try:
 
         # Solving the instance of the problem
         t1 = perf_counter()
-        for _ in range(1):
+        for _ in range(3):
             opt_solution, solver_data = solve_jit(q, solver_data, problem_data)
         t2 = perf_counter()
         solve_times.append(t2 - t1)
@@ -192,8 +192,8 @@ finally:
     if solve_times:
         avg_solve = sum(solve_times) / len(solve_times)
         std_solve = np.std(solve_times)
-        print(f"solve          : {avg_solve*1000:8.3f} ± {std_solve*1000:8.3f} ms")
+        print(f"solve          : {avg_solve * 1000:8.3f} ± {std_solve * 1000:8.3f} ms")
 
     if solve_times:
-        print(f"\nAverage computation time per step: {avg_solve*1000:.3f} ms")
-        print(f"Effective computation rate: {1/avg_solve:.1f} Hz")
+        print(f"\nAverage computation time per step: {avg_solve * 1000:.3f} ms")
+        print(f"Effective computation rate: {1 / avg_solve:.1f} Hz")

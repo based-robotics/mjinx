@@ -34,7 +34,7 @@ q_max = mj_model.jnt_range[:, 1].copy()
 
 # --- Mujoco visualization ---
 print("Setting up visualization...")
-vis = BatchVisualizer(MJCF_PATH, n_models=5, alpha=0.5, record=True)
+vis = BatchVisualizer(MJCF_PATH, n_models=5, alpha=0.5, record=False)
 
 # Initialize a sphere marker for end-effector task
 vis.add_markers(
@@ -92,7 +92,7 @@ print("Initializing solver...")
 solver = LocalIKSolver(mjx_model, maxiter=10)
 
 # Initializing initial condition
-N_batch = 1000
+N_batch = 100
 q0 = np.array(
     [
         -1.4238753,
@@ -194,13 +194,13 @@ finally:
     if solve_times:
         avg_solve = sum(solve_times) / len(solve_times)
         std_solve = np.std(solve_times)
-        print(f"solve          : {avg_solve*1000:8.3f} ± {std_solve*1000:8.3f} ms")
+        print(f"solve          : {avg_solve * 1000:8.3f} ± {std_solve * 1000:8.3f} ms")
     if integrate_times:
         avg_integrate = sum(integrate_times) / len(integrate_times)
         std_integrate = np.std(integrate_times)
-        print(f"integrate      : {avg_integrate*1000:8.3f} ± {std_integrate*1000:8.3f} ms")
+        print(f"integrate      : {avg_integrate * 1000:8.3f} ± {std_integrate * 1000:8.3f} ms")
 
     if solve_times and integrate_times:
         avg_total = sum(t1 + t2 for t1, t2 in zip(solve_times, integrate_times)) / len(solve_times)
-        print(f"\nAverage computation time per step: {avg_total*1000:.3f} ms")
-        print(f"Effective computation rate: {1/avg_total:.1f} Hz")
+        print(f"\nAverage computation time per step: {avg_total * 1000:.3f} ms")
+        print(f"Effective computation rate: {1 / avg_total:.1f} Hz")
