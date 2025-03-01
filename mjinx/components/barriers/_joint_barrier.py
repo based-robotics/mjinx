@@ -201,14 +201,14 @@ class JointBarrier(Barrier[JaxJointBarrier]):
                 self._mask = self._mask.at[jnt_vbegin:jnt_vend].set(0)
 
         # Apply the mask on top of scalar joints
-        try:
+        if self._final_mask is not None:
+            if self._mask.sum() != len(self._final_mask):
+                raise ValueError(
+                    "length of provided mask should be equal to"
+                    f" the number of scalar joints ({self._mask.sum()}), got length {len(self._final_mask)}"
+                )
             self._mask.at[self._mask].set(self._final_mask)
             self._qmask.at[self._qmask].set(self._final_mask)
-        except Exception as e:
-            raise ValueError(
-                "length of provided mask should be equal to"
-                f" the number of scalar joints ({self._mask.sum()}), got length {len(self._final_mask)}"
-            ) from e
 
         self._qmask_idxs = jnp.argwhere(self._qmask).ravel()
         self._mask_idxs = jnp.argwhere(self._mask).ravel()
