@@ -52,7 +52,7 @@ problem = Problem(mjx_model, v_min=-5, v_max=5)
 # Creating components of interest and adding them to the problem
 com_task = ComTask("com_task", cost=5.0, gain=10.0)
 frame_task = FrameTask("body_orientation_task", cost=1.0, gain=10, obj_name="base", mask=[0, 0, 0, 1, 1, 1])
-joints_barrier = JointBarrier("jnt_range", gain=0.1, floating_base=True)
+joints_barrier = JointBarrier("jnt_range", gain=0.1)
 
 problem.add_component(com_task)
 problem.add_component(frame_task)
