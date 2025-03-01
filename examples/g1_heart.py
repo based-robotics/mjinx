@@ -9,14 +9,12 @@ trajectory functions, add tasks and barriers, and visualize the results using th
 import traceback
 from time import perf_counter
 import os.path
-from collections import defaultdict
 
 import jax
 import jax.numpy as jnp
 import mujoco as mj
 import mujoco.mjx as mjx
 import numpy as np
-from jaxlie import SE3, SO3
 
 from mjinx.components.barriers import JointBarrier, SelfCollisionBarrier
 from mjinx.components.tasks import ComTask, FrameTask
