@@ -68,20 +68,20 @@ print("Setting up optimization problem...")
 problem = Problem(mjx_model, v_min=-100, v_max=100)
 
 # Creating components of interest and adding them to the problem
-frame_task = FrameTask("ee_task", cost=1, gain=50, obj_name="link7")
+frame_task = FrameTask("ee_task", cost=1, gain=20, obj_name="link7")
 position_barrier = PositionBarrier(
     "ee_barrier",
     gain=0.1,
     obj_name="link7",
     limit_type="max",
-    p_max=0.4,
+    p_max=0.3,
     safe_displacement_gain=1e-2,
     mask=[1, 0, 0],
 )
 joints_barrier = JointBarrier("jnt_range", gain=0.1)
 self_collision_barrier = SelfCollisionBarrier(
     "self_collision_barrier",
-    gain=0.01,
+    gain=1e-4,
     d_min=0.01,
 )
 
@@ -138,7 +138,7 @@ n_steps = 0
 try:
     for t in ts:
         # Changing desired values
-        frame_task.target_frame = np.array([0.3 + 0.3 * np.sin(t), 0.2, 0.5, 1, 0, 0, 0])
+        frame_task.target_frame = np.array([0.2 + 0.2 * jnp.sin(t) ** 2, 0.2, 0.2, 1, 0, 0, 0])
 
         # After changes, recompiling the model
         problem_data = problem.compile()
@@ -188,8 +188,8 @@ finally:
     if solve_times:
         avg_solve = sum(solve_times) / len(solve_times)
         std_solve = np.std(solve_times)
-        print(f"solve          : {avg_solve*1000:8.3f} ± {std_solve*1000:8.3f} ms")
+        print(f"solve          : {avg_solve * 1000:8.3f} ± {std_solve * 1000:8.3f} ms")
 
     if solve_times:
-        print(f"\nAverage computation time per step: {avg_solve*1000:.3f} ms")
-        print(f"Effective computation rate: {1/avg_solve:.1f} Hz")
+        print(f"\nAverage computation time per step: {avg_solve * 1000:.3f} ms")
+        print(f"Effective computation rate: {1 / avg_solve:.1f} Hz")
