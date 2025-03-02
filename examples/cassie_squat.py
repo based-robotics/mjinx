@@ -44,8 +44,10 @@ vis.add_markers(
 problem = Problem(mjx_model, v_min=-5, v_max=5)
 
 # Creating components of interest and adding them to the problem
-joints_barrier = JointBarrier("jnt_range", gain=0.01)
-
+joints_barrier = JointBarrier(
+    "jnt_range",
+    gain=1.0,
+)
 com_task = ComTask("com_task", cost=5.0, gain=10.0, mask=[1, 1, 1])
 torso_task = FrameTask("torso_task", cost=1.0, gain=2.0, obj_name="cassie-pelvis", mask=[0, 0, 0, 1, 1, 1])
 
@@ -63,16 +65,15 @@ right_foot_task = FrameTask(
     obj_name="right-foot",
 )
 
-model_equality_constraint = ModelEqualityConstraint("model_eq_constraint", gain=100.0)
+model_equality_constraint = ModelEqualityConstraint("model_eq_constraint", gain=200)
 
 problem.add_component(com_task)
 problem.add_component(torso_task)
 # TODO: fix this
-# problem.add_component(joints_barrier)
+problem.add_component(joints_barrier)
 problem.add_component(left_foot_task)
 problem.add_component(right_foot_task)
 problem.add_component(model_equality_constraint)
-
 # Initializing solver and its initial state
 solver = LocalIKSolver(mjx_model, maxiter=10)
 

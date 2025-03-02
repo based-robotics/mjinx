@@ -8,7 +8,6 @@ import mujoco as mj
 import mujoco.mjx as mjx
 
 from mjinx.components.tasks._base import JaxTask, Task
-from mjinx.configuration import get_joint_zero
 from mjinx.typing import ArrayOrFloat
 
 
@@ -98,8 +97,8 @@ class JointTask(Task[JaxJointTask]):
         """
         super().update_model(model)
 
-        self._mask = jnp.ones(self.model.nv)
-        self._qmask = jnp.ones(self.model.nq)
+        self._mask = jnp.ones(self.model.nv, dtype=jnp.uint32)
+        self._qmask = jnp.ones(self.model.nq, dtype=jnp.uint32)
         for jnt_id in range(self.model.njnt):
             jnt_type = self.model.jnt_type[jnt_id]
             if jnt_type == mj.mjtJoint.mjJNT_FREE or jnt_type == mj.mjtJoint.mjJNT_BALL:
@@ -122,8 +121,8 @@ class JointTask(Task[JaxJointTask]):
                     "length of provided mask should be equal to"
                     f" the number of scalar joints ({self._mask.sum()}), got length {len(self._final_mask)}"
                 )
-            self._mask.at[self._mask].set(self._final_mask)
-            self._qmask.at[self._qmask].set(self._final_mask)
+            self._mask = self._mask.at[self._mask.astype(jnp.bool)].set(self._final_mask)
+            self._qmask = self._qmask.at[self._qmask.astype(jnp.bool)].set(self._final_mask)
 
         self._qmask_idxs = jnp.argwhere(self._qmask).ravel()
         self._mask_idxs = jnp.argwhere(self._mask).ravel()

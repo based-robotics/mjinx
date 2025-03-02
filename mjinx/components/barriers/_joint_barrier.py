@@ -1,13 +1,11 @@
 from collections.abc import Callable, Sequence
 
-import jax
 import jax.numpy as jnp
 import jax_dataclasses as jdc
 import mujoco as mj
 import mujoco.mjx as mjx
 
 from mjinx.components.barriers._base import Barrier, JaxBarrier
-from mjinx.configuration import get_joint_zero
 from mjinx.typing import ArrayOrFloat, ndarray
 
 
@@ -183,8 +181,9 @@ class JointBarrier(Barrier[JaxJointBarrier]):
         """
         super().update_model(model)
 
-        self._mask = jnp.ones(self.model.nv)
-        self._qmask = jnp.ones(self.model.nq)
+        self._mask = jnp.ones(self.model.nv, dtype=jnp.uint32)
+        self._qmask = jnp.ones(self.model.nq, dtype=jnp.uint32)
+        jnt_mask = (self.model.jnt_type != mj.mjtJoint.mjJNT_FREE) & (self.model.jnt_type != mj.mjtJoint.mjJNT_BALL)
         for jnt_id in range(self.model.njnt):
             jnt_type = self.model.jnt_type[jnt_id]
             if jnt_type == mj.mjtJoint.mjJNT_FREE or jnt_type == mj.mjtJoint.mjJNT_BALL:
@@ -207,8 +206,8 @@ class JointBarrier(Barrier[JaxJointBarrier]):
                     "length of provided mask should be equal to"
                     f" the number of scalar joints ({self._mask.sum()}), got length {len(self._final_mask)}"
                 )
-            self._mask.at[self._mask].set(self._final_mask)
-            self._qmask.at[self._qmask].set(self._final_mask)
+            self._mask = self._mask.at[self._mask.astype(jnp.bool)].set(self._final_mask)
+            self._qmask = self._qmask.at[self._qmask.astype(jnp.bool)].set(self._final_mask)
 
         self._qmask_idxs = jnp.argwhere(self._qmask).ravel()
         self._mask_idxs = jnp.argwhere(self._mask).ravel()
@@ -216,9 +215,9 @@ class JointBarrier(Barrier[JaxJointBarrier]):
         self._dim = 2 * len(self._mask_idxs)
 
         if self._q_min is None:
-            self.q_min = self.model.jnt_range[:, 0][self._qmask_idxs,]
+            self.q_min = self.model.jnt_range[:, 0][jnt_mask]
         if self._q_max is None:
-            self.q_max = self.model.jnt_range[:, 1][self._qmask_idxs,]
+            self.q_max = self.model.jnt_range[:, 1][jnt_mask]
 
     @property
     def qmask_idxs(self) -> jnp.ndarray:
