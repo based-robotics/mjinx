@@ -254,6 +254,8 @@ class BatchVisualizer:
         for material in mjcf_model.find_all("material"):
             if material.rgba is not None:
                 material.rgba[3] *= alpha
+            else:
+                material.rgba = np.array([1, 1, 1, alpha])
 
         # Change color and collision properties for all geometries
         for g in mjcf_model.find_all("geom"):
