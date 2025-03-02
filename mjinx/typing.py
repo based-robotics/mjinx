@@ -8,6 +8,7 @@ from collections.abc import Callable
 from enum import Enum
 from typing import NamedTuple, TypeAlias
 
+import jax
 import jax.numpy as jnp
 import numpy as np
 from mujoco.mjx._src.dataclasses import PyTreeNode
@@ -26,6 +27,9 @@ CollisionBody: TypeAlias = int | str
 
 CollisionPair: TypeAlias = tuple[int, int]
 """Type alias for a pair of collision body IDs."""
+
+ArrayLike = np.typing.ArrayLike | jax.typing.ArrayLike
+"""Type alias for an array-like object, either a numpy array or a JAX array-like object."""
 
 
 class SimplifiedContact(PyTreeNode):
@@ -62,7 +66,7 @@ class PositionLimitType(Enum):
                 return PositionLimitType.BOTH
             case _:
                 raise ValueError(
-                    f"[PositionLimitType] invalid position limit type: {type}. " f"Expected {{'min', 'max', 'both'}}"
+                    f"[PositionLimitType] invalid position limit type: {type}. Expected {{'min', 'max', 'both'}}"
                 )
 
     @staticmethod

@@ -182,13 +182,24 @@ class LocalIKSolver(Solver[LocalIKData, LocalIKSolution]):
 
             return H, c, G, h
 
-        def process_constraint(constraint: JaxConstraint) -> tuple[jnp.ndarray, jnp.ndarray]:
+        def process_soft_constraint(constraint: JaxConstraint) -> tuple[jnp.ndarray, jnp.ndarray]:
+            jacobian = constraint.compute_jacobian(model_data)
+            minus_gain_error = -constraint.vector_gain * jax.vmap(constraint.gain_fn)(constraint(model_data))  # type: ignore[arg-type]
+
+            weighted_jacobian = constraint.soft_constraint_cost @ jacobian
+            weighted_error = constraint.soft_constraint_cost @ minus_gain_error
+
+            H = weighted_jacobian.T @ weighted_jacobian
+            c = -weighted_error.T @ weighted_jacobian
+            return H, c
+
+        def process_hard_constraint(constraint: JaxConstraint) -> tuple[jnp.ndarray, jnp.ndarray]:
             jacobian = constraint.compute_jacobian(model_data)
             bias = -constraint.vector_gain * jax.vmap(constraint.gain_fn)(
                 constraint(model_data)  # type: ignore[arg-type]
             )
 
-            return constraint.active * jacobian, constraint.active * bias
+            return jacobian, bias
 
         H_total = jnp.zeros((self.model.nv, self.model.nv))
         c_total = jnp.zeros(self.model.nv)
@@ -219,9 +230,14 @@ class LocalIKSolver(Solver[LocalIKData, LocalIKSolution]):
                 H_total = H_total + H
                 c_total = c_total + c
             elif isinstance(component, JaxConstraint):
-                A, b = process_constraint(component)
-                A_list.append(A)
-                b_list.append(b)
+                if component.hard_constraint:
+                    A, b = process_hard_constraint(component)
+                    A_list.append(A)
+                    b_list.append(b)
+                else:
+                    H, c = process_soft_constraint(component)
+                    H_total = H_total + H
+                    c_total = c_total + c
 
         # Combine all inequality constraints
         return (

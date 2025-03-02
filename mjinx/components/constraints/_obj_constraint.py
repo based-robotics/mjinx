@@ -8,7 +8,7 @@ import mujoco.mjx as mjx
 from jaxlie import SE3, SO3
 
 from mjinx.components.constraints._base import Constraint, JaxConstraint
-from mjinx.typing import ArrayOrFloat
+from mjinx.typing import ArrayOrFloat, ArrayLike
 
 
 @jdc.pytree_dataclass
@@ -57,6 +57,8 @@ class ObjConstraint(Generic[AtomicObjConstraintType], Constraint[AtomicObjConstr
         obj_name: str,
         obj_type: mj.mjtObj = mj.mjtObj.mjOBJ_BODY,
         mask: Sequence[int] | None = None,
+        hard_constraint: bool = False,
+        soft_constraint_cost: ArrayLike | None = None,
     ):
         if obj_type not in {mj.mjtObj.mjOBJ_BODY, mj.mjtObj.mjOBJ_SITE, mj.mjtObj.mjOBJ_GEOM}:
             raise ValueError(
@@ -64,7 +66,7 @@ class ObjConstraint(Generic[AtomicObjConstraintType], Constraint[AtomicObjConstr
                 f" expected {mj.mjtObj.mjOBJ_BODY, mj.mjtObj.mjOBJ_SITE, mj.mjtObj.mjOBJ_GEOM}"
             )
 
-        super().__init__(name, gain, mask)
+        super().__init__(name, gain, mask, hard_constraint, soft_constraint_cost)
         self._obj_name = obj_name
         self._obj_type = obj_type
         self._obj_id = -1

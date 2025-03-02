@@ -41,31 +41,33 @@ vis.add_markers(
 # === Mjinx ===
 # --- Constructing the problem ---
 # Creating problem formulation
-problem = Problem(mjx_model, v_min=-5, v_max=5)
+problem = Problem(mjx_model, v_min=-1, v_max=1)
 
 # Creating components of interest and adding them to the problem
 joints_barrier = JointBarrier(
     "jnt_range",
-    gain=1.0,
+    gain=0.1,
 )
-com_task = ComTask("com_task", cost=5.0, gain=10.0, mask=[1, 1, 1])
+com_task = ComTask("com_task", cost=10.0, gain=50.0, mask=[1, 1, 1])
 torso_task = FrameTask("torso_task", cost=1.0, gain=2.0, obj_name="cassie-pelvis", mask=[0, 0, 0, 1, 1, 1])
 
 # Feet (in stance)
 left_foot_task = FrameTask(
     "left_foot_task",
-    cost=5.0,
-    gain=50.0,
+    cost=20.0,
+    gain=10.0,
     obj_name="left-foot",
+    mask=[1, 1, 1, 1, 0, 1],
 )
 right_foot_task = FrameTask(
     "right_foot_task",
-    cost=5.0,
-    gain=50.0,
+    cost=20.0,
+    gain=10.0,
     obj_name="right-foot",
+    mask=[1, 1, 1, 1, 0, 1],
 )
 
-model_equality_constraint = ModelEqualityConstraint("model_eq_constraint", gain=200)
+model_equality_constraint = ModelEqualityConstraint()
 
 problem.add_component(com_task)
 problem.add_component(torso_task)
@@ -124,7 +126,7 @@ try:
         com_task.target_com = com0 - np.array([0, 0, 0.2 * np.sin(t) ** 2])
         problem_data = problem.compile()
         opt_solution, solver_data = solve_jit(q, solver_data, problem_data)
-
+        print(opt_solution.v_opt)
         # Integrating
         q = integrate_jit(
             mjx_model,

@@ -47,8 +47,10 @@ class FrameConstraint(ObjConstraint[JaxFrameConstraint]):
         obj_type: mj.mjtObj = mj.mjtObj.mjOBJ_BODY,
         refframe: typing.ndarray | SE3 | None = None,
         mask: Sequence[int] | None = None,
+        hard_constraint: bool = False,
+        soft_constraint_cost: typing.ArrayOrFloat | None = None,
     ):
-        super().__init__(name, gain, obj_name, obj_type, mask)
+        super().__init__(name, gain, obj_name, obj_type, mask, hard_constraint, soft_constraint_cost)
         self.update_refframe(refframe if refframe is not None else SE3.identity())
         self._dim = len(self._mask_idxs) if mask is not None else SE3.tangent_dim
 

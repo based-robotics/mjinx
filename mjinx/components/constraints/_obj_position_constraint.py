@@ -38,8 +38,10 @@ class PositionConstraint(ObjConstraint[JaxPositionConstraint]):
         obj_type: mj.mjtObj = mj.mjtObj.mjOBJ_BODY,
         refpos: typing.ArrayOrFloat | None = None,
         mask: Sequence[int] | None = None,
+        hard_constraint: bool = False,
+        soft_constraint_cost: typing.ArrayOrFloat | None = None,
     ):
-        super().__init__(name, gain, obj_name, obj_type, mask)
+        super().__init__(name, gain, obj_name, obj_type, mask, hard_constraint, soft_constraint_cost)
         self.update_refpos(refpos if refpos is not None else jnp.zeros(3))
         self._dim = len(self._mask_idxs) if mask is not None else 3
 

@@ -7,19 +7,16 @@ import mujoco as mj
 import mujoco.mjx as mjx
 
 from mjinx.components.constraints._base import Constraint, JaxConstraint
-from mjinx.typing import ArrayOrFloat
+from mjinx.typing import ArrayOrFloat, ArrayLike
 
 
 @jdc.pytree_dataclass
 class JaxModelEqualityConstraint(JaxConstraint):
     def __call__(self, data: mjx.Data) -> jnp.ndarray:
-        return data.efc_pos[data.efc_type == mj.mjtConstraint.mjCNSTR_EQUALITY]
+        return data.efc_pos[data.efc_type == mj.mjtConstraint.mjCNSTR_EQUALITY][self.mask_idxs,]
 
     def compute_jacobian(self, data):
-        print(data.efc_J.shape)
-        print(data.nefc, self.model.nv)
-        print(data.efc_type == mj.mjtConstraint.mjCNSTR_EQUALITY)
-        return data.efc_J[data.efc_type == mj.mjtConstraint.mjCNSTR_EQUALITY, :]
+        return data.efc_J[data.efc_type == mj.mjtConstraint.mjCNSTR_EQUALITY, :][self.mask_idxs, :]
 
 
 AtomicModelEqualityConstraintType = TypeVar("AtomicModelEqualityConstraintType", bound=JaxModelEqualityConstraint)
@@ -32,10 +29,18 @@ class ModelEqualityConstraint(Constraint[AtomicModelEqualityConstraintType]):
 
     def __init__(
         self,
-        name: str,
-        gain: ArrayOrFloat,
+        name: str = "equality_constraint",
+        gain: ArrayOrFloat = 100,
+        hard_constraint: bool = False,
+        soft_constraint_cost: ArrayLike | None = None,
     ):
-        super().__init__(name, gain, mask=None)
+        super().__init__(
+            name="name",
+            gain=gain,
+            mask=None,
+            hard_constraint=hard_constraint,
+            soft_constraint_cost=soft_constraint_cost,
+        )
         self.active = True
 
     def update_model(self, model):

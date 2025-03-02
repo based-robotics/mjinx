@@ -15,8 +15,9 @@ def update(model: mjx.Model, q: jnp.ndarray) -> mjx.Data:
     """
     data = mjx.make_data(model)
     data = data.replace(qpos=q)
-    data = mjx.fwd_position(model, data)
+    data = mjx.kinematics(model, data)
     data = mjx.com_pos(model, data)
+    data = mjx.make_constraint(model, data)
 
     return data
 
