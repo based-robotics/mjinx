@@ -4,7 +4,7 @@
 [![build](https://img.shields.io/github/actions/workflow/status/based-robotics/mjinx/build.yml?branch=main)](https://github.com/based-robotics/mjinx/actions)
 [![PyPI version](https://img.shields.io/pypi/v/mjinx?color=blue)](https://pypi.org/project/mjinx/)
 [![PyPI downloads](https://img.shields.io/pypi/dm/mjinx?color=blue)](https://pypistats.org/packages/mjinx)
-[![Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/based-robotics/mjinx/blob/main/examples/tutorial.ipynb)
+[![Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/based-robotics/mjinx/blob/feat/colab_example/examples/notebooks/turoial.ipynb)
 
 
 **Mjinx** is a library for auto-differentiable numerical inverse kinematics, powered by **JAX** and **Mujoco MJX**. The library was heavily inspired by the similar Pinocchio-based tool [pink](https://github.com/stephane-caron/pink/tree/main) and Mujoco-based analogue [mink](https://github.com/kevinzakka/mink/tree/main).
