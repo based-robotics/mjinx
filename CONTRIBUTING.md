@@ -1,4 +1,4 @@
-# Contributing to JaxADi
+# Contributing to mjinx
 
 We're thrilled that you're interested in contributing to JaxADi! This document outlines the process for contributing to this project.
 
@@ -13,12 +13,12 @@ There are many ways to contribute to JaxADi:
 
 ### Reporting Bugs
 
-1. Check the [issue tracker](https://github.com/based-robotics/jaxadi/issues) to see if the bug has already been reported.
+1. Check the [issue tracker](https://github.com/based-robotics/mjinx/issues) to see if the bug has already been reported.
 2. If not, create a new issue. Provide a clear title and description, as much relevant information as possible, and a code sample or executable test case demonstrating the bug.
 
 ### Suggesting Enhancements
 
-1. Check the [issue tracker](https://github.com/based-robotics/jaxadi/issues) to see if the enhancement has already been suggested.
+1. Check the [issue tracker](https://github.com/based-robotics/mjinx/issues) to see if the enhancement has already been suggested.
 2. If not, create a new issue. Clearly describe the enhancement, why it would be useful, and any potential drawbacks.
 
 ### Writing Documentation
