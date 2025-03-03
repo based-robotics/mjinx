@@ -1,10 +1,10 @@
 # Contributing to mjinx
 
-We're thrilled that you're interested in contributing to JaxADi! This document outlines the process for contributing to this project.
+We're thrilled that you're interested in contributing to mjinx! This document outlines the process for contributing to this project.
 
 ## How to Contribute
 
-There are many ways to contribute to JaxADi:
+There are many ways to contribute to mjinx:
 
 1. Reporting bugs
 2. Suggesting enhancements
