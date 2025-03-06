@@ -7,6 +7,7 @@
 [![Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/based-robotics/mjinx/blob/feat/colab_example/examples/notebooks/turoial.ipynb)
 
 
+
 **Mjinx** is a library for auto-differentiable numerical inverse kinematics, powered by **JAX** and **Mujoco MJX**. The library was heavily inspired by the similar Pinocchio-based tool [pink](https://github.com/stephane-caron/pink/tree/main) and Mujoco-based analogue [mink](https://github.com/kevinzakka/mink/tree/main).
 
 <p align="center">
@@ -106,4 +107,6 @@ The repository was highly inspired by [`pink`](https://github.com/stephane-caron
 
 Some utility functions in this code are taken from source code of [`MuJoCo MJX`](https://github.com/google-deepmind/mujoco/tree/main/mjx). Apart from being a wonderful tool for batched computations and ML, the source code is compact yet readable and informative, and I encourage everyone to take a look at it to learn a little bit more about physical simulations, `jax`, and MuJoCo in general. 
 
-Finally, I would like to thank [IRIS lab](http://iris.kaist.ac.kr/) with my supervisor pr. Jee-Hwan Ryu for providing resourses and guidance. 
+
+Finally, I would like to thank [IRIS lab](http://iris.kaist.ac.kr/). 
+
