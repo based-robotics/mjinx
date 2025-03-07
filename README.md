@@ -1,9 +1,11 @@
 # MJINX
-[![mypy](https://img.shields.io/github/actions/workflow/status/based-robotics/mjinx/mypy.yml?branch=main)](https://github.com/based-robotics/mjinx/actions)
-[![ruff](https://img.shields.io/github/actions/workflow/status/based-robotics/mjinx/ruff.yml?branch=main)](https://github.com/based-robotics/mjinx/actions)
-[![build](https://img.shields.io/github/actions/workflow/status/based-robotics/mjinx/build.yml?branch=main)](https://github.com/based-robotics/mjinx/actions)
+[![mypy](https://img.shields.io/github/actions/workflow/status/based-robotics/mjinx/mypy.yml?branch=main&label=mypy)](https://github.com/based-robotics/mjinx/actions)
+[![ruff](https://img.shields.io/github/actions/workflow/status/based-robotics/mjinx/ruff.yml?branch=main&label=ruff)](https://github.com/based-robotics/mjinx/actions)
+[![docs](https://img.shields.io/github/actions/workflow/status/based-robotics/mjinx/docs.yml?branch=main&label=docs)](https://based-robotics.github.io/mjinx/)
 [![PyPI version](https://img.shields.io/pypi/v/mjinx?color=blue)](https://pypi.org/project/mjinx/)
 [![PyPI downloads](https://img.shields.io/pypi/dm/mjinx?color=blue)](https://pypistats.org/packages/mjinx)
+[![Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/based-robotics/mjinx/blob/main/examples/notebooks/turoial.ipynb)
+
 
 
 **Mjinx** is a library for auto-differentiable numerical inverse kinematics, powered by **JAX** and **Mujoco MJX**. The library was heavily inspired by the similar Pinocchio-based tool [pink](https://github.com/stephane-caron/pink/tree/main) and Mujoco-based analogue [mink](https://github.com/kevinzakka/mink/tree/main).
@@ -105,4 +107,6 @@ The repository was highly inspired by [`pink`](https://github.com/stephane-caron
 
 Some utility functions in this code are taken from source code of [`MuJoCo MJX`](https://github.com/google-deepmind/mujoco/tree/main/mjx). Apart from being a wonderful tool for batched computations and ML, the source code is compact yet readable and informative, and I encourage everyone to take a look at it to learn a little bit more about physical simulations, `jax`, and MuJoCo in general. 
 
+
 Finally, I would like to thank [IRIS lab](http://iris.kaist.ac.kr/). 
+
