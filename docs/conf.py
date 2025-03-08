@@ -372,6 +372,6 @@ suppress_warnings = [
 ]
 
 # Add BibTeX configuration
-bibtex_bibfiles = ['references.bib']
-bibtex_default_style = 'plain'
-bibtex_reference_style = 'author_year'
+bibtex_bibfiles = ["references.bib"]
+bibtex_default_style = "plain"
+bibtex_reference_style = "author_year"
