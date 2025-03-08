@@ -35,18 +35,18 @@ and `MuJoCo MJX <https://mujoco.readthedocs.io/en/stable/mjx.html>`_. The librar
      <img src="https://github.com/based-robotics/mjinx/raw/main/img/g1_heart.gif" style="width: 200px;" alt="Heart path example">
    </div>
 
-============
+*************
 Key Features
-============
+*************
 
 1. **Flexibility**: Each control problem is assembled via ``Components``, which enforce desired behavior or keep the system within a safety set.
 2. **Multiple solution approaches**: JAX's efficient sampling and autodifferentiation enable various solvers optimized for different scenarios.
 3. **Fully JAX-compatible**: Both the optimization problem and solver support JAX transformations, including JIT compilation and automatic vectorization.
 4. **Convenience**: The API is designed to make complex inverse kinematics problems easy to express and solve.
 
-=============
+*************
 Citing MJINX
-=============
+*************
 
 If you use MJINX in your research, please cite it as follows:
 
@@ -69,12 +69,11 @@ If you use MJINX in your research, please cite it as follows:
 
     installation.rst
     quick_start.rst
-    components.rst
     problem.rst
     configuration.rst
+    components.rst
     solvers.rst
     visualization.rst
-    typing.rst
     references.rst
     developer-notes.rst
 

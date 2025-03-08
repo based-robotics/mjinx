@@ -30,7 +30,6 @@ Lie Algebra
 
 The Lie algebra operations implement sophisticated mathematical tools for handling rotations, quaternions, and transformations in 3D space. Based on principles from differential geometry, these functions ensure proper handling of the SE(3) and SO(3) Lie groups.
 
-
 .. automodule:: mjinx.configuration._lie
     :members:
     :undoc-members:
