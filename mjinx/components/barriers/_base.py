@@ -10,7 +10,7 @@ from mjinx.components import Component, JaxComponent
 
 @jdc.pytree_dataclass
 class JaxBarrier(JaxComponent):
-    """
+    r"""
     A base class for implementing barrier functions in JAX.
 
     This class provides a framework for creating barrier functions that can be used
@@ -69,7 +69,7 @@ AtomicBarrierType = TypeVar("AtomicBarrierType", bound=JaxBarrier)
 
 
 class Barrier(Generic[AtomicBarrierType], Component[AtomicBarrierType]):
-    """
+    r"""
     A generic barrier class that wraps atomic barrier implementations.
 
     This class provides a high-level interface for barrier functions, allowing

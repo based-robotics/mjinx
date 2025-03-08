@@ -1,31 +1,55 @@
 :github_url: https://github.com/based-robotics/mjinx/tree/main/docs/components.rst
 
-.. _Components:
-
+==========
 Components
 ==========
 
-Components are the building blocks of MJINX problems. Each component represents a mathematical function that contributes to the inverse kinematics problem, either as a task (objective) or a barrier (constraint).
+MJINX employs a component-based architecture to formulate inverse kinematics problems through functional decomposition. Each component encapsulates a mathematical mapping from the configuration space to a task or constraint space, functioning either as an objective function (task) or an inequality constraint (barrier).
 
-Components have several key properties:
-- A unique name for identification
-- A gain (weight) that determines its importance in the optimization
-- An optional mask that selects relevant dimensions
-- A mathematical function that maps robot state to output values
+This modular structure facilitates the systematic construction of complex kinematic problems through composition of elementary components. The approach aligns with established practices in robotics control theory, where complex behaviors emerge from the coordination of simpler control objectives.
 
-The component system in MJINX is designed to be modular and composable, allowing you to build complex problems from simple elements.
+Components are characterized by several key attributes:
 
-.. toctree::
-   :maxdepth: 2
-   :caption: Component Types:
+- A unique identifier for reference within the problem formulation
+- A gain parameter that determines its relative weight in the optimization
+- An optional dimensional mask for selective application
+- A differentiable function mapping robot state to output values
 
-   tasks
-   barriers
+This formulation follows the task-priority framework established in robotics literature, where multiple objectives are managed through appropriate weighting and prioritization. The separation of concerns between tasks and constraints provides a natural expression of both the desired behavior and the feasible region of operation.
 
+When integrated into a Problem instance, components form a well-posed optimization problem. Tasks define the objective function to be minimized, while barriers establish the constraint manifold. The solver then computes solutions that optimize the weighted task objectives while maintaining feasibility with respect to all constraints.
+
+**************
 Base Component
---------------
-All components inherit from the base Component class, which provides the core interface and functionality.
+**************
+
+The Component class serves as the abstract base class from which all specific component implementations derive. This inheritance hierarchy ensures a consistent interface while enabling specialized behavior for different component types.
 
 .. automodule:: mjinx.components._base
     :members:
     :special-members: __call__
+
+********
+Tasks
+********
+
+Tasks define objective functions that map from configuration space to task space, with the solver minimizing weighted errors between current and desired values :cite:`kanoun2011kinematic`. Each task :math:`f: \mathcal{Q} \rightarrow \mathbb{R}^m` produces an error :math:`e(q) = f(q) - f_{desired}` that is minimized according to :math:`\|e(q)\|^2_W`.
+
+MJINX provides task implementations for common robotics objectives:
+
+.. toctree::
+   :maxdepth: 1
+
+   tasks
+
+********
+Barriers
+********
+Barriers implement inequality constraints through scalar functions :math:`h(q) \geq 0` that create boundaries the solver must respect. Based on control barrier functions (CBFs) :cite:`ames2019control`, these constraints are enforced through differential inequality: :math:`\nabla h(q)^T v \geq -\alpha h(q)`, with :math:`\alpha` controls constraint enforcement and :math:`v` is the velocity vector. 
+
+MJINX provides several barrier implementations:
+
+.. toctree::
+   :maxdepth: 1
+
+   barriers

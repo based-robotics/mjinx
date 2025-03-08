@@ -17,7 +17,7 @@ from mjinx.typing import ArrayOrFloat
 
 @jdc.pytree_dataclass
 class JaxComTask(JaxTask):
-    """
+    r"""
     A JAX-based implementation of a center of mass (CoM) task for inverse kinematics.
 
     This class represents a task that aims to achieve a specific target center of mass
@@ -46,7 +46,7 @@ class JaxComTask(JaxTask):
 
     @final
     def __call__(self, data: mjx.Data) -> jnp.ndarray:
-        """
+        r"""
         Compute the error between the current center of mass and the target center of mass.
 
         The error is given by:
@@ -154,6 +154,7 @@ class ComTask(Task[JaxComTask]):
         :param target_com: The new target center of mass as a sequence of values.
         :raises ValueError: If the provided sequence doesn't have the correct length.
         """
+
         target_com_jnp = jnp.array(target_com)
         if target_com_jnp.shape[-1] != self._dim:
             raise ValueError(

@@ -16,12 +16,12 @@ from mjinx.typing import ArrayOrFloat, CollisionBody, CollisionPair
 
 @jdc.pytree_dataclass
 class JaxSelfCollisionBarrier(JaxBarrier):
-    """A JAX implementation of a self-collision barrier function.
+    r"""A JAX implementation of a self-collision barrier function.
 
     This class extends JaxBarrier to provide barrier functions that prevent
     self-collisions between different parts of the robot. It identifies potential
     collision pairs and computes barrier values based on their distances.
-    
+
     The self-collision barrier enforces minimum distances between collision pairs:
 
     .. math::
@@ -47,14 +47,16 @@ class JaxSelfCollisionBarrier(JaxBarrier):
 
     @final
     def __call__(self, data: mjx.Data) -> jnp.ndarray:
-        """
+        r"""
         Compute the self-collision barrier value.
 
         This method calculates the difference between the actual distances between
         collision pairs and their minimum allowed distances:
-        
-        h(q) = d(q) - d_min ≥ 0
-        
+
+        .. math::
+
+            h(q) = d(q) - d_{min} \geq 0
+
         It focuses on the n_closest_pairs, which represent the most critical potential collisions.
 
         :param data: The MuJoCo simulation data.
@@ -64,7 +66,7 @@ class JaxSelfCollisionBarrier(JaxBarrier):
         return -jax.lax.top_k(-dists, self.n_closest_pairs)[0] - self.d_min_vec
 
     def compute_jacobian(self, data: mjx.Data) -> jnp.ndarray:
-        """
+        r"""
         Compute the Jacobian of the barrier function with respect to joint positions.
 
         For collision barriers, the Jacobian captures how changes in joint positions
@@ -72,8 +74,8 @@ class JaxSelfCollisionBarrier(JaxBarrier):
 
         .. math::
 
-            J = \\frac{\\partial d(q)}{\\partial q}
-        
+            J = \frac{\partial d(q)}{\partial q}
+
         This is computed analytically using the contact normals and point Jacobians:
 
         .. math::

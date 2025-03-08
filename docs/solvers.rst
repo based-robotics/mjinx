@@ -2,8 +2,9 @@
 
 .. _Solvers:
 
+========
 Solvers
-=======
+========
 
 MJINX provides multiple solver implementations for inverse kinematics problems, each with different characteristics suitable for various applications.
 

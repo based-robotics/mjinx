@@ -17,7 +17,7 @@ from mjinx.typing import ArrayOrFloat, ndarray
 
 @jdc.pytree_dataclass
 class JaxFrameTask(JaxObjTask):
-    """
+    r"""
     A JAX-based implementation of a frame task for inverse kinematics.
 
     This class represents a task that aims to achieve a specific target frame
@@ -48,7 +48,7 @@ class JaxFrameTask(JaxObjTask):
 
     @final
     def __call__(self, data: mjx.Data) -> jnp.ndarray:
-        """
+        r"""
         Compute the error between the current frame and the target frame.
 
         The error is given by the logarithmic map in SE(3):
@@ -67,7 +67,7 @@ class JaxFrameTask(JaxObjTask):
 
     @final
     def compute_jacobian(self, data: mjx.Data) -> jnp.ndarray:
-        """
+        r"""
         Compute the Jacobian of the frame task.
 
         The Jacobian relates changes in joint positions to changes in the frame task error.
@@ -159,7 +159,9 @@ class FrameTask(ObjTask[JaxFrameTask]):
         if not isinstance(target_frame, SE3):
             target_frame_jnp = jnp.array(target_frame)
             if target_frame_jnp.shape[-1] != SE3.parameters_dim:
-                raise ValueError("Target frame provided via array must have length 7 (xyz + quaternion with scalar first)")
+                raise ValueError(
+                    "Target frame provided via array must have length 7 (xyz + quaternion with scalar first)"
+                )
 
             xyz, quat = target_frame_jnp[..., :3], target_frame_jnp[..., 3:]
             target_frame_se3 = SE3.from_rotation_and_translation(

@@ -17,10 +17,10 @@ from mjinx.typing import ArrayOrFloat
 class JaxComponent(abc.ABC):
     """Base class for all JAX-based components in the inverse kinematics framework.
 
-    This class provides the fundamental structure for components that can be 
-    evaluated and differentiated within the JAX ecosystem. Components represent 
+    This class provides the fundamental structure for components that can be
+    evaluated and differentiated within the JAX ecosystem. Components represent
     either tasks (objectives) or barriers (constraints) in the optimization problem.
-    
+
     :param gain: The gain factor applied to the component.
     :param gain_fn: A function to compute the gain dynamically.
     :param mask: A sequence of integers to mask certain dimensions.
@@ -99,7 +99,7 @@ class Component(Generic[AtomicComponentType]):
     This class provides a Python-friendly interface for creating and manipulating
     components, which are then compiled into JAX-compatible representations for
     efficient computation.
-    
+
     :param name: The name of the component.
     :param gain: The gain factor applied to the component.
     :param gain_fn: A function to compute the gain dynamically.

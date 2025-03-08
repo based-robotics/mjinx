@@ -11,7 +11,7 @@ from mjinx.typing import ArrayOrFloat, ndarray
 
 @jdc.pytree_dataclass
 class JaxJointBarrier(JaxBarrier):
-    """
+    r"""
     A JAX implementation of a joint barrier function.
 
     This class extends the JaxBarrier to specifically handle joint limits in a robotic system.
@@ -40,13 +40,13 @@ class JaxJointBarrier(JaxBarrier):
     floating_base: jdc.Static[bool]
 
     def __call__(self, data: mjx.Data) -> jnp.ndarray:
-        """
+        r"""
         Compute the joint barrier values.
 
         This method calculates two sets of barrier values:
-        1. Lower limit barriers: q - q_min ≥ 0
-        2. Upper limit barriers: q_max - q ≥ 0
-        
+        1. Lower limit barriers: :math:`q - q_{min} \geq 0`
+        2. Upper limit barriers: :math:`q_{max} - q \geq 0`
+
         These barriers ensure that joint positions remain within their allowable ranges.
 
         :param data: The MuJoCo simulation data.
@@ -61,13 +61,13 @@ class JaxJointBarrier(JaxBarrier):
         )
 
     def compute_jacobian(self, data: mjx.Data) -> jnp.ndarray:
-        """
+        r"""
         Compute the Jacobian of the joint barrier function.
 
         For joint barriers, the Jacobian has a simple form:
-        - For lower limits (q - q_min): J = I (identity matrix)
-        - For upper limits (q_max - q): J = -I (negative identity matrix)
-        
+        - For lower limits (:math:`q - q_{min}`): :math:`J = I` (identity matrix)
+        - For upper limits (:math:`q_{max} - q`): :math:`J = -I` (negative identity matrix)
+
         These are combined into a single Jacobian matrix, with appropriate
         adjustments for masked joints and floating base.
 
@@ -88,11 +88,11 @@ class JointBarrier(Barrier[JaxJointBarrier]):
 
     This class provides an interface for creating and managing joint barriers,
     including methods for updating joint limits and handling model-specific details.
-    
+
     Joint barriers are one of the most common constraint types in robotics, ensuring that
     joint positions respect their mechanical limits. They can be incorporated into
     optimization problems to prevent solutions that would require impossible joint configurations.
-    
+
     The barrier function is formulated to create a potential field that increases as
     joints approach their limits, effectively pushing the optimization away from invalid regions.
 
@@ -128,7 +128,7 @@ class JointBarrier(Barrier[JaxJointBarrier]):
 
     @property
     def q_min(self) -> jnp.ndarray:
-        """
+        r"""
         Get the minimum joint limits.
 
         :return: The minimum joint limits.

@@ -4,12 +4,9 @@
 Quick Start
 ***********
 
-Inverse kinematics (IK) is the process of determining joint configurations that achieve desired positions or orientations for parts of a robot. MJINX simplifies this process by using ``Components`` to define desired states and constraints, then offering various solvers to find optimal solutions.
-
-This guide demonstrates the core concepts with a practical example.
-
+================
 Complete Example
-===============
+================
 
 Here's a complete example showing MJINX in action:
 
@@ -66,8 +63,9 @@ Here's a complete example showing MJINX in action:
 
 Let's break this down step by step to understand how MJINX works.
 
+====================
 Building the Problem
-===================
+====================
 
 First, create an instance of the :class:`Problem <mjinx.problem.Problem>` class with your MuJoCo MJX model:
 
@@ -77,8 +75,10 @@ First, create an instance of the :class:`Problem <mjinx.problem.Problem>` class 
 
 A problem consists of various *Components*, each representing a function with specific meaning and purpose. All components have a name, gain (weight in the optimization), and an optional mask to select specific elements. See :class:`Component <mjinx.components._base.Component>` for details.
 
+^^^^^^^^^^^^^^^
 Task Components
-^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^
+
 Tasks define your *desired behavior* - what you want your robot to achieve. In MJINX, a :class:`Task <mjinx.components.tasks._base.Task>` represents a function :math:`f(q, t)` that the controller tries to minimize (keep close to zero).
 
 Task importance is specified by two parameters:
@@ -93,8 +93,9 @@ To position an end-effector at a desired location, add a :class:`FrameTask <mjin
    frame_task = FrameTask(name="ee_task", cost=1, gain=20, body_name="link7")
    problem.add_component(frame_task)
 
+^^^^^^^^^^^^^^^^^^
 Barrier Components
-^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^
 
 Barriers define *constraints* - conditions that must never be violated. A :class:`Barrier <mjinx.components.barriers._base.Barrier>` represents a function :math:`h(q, t)` that must always remain positive: :math:`h(q, t) > 0`.
 
@@ -113,11 +114,13 @@ When you've finished building your problem, compile it:
 
 Compilation converts each :class:`Component <mjinx.components._base.Component>` into its corresponding :class:`JaxComponent <mjinx.components._base.JaxComponent>`. You must recompile whenever you modify a component (e.g., changing a target position).
 
+===================
 Solving the Problem
-==================
+===================
 
+^^^^^^^
 Solvers
-^^^^^^
+^^^^^^^
 
 MJINX provides different solvers that inherit from the :class:`Solver <mjinx.solver._base.Solver>` class. Let's use the :class:`LocalIKSolver <mjinx.solver._local_ik.LocalIKSolver>`:
 
@@ -134,6 +137,7 @@ To solve the problem, provide the current state ``q``, the solver data, and the 
 
 The ``opt_solution`` contains the optimal joint velocity ``v_opt`` and may include additional information.
 
+^^^^^^^^^^^^^^^^^^^^^^^
 Configuration Utilities
 ^^^^^^^^^^^^^^^^^^^^^^^
 
@@ -148,8 +152,10 @@ Use :func:`mjinx.configuration.integrate <mjinx.configuration.integrate>` to adv
       dt=dt,
    )
 
+================
 JAX Acceleration
-===============
+================
+
 One of MJINX's key advantages is its JAX compatibility. All methods in the ``Solver`` class and ``configuration`` module can be accelerated using JAX transformations.
 
 For performance, you can JIT-compile the solver and integration functions:
@@ -181,6 +187,7 @@ You can even vectorize the computation to solve multiple problems in parallel:
 
 This approach enables efficient parallel computation of multiple IK solutions, significantly accelerating your robotics applications.
 
+========
 Examples
 ========
 

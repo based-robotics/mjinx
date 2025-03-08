@@ -91,7 +91,7 @@ def joint_difference(model: mjx.Model, q1: jnp.ndarray, q2: jnp.ndarray) -> jnp.
 
 
 def skew_symmetric(v: jnp.ndarray) -> jnp.ndarray:
-    """
+    r"""
     Create a skew-symmetric matrix from a 3D vector.
 
     This function takes a 3D vector and returns its corresponding 3x3 skew-symmetric matrix.
@@ -101,11 +101,11 @@ def skew_symmetric(v: jnp.ndarray) -> jnp.ndarray:
     .. math::
 
         [v]_{\times} = 
-        \\begin{bmatrix}
-            0 & -v_z & v_y \\\\
-            v_z & 0 & -v_x \\\\
+        \begin{bmatrix}
+            0 & -v_z & v_y \\
+            v_z & 0 & -v_x \\
             -v_y & v_x & 0
-        \\end{bmatrix}
+        \end{bmatrix}
 
     This matrix has the property that for any vector w, [v]_× w = v × w (cross product).
 
@@ -123,7 +123,7 @@ def skew_symmetric(v: jnp.ndarray) -> jnp.ndarray:
 
 
 def attitude_jacobian(q: jnp.ndarray) -> jnp.ndarray:
-    """
+    r"""
     Compute the attitude Jacobian for a quaternion.
 
     This function calculates the 4x3 attitude Jacobian matrix for a given unit quaternion.
@@ -138,18 +138,19 @@ def attitude_jacobian(q: jnp.ndarray) -> jnp.ndarray:
     .. math::
 
         E(q) = 
-        \\begin{bmatrix}
-            -q_x & -q_y & -q_z \\\\
-            q_w & -q_z & q_y \\\\
-            q_z & q_w & -q_x \\\\
+        \begin{bmatrix}
+            -q_x & -q_y & -q_z \\
+            q_w & -q_z & q_y \\
+            q_z & q_w & -q_x \\
             -q_y & q_x & q_w
-        \\end{bmatrix}
+        \end{bmatrix}
 
-    With q = [q_w, q_x, q_y, q_z] being the quaternion.
+    With :math:`q = [q_w, q_x, q_y, q_z]` being the quaternion.
 
     :param q: A unit quaternion represented as a 4D array [w, x, y, z].
+
     :return: A 4x3 attitude Jacobian matrix.
-    :ref: https://rexlab.ri.cmu.edu/papers/planning_with_attitude.pdf
+    :ref: Based on :cite:`jackson2021planning`
     """
     w, v = q[0], q[1:]
     return jnp.vstack([-v.T, jnp.eye(3) * w + skew_symmetric(v)])

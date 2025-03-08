@@ -2,22 +2,23 @@
 
 .. _Barriers:
 
-Barriers
-========
 
-Barriers represent constraints in the inverse kinematics problem. Each barrier defines a mathematical function that must remain positive (h(q) ≥ 0), creating a "barrier" that the solver must not cross.
+Barriers implement inequality constraints in the inverse kinematics problem. Each barrier defines a scalar function :math:`h: \mathcal{Q} \rightarrow \mathbb{R}` that must remain positive (:math:`h(q) \geq 0`), creating a boundary that the solver must respect. This approach is mathematically equivalent to control barrier functions (CBFs) :cite:`ames2019control`, which have been widely adopted in robotics for safety-critical control.
 
-MJINX provides barrier implementations for common robotics constraints:
-- Joint limits
-- Position boundaries
-- Collision avoidance
-- And more
+The barrier formulation creates a continuous constraint boundary that prevents the system from entering prohibited regions of the configuration space. In the optimization problem, these constraints are typically enforced through linearization at each step:
 
-All barriers follow a consistent mathematical formulation while adapting to specific constraint types.
+.. math::
+
+    \nabla h(q)^T \dot{q} \geq -\alpha h(q)
+
+where :math:`\alpha` is a gain parameter that controls how aggressively the system is pushed away from the constraint boundary.
+
+
+All barriers follow a consistent mathematical formulation while adapting to specific constraint types, enabling systematic enforcement of safety and feasibility requirements.
 
 Base Barrier
 ------------
-The foundation for all barrier constraints, defining the core interface and mathematical properties.
+The foundation for all barrier constraints, defining the core mathematical properties and interface.
 
 .. automodule:: mjinx.components.barriers._base
     :members:
@@ -31,14 +32,14 @@ Enforces joint limit constraints, preventing the robot from exceeding mechanical
 
 Base Body Barrier
 -----------------
-The foundation for barriers applied to specific bodies, geometries, or sites in the robot model.
+The foundation for barriers applied to specific bodies, geometries, or sites in the robot model. This abstract class provides common functionality for all object-specific barriers.
 
 .. automodule:: mjinx.components.barriers._obj_barrier
     :members:
 
 Body Position Barrier
 ---------------------
-Enforces position constraints on specific bodies, geometries, or sites, useful for workspace limits.
+Enforces position constraints on specific bodies, geometries, or sites, useful for defining workspace limits.
 
 .. automodule:: mjinx.components.barriers._obj_position_barrier
     :members:

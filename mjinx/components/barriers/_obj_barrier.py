@@ -15,12 +15,12 @@ from mjinx.typing import ArrayOrFloat
 
 @jdc.pytree_dataclass
 class JaxObjBarrier(JaxBarrier):
-    """
+    r"""
     A JAX implementation of an object-specific barrier function.
 
     This class extends JaxBarrier to provide barrier functions that are
     specific to a particular object (body, geometry, or site) in the robot model.
-    
+
     Object barriers define constraints on properties of specific objects, such as
     their position, orientation, or other attributes. The general form is:
 
@@ -94,12 +94,12 @@ class ObjBarrier(Generic[AtomicObjBarrierType], Barrier[AtomicObjBarrierType]):
 
     This class provides a high-level interface for object-specific barrier functions,
     which can be applied to bodies, geometries, or sites in the robot model.
-    
+
     Object barriers create constraints that depend on specific robot parts, such as:
     - Position limits for end effectors
     - Orientation constraints for specific links
     - Workspace boundaries for manipulators
-    
+
     The barrier function ensures that these constraints are satisfied during optimization
     by creating a potential field that increases as the system approaches constraint boundaries.
 

@@ -61,7 +61,7 @@ class JaxJointTask(JaxTask):
         return joint_difference(self.model, data.qpos, self.full_target_q)[mask_idxs,]
 
     def compute_jacobian(self, data: mjx.Data) -> jnp.ndarray:
-        """
+        r"""
         Compute the Jacobian of the joint task function.
 
         Since the joint task function is the identity map (or a selection of it),

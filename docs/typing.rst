@@ -1,9 +1,8 @@
 :github_url: https://github.com/based-robotics/mjinx/tree/docs/github_pages/docs/typing.rst
 
-.. _typing:
-
+===========
 Type System
-============
+===========
 
 MJINX uses Python's type annotations throughout the codebase to enhance code clarity, enable better IDE support, and catch potential errors. This module provides the type definitions and aliases used across the library.
 
@@ -12,8 +11,9 @@ MJINX uses Python's type annotations throughout the codebase to enhance code cla
    :undoc-members:
    :show-inheritance:
 
+============
 Type Aliases
-------------
+============
 
 The following type aliases are defined for common data structures and function signatures:
 
@@ -52,8 +52,9 @@ The following type aliases are defined for common data structures and function s
 
    :annotation: = tuple[int, int]
 
+============
 Enumerations
-------------
+============
 
 .. autoclass:: PositionLimitType
    :no-index:

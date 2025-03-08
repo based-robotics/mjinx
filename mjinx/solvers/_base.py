@@ -41,18 +41,18 @@ SolverSolutionType = TypeVar("SolverSolutionType", bound=SolverSolution)
 
 
 class Solver(Generic[SolverDataType, SolverSolutionType], abc.ABC):
-    """Abstract base class for solvers.
+    r"""Abstract base class for solvers.
 
     This class defines the interface for solvers used in inverse kinematics problems.
-    Solvers transform task and barrier constraints into optimization problems, which 
+    Solvers transform task and barrier constraints into optimization problems, which
     can be solved to find joint configurations or velocities that satisfy the constraints.
-    
+
     In general, the optimization problem can be formulated as:
-    
+
     .. math::
-    
+
         \min_{q} \sum_{i} \|e_i(q)\|^2_{W_i} \quad \text{subject to} \quad h_j(q) \geq 0
-        
+
     where:
         - :math:`e_i(q)` are the task errors
         - :math:`W_i` are the task weight matrices

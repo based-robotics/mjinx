@@ -17,9 +17,10 @@ extensions = [
     "sphinx.ext.autodoc",
     "sphinx.ext.coverage",
     "sphinx.ext.intersphinx",
-    "sphinx-mathjax-offline",
+    "sphinx.ext.mathjax",
     "sphinx_autodoc_typehints",
     "sphinx_rtd_theme",
+    "sphinxcontrib.bibtex",
 ]
 
 
@@ -114,6 +115,25 @@ pygments_style = "sphinx"
 # If true, `todo` and `todoList` produce output, else they produce nothing.
 todo_include_todos = False
 
+# Add this near the beginning of the file, with other configurations
+rst_prolog = """
+.. role:: raw-html(raw)
+   :format: html
+
+.. |nbsp| unicode:: 0xA0
+   :trim:
+
+.. |br| raw:: html
+
+   <br />
+"""
+
+# Make sure image processing is configured correctly
+html_scaled_image_link = False
+
+# If needed for reference to images in reST
+numfig = True
+numfig_format = {"figure": "Figure %s", "table": "Table %s", "code-block": "Listing %s"}
 
 # -- Options for HTML output ----------------------------------------------
 
@@ -127,7 +147,6 @@ html_theme = "sphinx_rtd_theme"
 # documentation.
 #
 html_theme_options = {
-    "display_version": True,
     "prev_next_buttons_location": "bottom",
     "collapse_navigation": True,
     "sticky_navigation": True,
@@ -155,11 +174,13 @@ html_theme_options = {
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
-html_static_path = ["css", "img"]
+html_static_path = ["_static"]
 
 # These paths are either relative to html_static_path or fully qualified paths
 # (eg. https://...)
-html_css_files = ["custom.css"]
+html_css_files = [
+    "custom.css",
+]
 
 # Add any extra paths that contain custom files (such as robots.txt or
 # .htaccess) here, relative to this directory. These files are copied
@@ -336,3 +357,21 @@ intersphinx_mapping = {
 # Treat warnings as errors, in particular when a reference target (such as a
 # :func:`something`) is not found.
 nitpicky = False
+
+# Configure MathJax
+mathjax_path = "https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"
+
+# Disable LaTeX-related settings
+imgmath_latex = None
+imgmath_use_preview = False
+
+# Suppress specific warnings
+suppress_warnings = [
+    "docutils.nodes.block_quote",  # Suppress block quote warnings
+    "docutils.nodes.field_list",  # Suppress field list warnings
+]
+
+# Add BibTeX configuration
+bibtex_bibfiles = ['references.bib']
+bibtex_default_style = 'plain'
+bibtex_reference_style = 'author_year'

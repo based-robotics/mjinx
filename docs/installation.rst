@@ -4,8 +4,9 @@
 Installation
 ************
 
+===========
 From PyPI
-=========
+===========
 
 The simplest way to install MJINX is via the Python Package Index:
 
@@ -13,8 +14,9 @@ The simplest way to install MJINX is via the Python Package Index:
 
     pip install mjinx
 
+====================
 Installation Options
-===================
+====================
 
 MJINX offers several installation options with different dependencies:
 
@@ -24,8 +26,9 @@ MJINX offers several installation options with different dependencies:
 4. **Documentation dependencies**: ``pip install mjinx[docs]``
 5. **Complete installation**: ``pip install mjinx[all]``
 
+============================
 From Source (Developer Mode)
-===========================
+============================
 
 For developers or to access the latest features, you can clone the repository and install in editable mode:
 

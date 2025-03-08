@@ -2,17 +2,27 @@
 
 .. _Problem:
 
+=======
 Problem
 =======
 
-The Problem module is central to MJINX, providing the framework for defining and compiling inverse kinematics problems.
+At the heart of MJINX lies the Problem module - a structured framework that elegantly handles inverse kinematics challenges. This module serves as the central hub where various components come together to form a cohesive mathematical formulation.
 
-A Problem consists of:
-- Tasks: Components representing desired behaviors to achieve
-- Barriers: Components representing constraints to satisfy
-- Velocity limits: Bounds on allowable joint velocities
+When working with MJINX, a Problem instance orchestrates several key elements:
 
-Once defined, a Problem is compiled into a JaxProblemData object that can be passed to solvers.
+- **Tasks**: Objective functions that define desired behaviors, such as reaching specific poses or following trajectories
+- **Barriers**: Smooth constraint functions that naturally keep the system within valid states
+- **Velocity limits**: Physical bounds on joint velocities to ensure feasible motion
+
+The module's modular architecture shines in its flexibility - users can begin with simple scenarios like positioning a single end-effector, then naturally build up to complex whole-body motions with multiple objectives and constraints.
+
+Under the hood, the Problem class transforms these high-level specifications into optimized computations through its JaxProblemData representation. By leveraging JAX's JIT compilation, it ensures that even sophisticated inverse kinematics problems run with maximum efficiency.
+
+=================
+Problem Interface
+=================
+
+The Problem interface facilitates incremental construction of inverse kinematics problems. Users can add components, set velocity limits, and configure parameters as needed. The interface also supports vectorization for processing multiple problem instances simultaneously.
 
 .. automodule:: mjinx.problem
     :members:

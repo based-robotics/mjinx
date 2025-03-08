@@ -15,7 +15,7 @@ from mjinx.typing import ArrayOrFloat, PositionLimitType
 
 @jdc.pytree_dataclass
 class JaxPositionBarrier(JaxObjBarrier):
-    """
+    r"""
     A JAX implementation of a position barrier function for a specific object (body, geometry, or site).
 
     This class extends JaxObjBarrier to provide position-specific barrier functions.
@@ -44,12 +44,12 @@ class JaxPositionBarrier(JaxObjBarrier):
 
     @final
     def __call__(self, data: mjx.Data) -> jnp.ndarray:
-        """
+        r"""
         Compute the position barrier value.
 
-        For minimum limits, the barrier is: p(q) - p_min ≥ 0
-        For maximum limits, the barrier is: p_max - p(q) ≥ 0
-        
+        For minimum limits, the barrier is: :math:`p(q) - p_{min} \geq 0`
+        For maximum limits, the barrier is: :math:`p_{max} - p(q) \geq 0`
+
         The barrier is active (near zero) when the position approaches its limits
         and becomes negative if the limits are violated.
 
@@ -66,7 +66,7 @@ class JaxPositionBarrier(JaxObjBarrier):
 
 
 class PositionBarrier(ObjBarrier[JaxPositionBarrier]):
-    """
+    r"""
     A position barrier class that wraps the JAX position barrier implementation.
 
     This class provides a high-level interface for position-specific barrier functions.
@@ -82,11 +82,11 @@ class PositionBarrier(ObjBarrier[JaxPositionBarrier]):
     .. math::
 
         h(q) = 
-        \\begin{cases}
-            p(q) - p_{min} & \\text{for minimum limits} \\\\
-            p_{max} - p(q) & \\text{for maximum limits} \\\\
-            [p(q) - p_{min}, p_{max} - p(q)] & \\text{for both limits}
-        \\end{cases}
+        \begin{cases}
+            p(q) - p_{min} & \text{for minimum limits} \\
+            p_{max} - p(q) & \text{for maximum limits} \\
+            [p(q) - p_{min}, p_{max} - p(q)] & \text{for both limits}
+        \end{cases}
 
     :param p_min: The minimum allowed position.
     :param p_max: The maximum allowed position.

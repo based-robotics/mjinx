@@ -97,7 +97,7 @@ class LocalIKSolution(SolverSolution):
 
 
 class LocalIKSolver(Solver[LocalIKData, LocalIKSolution]):
-    """Local Inverse Kinematics solver using Quadratic Programming (QP).
+    r"""Local Inverse Kinematics solver using Quadratic Programming (QP).
 
     This solver uses a local linearization approach to solve the inverse kinematics problem.
     At each step, it formulates a Quadratic Program (QP) that approximates the nonlinear optimization
@@ -106,7 +106,7 @@ class LocalIKSolver(Solver[LocalIKData, LocalIKSolution]):
     The QP is formulated as:
     
     .. math::
-    
+        
         \min_{v} \frac{1}{2} v^T P v + c^T v \quad \text{subject to} \quad G v \leq h
         
     where:
@@ -119,23 +119,53 @@ class LocalIKSolver(Solver[LocalIKData, LocalIKSolution]):
     
     .. math::
     
-        \frac{1}{2} v^T (J^T W J) v + (J^T W e)^T v
+        P_{task} &= J^T W J \\
+        c_{task} &= -J^T W e
         
     where:
-        - :math:`J` is the task Jacobian
-        - :math:`W` is the task weight matrix
-        - :math:`e` is the task error
+        - :math:`J` is the task Jacobian matrix (∂f/∂q)
+        - :math:`W` is the task weight matrix (cost)
+        - :math:`e` is the task error (f(q) - f_desired)
     
     For barriers, the constraints are linearized as:
     
     .. math::
     
-        J_b v \geq -\alpha h(q)
+        G_{barrier} &= -J_b \\
+        h_{barrier} &= \alpha h(q)
         
     where:
-        - :math:`J_b` is the barrier Jacobian
+        - :math:`J_b` is the barrier Jacobian (∂h/∂q)
         - :math:`h(q)` is the barrier function value
         - :math:`\alpha` is a gain parameter that controls constraint relaxation
+    
+    Additionally, velocity limits are incorporated as:
+    
+    .. math::
+    
+        G_{limits} &= \begin{bmatrix} I \\ -I \end{bmatrix} \\
+        h_{limits} &= \begin{bmatrix} v_{max} \\ -v_{min} \end{bmatrix}
+    
+    The solver also includes a safe displacement term to push away from constraint boundaries:
+    
+    .. math::
+    
+        P_{safe} &= \beta I \\
+        c_{safe} &= -\beta v_{safe}
+        
+    where :math:`v_{safe}` is a velocity that pushes away from constraint boundaries.
+    
+    The complete QP matrices are assembled by combining these components:
+    
+    .. math::
+    
+        P &= \sum_i P_{task,i} + P_{safe} \\
+        c &= \sum_i c_{task,i} + c_{safe} \\
+        G &= \\begin{bmatrix} G_{barrier} \\\\ G_{limits} \\end{bmatrix} \\
+        h &= \\begin{bmatrix} h_{barrier} \\\\ h_{limits} \\end{bmatrix}
+    
+    The QP is solved using the OSQP solver, which implements an efficient primal-dual
+    interior point method specifically designed for convex quadratic programs.
 
     :param model: The MuJoCo model.
     :param dt: The time step for integration.
@@ -169,7 +199,7 @@ class LocalIKSolver(Solver[LocalIKData, LocalIKSolution]):
         .. math::
         
             P_{task} &= J^T W J \\
-            c_{task} &= J^T W e
+            c_{task} &= -J^T W e
         
         For each barrier, we add constraints to G and h:
         

@@ -110,3 +110,19 @@ Some utility functions in this code are taken from source code of [`MuJoCo MJX`]
 
 Finally, I would like to thank [IRIS lab](http://iris.kaist.ac.kr/). 
 
+## Citing MJINX
+
+If you use MJINX in your research, please cite it as follows:
+
+```bibtex
+@software{mjinx25,
+  author = {Domrachev, Ivan and Nedelchev, Simeon},
+  license = {MIT},
+  month = mar,
+  title = {{MJINX: Differentiable GPU-accelerated inverse kinematics in JAX}},
+  url = {https://github.com/based-robotics/mjinx},
+  version = {0.1.1},
+  year = {2025}
+}
+```
+

@@ -6,8 +6,9 @@ Developer Notes
 
 This section contains information for developers who want to contribute to MJINX or understand its internals better.
 
+=================
 Code Organization
-================
+=================
 
 MJINX follows a modular architecture:
 
@@ -18,8 +19,9 @@ MJINX follows a modular architecture:
 - ``mjinx/problem.py`` - Problem construction and management
 - ``mjinx/typing.py`` - Type definitions
 
+=======================
 Development Guidelines
-=====================
+=======================
 
 When contributing to MJINX, please follow these guidelines:
 
@@ -29,8 +31,9 @@ When contributing to MJINX, please follow these guidelines:
 4. **JAX compatibility**: Ensure new code works with JAX transformations.
 5. **Performance**: Consider computation efficiency, especially for operations in inner loops.
 
+==================
 JAX Considerations
-=================
+==================
 
 MJINX leverages JAX for automatic differentiation and acceleration. When working with JAX:
 
