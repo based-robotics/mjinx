@@ -25,12 +25,36 @@ def get_frame_jacobian_world_aligned(
     model: mjx.Model, data: mjx.Data, obj_id: int, obj_type: mj.mjtObj = mj.mjtObj.mjOBJ_BODY
 ) -> jnp.ndarray:
     """
-    Compute pair of (NV, 3) Jacobians of global point attached to body.
+    Compute the Jacobian of an object's frame with respect to joint velocities.
+
+    This function calculates the geometric Jacobian that maps joint velocities to
+    the linear and angular velocities of a specified object (body, geom, or site)
+    in world-aligned coordinates:
+
+    .. math::
+
+        J = \\begin{bmatrix} J_v \\\\ J_\\omega \\end{bmatrix}
+
+    where:
+        - :math:`J_v` is the 3×nv position Jacobian
+        - :math:`J_\\omega` is the 3×nv orientation Jacobian
+
+    The position Jacobian for revolute joints includes terms for both direct motion
+    and motion due to rotation:
+
+    .. math::
+
+        J_v = J_{direct} + J_{\\omega} \\times (p - p_{com})
+
+    where:
+        - :math:`p` is the position of the object
+        - :math:`p_{com}` is the center of mass of the subtree
 
     :param model: The MuJoCo model.
     :param data: The MuJoCo data.
-    :param body_id: The ID of the body.
-    :return: The Jacobian matrix.
+    :param obj_id: The ID of the object.
+    :param obj_type: The type of the object (mjOBJ_BODY, mjOBJ_GEOM, or mjOBJ_SITE).
+    :return: The geometric Jacobian matrix (6×nv).
     """
 
     def fn(carry, b):
@@ -69,12 +93,27 @@ def get_frame_jacobian_local(
     model: mjx.Model, data: mjx.Data, obj_id: int, obj_type: mj.mjtObj = mj.mjtObj.mjOBJ_BODY
 ) -> jax.Array:
     """
-    Compute pair of (NV, 3) Jacobians of global point attached to body in local frame.
+    Compute the Jacobian of an object's frame with respect to joint velocities in local coordinates.
+
+    Similar to get_frame_jacobian_world_aligned, but expresses the Jacobian in the local
+    coordinate frame of the object. This is often useful for operational space control
+    and computing task-space errors.
+
+    For the local frame Jacobian:
+
+    .. math::
+
+        J_{local} = \\begin{bmatrix} R^T J_v \\\\ R^T J_\\omega \\end{bmatrix}
+
+    where:
+        - :math:`R` is the rotation matrix of the object
+        - :math:`J_v` and :math:`J_\\omega` are the world-aligned position and orientation Jacobians
 
     :param model: The MuJoCo model.
     :param data: The MuJoCo data.
-    :param body_id: The ID of the body.
-    :return: The Jacobian matrix in local frame.
+    :param obj_id: The ID of the object.
+    :param obj_type: The type of the object (mjOBJ_BODY, mjOBJ_GEOM, or mjOBJ_SITE).
+    :return: The geometric Jacobian matrix in local coordinates (6×nv).
     """
 
     def fn(carry, b):
@@ -148,6 +187,22 @@ def get_transform(model: mjx.Model, data: mjx.Data, source_id: int, dest_id: int
 def integrate(model: mjx.Model, q0: jnp.ndarray, velocity: jnp.ndarray, dt: jnp.ndarray | float) -> jnp.ndarray:
     """
     Integrate the joint positions given initial position, velocity, and time step.
+
+    For standard joints, integration is linear:
+
+    .. math::
+
+        q_1 = q_0 + v \cdot dt
+
+    For quaternion-based joints, integration uses the exponential map:
+
+    .. math::
+
+        q_1 = q_0 \otimes \\exp(\\frac{v \cdot dt}{2})
+
+    where:
+        - :math:`\otimes` is quaternion multiplication
+        - :math:`\\exp` is the exponential map from the Lie algebra to the Lie group
 
     :param model: The MuJoCo model.
     :param q0: The initial joint positions.

@@ -37,7 +37,25 @@ class GlobalIKSolution(SolverSolution):
 class GlobalIKSolver(Solver[GlobalIKData, GlobalIKSolution]):
     """Global Inverse Kinematics solver using gradient-based optimization.
 
-    This solver uses Optax for gradient-based optimization to solve the inverse kinematics problem globally.
+    This solver uses Optax for gradient-based optimization to solve the inverse kinematics 
+    problem globally. Unlike the local solver, it optimizes over joint positions directly
+    rather than velocities, and can potentially find solutions that avoid local minima.
+    
+    The optimization problem is formulated as:
+    
+    .. math::
+    
+        \min_{q} \mathcal{L}(q) = \sum_{i} \|e_i(q)\|^2_{W_i} - \sum_{j} \lambda_j \log(h_j(q))
+    
+    where:
+        - :math:`e_i(q)` are the task errors
+        - :math:`W_i` are the task weight matrices
+        - :math:`h_j(q)` are the barrier constraints
+        - :math:`\lambda_j` are barrier gains
+        - :math:`\log(h_j(q))` is a logarithmic barrier that approaches infinity as :math:`h_j(q)` approaches zero
+    
+    The gradient of this loss function is used with an optimizer to iteratively update
+    the joint positions until convergence.
 
     :param model: The MuJoCo model.
     :param optimizer: The Optax optimizer to use.
@@ -62,7 +80,21 @@ class GlobalIKSolver(Solver[GlobalIKData, GlobalIKSolution]):
     def __log_barrier(self, x: jnp.ndarray, gain: jnp.ndarray):
         """Compute the logarithmic barrier function.
 
-        :param x: The input values.
+        The logarithmic barrier function creates a penalty that increases to infinity
+        as the constraint value approaches zero:
+        
+        .. math::
+        
+            B(x) = \lambda \log(x)
+        
+        where:
+            - :math:`\lambda` is the barrier gain
+            - :math:`x` is the constraint value (:math:`h(q)`)
+        
+        This function is used to enforce inequality constraints in the optimization,
+        creating a continuous penalty that grows rapidly as constraints are approached.
+
+        :param x: The input values (barrier function values).
         :param gain: The gain values for the barrier.
         :return: The computed logarithmic barrier value.
         """
@@ -70,6 +102,17 @@ class GlobalIKSolver(Solver[GlobalIKData, GlobalIKSolution]):
 
     def loss_fn(self, q: jnp.ndarray, problem_data: JaxProblemData) -> float:
         """Compute the loss function for the given joint configuration.
+        
+        This function evaluates the total loss for the optimization problem:
+        
+        .. math::
+        
+            \mathcal{L}(q) = \sum_{i} \|e_i(q)\|^2_{W_i} - \sum_{j} \lambda_j \log(h_j(q))
+        
+        The first term represents the weighted sum of squared task errors, while the second
+        term represents the logarithmic barrier penalties for constraint satisfaction.
+        The logarithmic barrier approach transforms inequality constraints into penalty terms,
+        creating a barrier that prevents the optimizer from violating the constraints.
 
         :param q: The joint configuration.
         :param problem_data: The problem-specific data.

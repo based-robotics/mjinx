@@ -82,11 +82,21 @@ def compute_collision_pairs(
     """
     Process and compute collisions between specified geometry pairs.
 
-    Executes collision detection by grouping geometry pairs, applying appropriate
-    collision functions, and combining the results. Handles multiple collision
-    contacts and ensures proper grouping by collision dimensions.
+    For each collision pair, this function computes:
+    1. The minimum distance between geometries
+    2. The contact point location
+    3. The contact normal direction
 
-    This function is greatly inspired by mujoco.mjx._src.collision_driver module.
+    The distance computation depends on the geometry types, but generally follows:
+
+    .. math::
+
+        d(G_1, G_2) = \\min_{p_1 \\in G_1, p_2 \\in G_2} \\|p_1 - p_2\\| - (r_1 + r_2)
+
+    where:
+        - :math:`G_1, G_2` are the geometries
+        - :math:`r_1, r_2` are their respective radii/margins
+        - :math:`p_1, p_2` are points on the geometries
 
     :param m: The MuJoCo model containing simulation parameters.
     :param d: The MuJoCo data containing current state information.
@@ -170,3 +180,28 @@ def get_distance(
         poses.append(pos)
         frames.append(frame)
     return jnp.array(dists), jnp.vstack(poses), jnp.vstack(frames)
+
+
+def geom_point_jacobian(model: mjx.Model, data: mjx.Data, point: jnp.ndarray, body_id: jnp.ndarray) -> jnp.ndarray:
+    """
+    Compute the Jacobian of a point on a body with respect to joint velocities.
+
+    This function calculates how a specific point on a body moves in world coordinates
+    when joint velocities are applied. For a point p on body b, the Jacobian is:
+
+    .. math::
+
+        J_p = \\begin{bmatrix} J_v \\\\ J_\\omega \\end{bmatrix}
+
+    where:
+        - :math:`J_v` relates joint velocities to the linear velocity of the point
+        - :math:`J_\\omega` relates joint velocities to the angular velocity at the point
+
+    :param model: The MuJoCo model.
+    :param data: The MuJoCo data.
+    :param point: The 3D coordinates of the point in world frame.
+    :param body_id: The ID of the body to which the point is attached.
+    :return: The point Jacobian matrix (6×nv).
+    """
+    jacp, jacr = mjx._src.support.jac(model, data, point, body_id)
+    return jnp.vstack((jacp.T, jacr.T)).T

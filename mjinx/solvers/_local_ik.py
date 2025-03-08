@@ -106,13 +106,49 @@ class LocalIKSolution(SolverSolution):
 
 
 class LocalIKSolver(Solver[LocalIKData, LocalIKSolution]):
-    """Local Inverse Kinematics solver using Quadratic Programming.
+    """Local Inverse Kinematics solver using Quadratic Programming (QP).
 
-    This solver uses OSQP to solve a local approximation of the inverse kinematics problem
-    as a Quadratic Program.
+    This solver uses a local linearization approach to solve the inverse kinematics problem.
+    At each step, it formulates a Quadratic Program (QP) that approximates the nonlinear optimization
+    problem and solves for joint velocities that minimize task errors while respecting constraints.
+    
+    The QP is formulated as:
+    
+    .. math::
+    
+        \min_{v} \frac{1}{2} v^T P v + c^T v \quad \text{subject to} \quad G v \leq h
+        
+    where:
+        - :math:`v` is the vector of joint velocities
+        - :math:`P` is a positive-definite matrix constructed from task Jacobians
+        - :math:`c` is a vector constructed from task errors
+        - :math:`G` and :math:`h` encode barrier constraints and velocity limits
+    
+    For tasks, the contribution to the objective is:
+    
+    .. math::
+    
+        \frac{1}{2} v^T (J^T W J) v + (J^T W e)^T v
+        
+    where:
+        - :math:`J` is the task Jacobian
+        - :math:`W` is the task weight matrix
+        - :math:`e` is the task error
+    
+    For barriers, the constraints are linearized as:
+    
+    .. math::
+    
+        J_b v \geq -\alpha h(q)
+        
+    where:
+        - :math:`J_b` is the barrier Jacobian
+        - :math:`h(q)` is the barrier function value
+        - :math:`\alpha` is a gain parameter that controls constraint relaxation
 
     :param model: The MuJoCo model.
-    :param kwargs: Additional parameters for the OSQP solver.
+    :param dt: The time step for integration.
+    :param osqp_params: Parameters for the OSQP solver.
     """
 
     def __init__(self, model: mjx.Model, **kwargs: Unpack[OSQPParameters]):
@@ -129,15 +165,40 @@ class LocalIKSolver(Solver[LocalIKData, LocalIKSolution]):
         problem_data: JaxProblemData,
         model_data: mjx.Data,
     ) -> tuple[jnp.ndarray, jnp.ndarray, jnp.ndarray, jnp.ndarray]:
-        """Compute the matrices for the Quadratic Program.
+        """Compute the matrices for the QP problem.
 
-        :param problem_data: The problem-specific data containing model and component information.
-        :param model_data: The MuJoCo model data for the current state.
-        :return: A tuple containing:
-            - P: The quadratic term matrix (H_total in the code)
-            - q: The linear term vector (c_total in the code)
-            - G: The inequality constraint matrix
-            - h: The inequality constraint vector
+        This method constructs the matrices needed for the quadratic program:
+        
+        .. math::
+        
+            \min_{v} \frac{1}{2} v^T P v + c^T v \quad \text{subject to} \quad G v \leq h
+        
+        For each task, we add terms to P and c based on:
+        
+        .. math::
+        
+            P_{task} &= J^T W J \\
+            c_{task} &= J^T W e
+        
+        For each barrier, we add constraints to G and h:
+        
+        .. math::
+        
+            G_{barrier} &= -J_b \\
+            h_{barrier} &= \alpha h(q)
+        
+        and terms to the objective for safe displacements:
+        
+        .. math::
+        
+            P_{safe} &= \beta I \\
+            c_{safe} &= -\beta v_{safe}
+            
+        where :math:`v_{safe}` is a velocity that pushes away from constraint boundaries.
+
+        :param problem_data: The problem-specific data.
+        :param model_data: The MuJoCo model data.
+        :return: A tuple of (P, c, G, h) matrices for the QP problem.
         """
         nv = problem_data.model.nv
 

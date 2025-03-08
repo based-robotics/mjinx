@@ -31,6 +31,22 @@ def joint_difference(model: mjx.Model, q1: jnp.ndarray, q2: jnp.ndarray) -> jnp.
     """
     Compute the difference between two joint configurations.
 
+    This function calculates the configuration space difference between two joint states.
+    For standard joints (hinge, slide), this is a simple subtraction.
+    For quaternion-based joints (free, ball), this uses the proper Lie group operations:
+
+    .. math::
+
+        \Delta q = 
+        \\begin{cases}
+            q_1 - q_2 & \\text{for standard joints} \\\\
+            \log(q_1 \cdot q_2^{-1}) & \\text{for quaternion joints}
+        \\end{cases}
+
+    where:
+        - :math:`q_1, q_2` are the two joint configurations
+        - :math:`\log` is the logarithmic map from SO(3) or SE(3) to their tangent spaces
+
     :param model: The MuJoCo model.
     :param q1: The first joint configuration.
     :param q2: The second joint configuration.
@@ -82,6 +98,17 @@ def skew_symmetric(v: jnp.ndarray) -> jnp.ndarray:
     The skew-symmetric matrix is used in various robotics and physics calculations,
     particularly for cross products and rotations.
 
+    .. math::
+
+        [v]_{\times} = 
+        \\begin{bmatrix}
+            0 & -v_z & v_y \\\\
+            v_z & 0 & -v_x \\\\
+            -v_y & v_x & 0
+        \\end{bmatrix}
+
+    This matrix has the property that for any vector w, [v]_× w = v × w (cross product).
+
     :param v: A 3D vector (3x1 array).
     :return: A 3x3 skew-symmetric matrix.
     """
@@ -100,8 +127,25 @@ def attitude_jacobian(q: jnp.ndarray) -> jnp.ndarray:
     Compute the attitude Jacobian for a quaternion.
 
     This function calculates the 4x3 attitude Jacobian matrix for a given unit quaternion.
-    The attitude Jacobian is used in robotics and computer vision for relating
-    changes in orientation (represented by quaternions) to angular velocities.
+    The attitude Jacobian relates angular velocity ω to quaternion rate of change q̇:
+
+    .. math::
+
+        \dot{q} = \frac{1}{2} E(q) \omega
+
+    where E(q) is the attitude Jacobian:
+
+    .. math::
+
+        E(q) = 
+        \\begin{bmatrix}
+            -q_x & -q_y & -q_z \\\\
+            q_w & -q_z & q_y \\\\
+            q_z & q_w & -q_x \\\\
+            -q_y & q_x & q_w
+        \\end{bmatrix}
+
+    With q = [q_w, q_x, q_y, q_z] being the quaternion.
 
     :param q: A unit quaternion represented as a 4D array [w, x, y, z].
     :return: A 4x3 attitude Jacobian matrix.
@@ -115,9 +159,25 @@ def jac_dq2v(model: mjx.Model, q: jnp.ndarray):
     """
     Compute the Jacobian matrix for converting from generalized positions to velocities.
 
-    This function calculates the Jacobian matrix that maps changes in generalized
-    positions (q) to generalized velocities (v) for a given MuJoCo model. It handles
-    different joint types, including free joints, ball joints, and other types.
+    This function calculates the Jacobian matrix J that maps changes in generalized
+    positions (q) to generalized velocities (v):
+
+    .. math::
+
+        \delta v = J \cdot \delta q
+
+    For standard revolute and prismatic joints, this mapping is simply the identity.
+    For quaternion-based joints (ball, free), the mapping involves the attitude Jacobian:
+
+    .. math::
+
+        J = 
+        \\begin{bmatrix}
+            I & 0 \\\\
+            0 & E(q)
+        \\end{bmatrix}
+
+    where E(q) is the attitude Jacobian for the quaternion component.
 
     :param model: A MuJoCo model object (mjx.Model).
     :param q: The current generalized positions of the model.
