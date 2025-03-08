@@ -23,6 +23,22 @@ class JaxComTask(JaxTask):
     This class represents a task that aims to achieve a specific target center of mass
     for the robot model.
 
+    The task function maps joint positions to the robot's center of mass position:
+
+    .. math::
+
+        f(q) = \frac{\sum_i m_i p_i(q)}{\sum_i m_i}
+
+    where:
+        - :math:`m_i` is the mass of body i
+        - :math:`p_i(q)` is the position of body i's center of mass
+
+    The error is computed as the difference between the current and target CoM positions:
+
+    .. math::
+
+        e(q) = p_c(q) - p_{c_{target}}
+
     :param target_com: The target center of mass position to be achieved.
     """
 
@@ -32,6 +48,12 @@ class JaxComTask(JaxTask):
     def __call__(self, data: mjx.Data) -> jnp.ndarray:
         """
         Compute the error between the current center of mass and the target center of mass.
+
+        The error is given by:
+
+        .. math::
+
+            e(q) = p_c(q) - p_{c_{target}}
 
         :param data: The MuJoCo simulation data.
         :return: The error vector representing the difference between the current and target center of mass.

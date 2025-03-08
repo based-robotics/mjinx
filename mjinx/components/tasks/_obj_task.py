@@ -19,7 +19,11 @@ class JaxObjTask(JaxTask):
     A JAX-based implementation of an object task for inverse kinematics.
 
     This class serves as a base for tasks that are applied to specific objects
-    (bodies, geometries, or sites) in the robot model.
+    (bodies, geometries, or sites) in the robot model. The task function 
+    relates to the object's state in the world frame.
+
+    Depending on the derived class, the task function can target various aspects of 
+    the object's state, such as position, orientation, or the complete pose.
 
     :param obj_id: The ID of the object (body, geometry, or site) to which the task is applied.
     :param obj_type: The type of the object (mjOBJ_BODY, mjOBJ_GEOM, or mjOBJ_SITE).
@@ -83,6 +87,14 @@ class ObjTask(Generic[AtomicObjTaskType], Task[AtomicObjTaskType]):
 
     This class provides an interface for creating and manipulating tasks
     that are applied to specific objects (bodies, geometries, or sites) in the robot model.
+    
+    Object tasks generally define a function :math:`f(q, t)` that maps joint positions :math:`q`
+    to some property of the specified object (such as position, orientation, or pose).
+    The error is then calculated as the difference between the current and desired states:
+    
+    .. math::
+
+        e(q, t) = f(q, t) - f_{desired}(t)
 
     :param name: The name of the task.
     :param cost: The cost associated with the task.

@@ -19,6 +19,21 @@ class JaxJointTask(JaxTask):
     This class represents a task that aims to achieve specific target joint positions
     for the robot model.
 
+    The task function is the identity map on the joint space:
+
+    .. math::
+
+        f(q) = q
+
+    The error is computed as the difference between the current and target joint positions:
+
+    .. math::
+
+        e(q) = q - q_{target}
+
+    For robots with quaternion joints or a floating base, a more sophisticated
+    difference function is used to properly handle the joint topology.
+
     :param full_target_q: The full target joint positions vector for all joints in the system.
     :param floating_base: A static boolean indicating whether the robot has a floating base.
     """
@@ -30,6 +45,15 @@ class JaxJointTask(JaxTask):
         """
         Compute the error between the current joint positions and the target joint positions.
 
+        For revolute, prismatic, and other standard joints, the error is simply:
+
+        .. math::
+
+            e(q) = q - q_{target}
+
+        For systems with quaternions or a floating base, a proper difference function is used
+        to account for the joint topology.
+
         :param data: The MuJoCo simulation data.
         :return: The error vector representing the difference between the current and target joint positions.
         """
@@ -40,8 +64,13 @@ class JaxJointTask(JaxTask):
         """
         Compute the Jacobian of the joint task function.
 
-        This method calculates the Jacobian matrix of the task function with respect
-        to the joint positions, considering the mask and whether the system has a floating base.
+        Since the joint task function is the identity map (or a selection of it),
+        the Jacobian is simply an identity matrix or a selection matrix, depending
+        on the mask and whether the system has a floating base:
+
+        .. math::
+
+            J = I \quad \text{or} \quad J = [0 \; I]
 
         :param data: The MuJoCo simulation data.
         :return: The Jacobian matrix of the barrier function.
@@ -160,7 +189,7 @@ class JointTask(Task[JaxJointTask]):
         target_q_jnp = jnp.array(target_q)
         if self._dim != -1 and target_q_jnp.shape[-1] != self._dim:
             raise ValueError(
-                f"dimension mismatch: expected last dimension to be {self._dim}, got{target_q_jnp.shape[-1]}"
+                f"Dimension mismatch: expected last dimension to be {self._dim}, got {target_q_jnp.shape[-1]}"
             )
         self._target_q = target_q_jnp
 
@@ -173,7 +202,7 @@ class JointTask(Task[JaxJointTask]):
         :raises ValueError: If the model is not defined yet.
         """
         if self._model is None:
-            raise ValueError("model is not defined yet.")
+            raise ValueError("Model has not been defined yet.")
         return get_joint_zero(self.model).at[self.mask_idxs_jnt_space,].set(self._target_q)
 
     @property
