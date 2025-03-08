@@ -2,9 +2,9 @@ name: Documentation
 
 on:
   push:
-    branches: [ main, docs/github_pages ]
+    branches: [main, docs/github_pages]
   pull_request:
-    branches: [ main ]
+    branches: [main]
 
 jobs:
   docs:
@@ -19,7 +19,7 @@ jobs:
       - name: "Set up Python"
         uses: actions/setup-python@v4
         with:
-          python-version: '3.10'  # Specify the Python version you need
+          python-version: "3.10" # Specify the Python version you need
 
       - name: "Install dependencies"
         run: |
@@ -30,12 +30,10 @@ jobs:
         run: |
           sphinx-build docs _build
 
-      # TODO: uncomment when repository will go public
-      # - name: "Deploy to GitHub Pages"
-      #   uses: peaceiris/actions-gh-pages@v3
-      #   if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/docs/github_pages' }}
-      #   with:
-      #     publish_branch: gh-pages
-      #     github_token: ${{ secrets.GITHUB_TOKEN }}
-      #     publish_dir: _build/
-      #     force_orphan: true
+      - name: "Deploy to GitHub Pages"
+        uses: peaceiris/actions-gh-pages@v3
+        if: ${{ github.ref == 'refs/heads/main' }}
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: _build/
+          force_orphan: true

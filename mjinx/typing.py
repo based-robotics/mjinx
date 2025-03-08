@@ -6,10 +6,11 @@ from __future__ import annotations
 
 from collections.abc import Callable
 from enum import Enum
-from typing import TypeAlias
+from typing import NamedTuple, TypeAlias
 
 import jax.numpy as jnp
 import numpy as np
+from mujoco.mjx._src.dataclasses import PyTreeNode
 
 ndarray: TypeAlias = np.ndarray | jnp.ndarray
 """Type alias for numpy or JAX numpy arrays."""
@@ -25,6 +26,13 @@ CollisionBody: TypeAlias = int | str
 
 CollisionPair: TypeAlias = tuple[int, int]
 """Type alias for a pair of collision body IDs."""
+
+
+class SimplifiedContact(PyTreeNode):
+    geom: jnp.ndarray
+    dist: jnp.ndarray
+    pos: jnp.ndarray
+    frame: jnp.ndarray
 
 
 class PositionLimitType(Enum):

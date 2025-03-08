@@ -1,6 +1,6 @@
 [project]
 name = "mjinx"
-version = "0.1.0"
+version = "0.1.1"
 description = "Numerical Inverse Kinematics based on JAX + MJX"
 authors = [
   { name = "Ivan Domrachev", email = "domrachev10@gmail.com" },
@@ -10,20 +10,26 @@ authors = [
 readme = "README.md"
 requires-python = ">=3.10"
 
-dependencies = ["mujoco", "mujoco_mjx", "jaxlib>=0.4", "jaxopt", "jax>=0.4", "jaxlie>=1.4", "jax_dataclasses>=1.6.0", "optax>=0.2"]
+dependencies = [
+  "mujoco",
+  "mujoco_mjx",
+  "jaxopt",
+  "jax[cuda]>=0.4",
+  "jaxlie>=1.4",
+  "jax_dataclasses>=1.6.0",
+  "optax>=0.2",
+]
 
 [project.optional-dependencies]
-dev = ["robot_descriptions>=1.12", "pre-commit", "ruff", "pytest"]
+dev = ["pre-commit", "ruff", "pytest", "robot_descriptions>=1.12"]
 docs = [
-    "sphinx>=8",
-    "sphinx-mathjax-offline",
-    "sphinx-autodoc-typehints",
-    "sphinx-rtd-theme>1",
+  "sphinx>=8",
+  "sphinx-mathjax-offline",
+  "sphinx-autodoc-typehints",
+  "sphinx-rtd-theme>1",
 ]
-visual = [
-    "dm_control",
-    "mediapy",
-]
+visual = ["dm_control", "mediapy"]
+examples = ["mjinx[visual]", "robot_descriptions>=1.12"]
 all = ["mjinx[dev, visual, docs]"]
 
 [build-system]

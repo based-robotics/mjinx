@@ -169,8 +169,9 @@ class TestSelfCollisionBarrier(unittest.TestCase):
             safe_displacement_gain=0.0,
             d_min_vec=jnp.array([0.1]),
             collision_pairs=collision_pairs,
+            n_closest_pairs=len(collision_pairs),
         )
 
         result = barrier(self.data)
-        expected = get_distance(self.model, self.data, collision_pairs) - barrier.d_min_vec
+        expected = get_distance(self.model, self.data, collision_pairs)[0] - barrier.d_min_vec
         np.testing.assert_array_almost_equal(result, expected)
