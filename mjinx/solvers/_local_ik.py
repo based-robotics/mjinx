@@ -161,8 +161,8 @@ class LocalIKSolver(Solver[LocalIKData, LocalIKSolution]):
     
         P &= \sum_i P_{task,i} + P_{safe} \\
         c &= \sum_i c_{task,i} + c_{safe} \\
-        G &= \\begin{bmatrix} G_{barrier} \\\\ G_{limits} \\end{bmatrix} \\
-        h &= \\begin{bmatrix} h_{barrier} \\\\ h_{limits} \\end{bmatrix}
+        G &= \begin{bmatrix} G_{barrier} \\ G_{limits} \end{bmatrix} \\
+        h &= \begin{bmatrix} h_{barrier} \\ h_{limits} \end{bmatrix}
     
     The QP is solved using the OSQP solver, which implements an efficient primal-dual
     interior point method specifically designed for convex quadratic programs.
