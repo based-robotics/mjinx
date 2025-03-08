@@ -21,42 +21,30 @@ from mjinx.solvers._base import Solver, SolverData, SolverSolution
 
 
 class OSQPParameters(TypedDict, total=False):
-    """Class which helps to type hint OSQP solver parameters.
+    """Parameters for configuring the OSQP solver.
 
-    :param check_primal_dual_infeasability: if True populates the ``status`` field of ``state``
-        with one of ``BoxOSQP.PRIMAL_INFEASIBLE``, ``BoxOSQP.DUAL_INFEASIBLE``. (default: True).
-        If False it improves speed but does not check feasability.
-        If jit=False, and if the problem is primal or dual infeasible, then a ValueError exception is raised.
-    :param sigma: ridge regularization parameter in linear system.
-        Used to stabilize the solution. (default: 1e-6).
-    :param momentum: relaxation parameter. (default: 1.6). Must belong to the open interval (0, 2).
-        A value of 1 means no relaxation, less than 1 implies under-relaxation, and greater than 1
-        implies over-relaxation. Boyd [2, p21] suggests choosing momentum in the range [1.5, 1.8].
-    :param eq_qp_solve: method used to solve equality-constrained QP subproblems.
-        Options are 'cg', 'cg+jacobi', and 'lu'. (default: 'cg'). 'cg' uses the conjugate gradient method,
-        'cg+jacobi' applies Jacobi preconditioning, and 'lu' uses LU factorization for direct solving.
-    :param rho_start: initial learning rate for the primal-dual algorithm. (default: 1e-1).
-        Determines the step size at the beginning of the optimization process.
-    :param rho_min: minimum learning rate for step size adaptation. (default: 1e-6).
-        Acts as a lower bound for the step size to prevent excessively small steps.
-    :param rho_max: maximum learning rate for step size adaptation. (default: 1e6).
-        Acts as an upper bound for the step size to prevent overly large steps.
-    :param stepsize_updates_frequency: frequency of stepsize updates during the optimization.
-        (default: 10). Every `stepsize_updates_frequency` iterations, the algorithm recomputes the step size.
-    :param primal_infeasible_tol: relative tolerance for detecting primal infeasibility. (default: 1e-4).
-        Used to declare the problem as infeasible when the primal residual exceeds this tolerance.
-    :param dual_infeasible_tol: relative tolerance for detecting dual infeasibility. (default: 1e-4).
-        Used to declare the problem as infeasible when the dual residual exceeds this tolerance.
-    :param maxiter: maximum number of iterations allowed during optimization. (default: 4000).
-        The solver will stop if this iteration count is exceeded.
-    :param tol: absolute tolerance for the stopping criterion. (default: 1e-3).
-        When the difference in objective values between iterations is smaller than this value, the solver stops.
-    :param termination_check_frequency: frequency at which the solver checks for convergence. (default: 5).
-        Every `termination_check_frequency` iterations, the solver evaluates if it has converged.
-    :param implicit_diff_solve: the solver used to solve linear systems for implicit differentiation.
-        Can be any Callable that solves Ax = b, where A is the system matrix and x, b are vectors.
-
-    Note: for the further explanation, see jaxopt.OSQP docstrings
+    :param check_primal_dual_infeasability: If True, populates the ``status`` field of ``state``
+        with one of ``BoxOSQP.PRIMAL_INFEASIBLE``, ``BoxOSQP.DUAL_INFEASIBLE`` (default: True).
+        If False, improves speed but does not check feasibility.
+        When jit=False and the problem is primal or dual infeasible, a ValueError is raised.
+    :param sigma: Ridge regularization parameter for stabilizing the linear system solution (default: 1e-6).
+    :param momentum: Relaxation parameter (default: 1.6). Must be in the open interval (0, 2).
+        A value of 1 means no relaxation, less than 1 means under-relaxation, and greater than 1
+        means over-relaxation. For best results, choose momentum in the range [1.5, 1.8].
+    :param eq_qp_solve: Method for solving equality-constrained QP subproblems.
+        Options are 'cg' (conjugate gradient), 'cg+jacobi' (with Jacobi preconditioning),
+        and 'lu' (direct solving via LU factorization). Default is 'cg'.
+    :param rho_start: Initial step size for the primal-dual algorithm (default: 1e-1).
+    :param rho_min: Minimum allowed step size to prevent excessively small steps (default: 1e-6).
+    :param rho_max: Maximum allowed step size to prevent overly large steps (default: 1e6).
+    :param stepsize_updates_frequency: Number of iterations between step size adjustments (default: 10).
+    :param primal_infeasible_tol: Tolerance for detecting primal infeasibility (default: 1e-4).
+    :param dual_infeasible_tol: Tolerance for detecting dual infeasibility (default: 1e-4).
+    :param maxiter: Maximum number of iterations allowed before termination (default: 4000).
+    :param tol: Absolute tolerance for the stopping criterion (default: 1e-3).
+    :param termination_check_frequency: Number of iterations between convergence checks (default: 5).
+    :param implicit_diff_solve: Solver for linear systems in implicit differentiation.
+        Must be a callable that solves Ax = b for x.
     """
 
     check_primal_dual_infeasability: jaxopt.base.AutoOrBoolean
@@ -89,12 +77,15 @@ class LocalIKData(SolverData):
 class LocalIKSolution(SolverSolution):
     """Solution class for the Local Inverse Kinematics solver.
 
+    This class extends the base SolverSolution to include additional information
+    specific to the Local IK solver's quadratic programming solution.
+
     :param v_opt: The optimal velocity solution.
     :param dual_var_eq: Dual variables for equality constraints.
     :param dual_var_ineq: Dual variables for inequality constraints.
-    :param iter_num: Number of iterations performed.
-    :param error: Final error value.
-    :param status: Solver status code.
+    :param iterations: Number of iterations performed by the solver.
+    :param error: Final error value at convergence.
+    :param status: Solver status code indicating outcome (success, infeasible, etc.).
     """
 
     v_opt: jnp.ndarray

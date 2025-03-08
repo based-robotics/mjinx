@@ -1,149 +1,191 @@
 :github_url: https://github.com/based-robotics/mjinx/tree/docs/github_pages/docs/introduction.rst
 
 ***********
-Quick start
+Quick Start
 ***********
 
-Inverse kinematics (IK) is the problem of finding desired joint configurations given a desired system state. `mjinx` simplifies the task of defining the desired (and undesired) system state using `Components`, and provides variety of solvers to solve the resulting problem.
+Inverse kinematics (IK) is the process of determining joint configurations that achieve desired positions or orientations for parts of a robot. MJINX simplifies this process by using ``Components`` to define desired states and constraints, then offering various solvers to find optimal solutions.
 
-The core ideas would be demonstrated using a 7 DoF manipulator `Kuka iiwa 14`
+This guide demonstrates the core concepts with a practical example.
+
+Complete Example
+===============
+
+Here's a complete example showing MJINX in action:
 
 .. code-block:: python
-   
-   from robot_descriptions.iiwa14_mj_description import MJCF_PATH 
-   mj_model = mj.MjModel.from_xml_path(MJCF_PATH)
-   mjx_model = mjx.put_model(mj_model)
-   ee_name = "link7"
 
-.. figure:: img/kuka_iiwa_14.png
-   :alt: Kuka iiwa 14 manipulator
-   
-   Fig 1. Kuka Iiwa 14 manipulator.
+    from mujoco import mjx
+    from mjinx.problem import Problem
 
-Building the problem
-====================
+    # Initialize the robot model using MuJoCo
+    MJCF_PATH = "path_to_mjcf.xml"
+    mj_model = mj.MjModel.from_xml_path(MJCF_PATH)
+    mjx_model = mjx.put_model(mj_model)
 
-To start composing the problem, you need to create the instance of the :class:`Problem <mjinx.problem.Problem>` class, which takes a `mujoco.mjx.Model`:
+    # Create instance of the problem
+    problem = Problem(mjx_model)
+
+    # Add tasks to track desired behavior
+    frame_task = FrameTask("ee_task", cost=1, gain=20, body_name="link7")
+    problem.add_component(frame_task)
+
+    # Add barriers to keep robot in a safety set
+    joints_barrier = JointBarrier("jnt_range", gain=10)
+    problem.add_component(joints_barrier)
+
+    # Initialize the solver
+    solver = LocalIKSolver(mjx_model)
+
+    # Initializing initial condition
+    q0 = np.zeros(7)
+
+    # Initialize solver data
+    solver_data = solver.init()
+
+    # jit-compiling solve and integrate 
+    solve_jit = jax.jit(solver.solve)
+    integrate_jit = jax.jit(integrate, static_argnames=["dt"])
+
+    # === Control loop ===
+    for t in np.arange(0, 5, 1e-2):
+        # Changing problem and compiling it
+        frame_task.target_frame = np.array([0.1 * np.sin(t), 0.1 * np.cos(t), 0.1, 1, 0, 0,])
+        problem_data = problem.compile()
+
+        # Solving the instance of the problem
+        opt_solution, solver_data = solve_jit(q, solver_data, problem_data)
+
+        # Integrating
+        q = integrate_jit(
+            mjx_model,
+            q,
+            opt_solution.v_opt,
+            dt,
+        )
+
+Let's break this down step by step to understand how MJINX works.
+
+Building the Problem
+===================
+
+First, create an instance of the :class:`Problem <mjinx.problem.Problem>` class with your MuJoCo MJX model:
 
 .. code-block:: python
    
    problem = Problem(mjx_model)
 
-Each problem is composed via _Components_. They always represent a function, but those functions have different meaning and purpose for each of component. However, all of them has name, gain (a.k.a weight in the problem), and mask to select desirable elements among all that component might include. For the details, see :class:`Component <mjinx.components._base.Component>`. 
+A problem consists of various *Components*, each representing a function with specific meaning and purpose. All components have a name, gain (weight in the optimization), and an optional mask to select specific elements. See :class:`Component <mjinx.components._base.Component>` for details.
 
-Task component
+Task Components
 ^^^^^^^^^^^^^^
-Let's start with the *desired behavior*. In `mjinx` it could be specified using notion of :class:`Task <mjinx.components.tasks._base.Task>`. `Task` represents a non-negative function of state and time :math:`f(q, t)`, which controller should keep as close to :math:`0` as possible. The weight of the tasks are specified by two parameters:
+Tasks define your *desired behavior* - what you want your robot to achieve. In MJINX, a :class:`Task <mjinx.components.tasks._base.Task>` represents a function :math:`f(q, t)` that the controller tries to minimize (keep close to zero).
 
-1. `gain` -- weight of the function :math:`f` itself. It's common for all the components.
-2. `cost` -- weight of the residual in velocity space, used only by :class:`Local IK Solver <mjinx.solvers._local_ik.LocalIKSolver>`.
+Task importance is specified by two parameters:
 
-Suppose, you want to solve a task of moving an end-effector in a desired position. In `mjinx`, you can do it by adding a :class:`FrameTask <mjinx.components.tasks._obj_frame_task.FrameTask>` which is defined for the end-effector:
+1. ``gain`` - Weight of the function itself (common across all components)
+2. ``cost`` - Weight of the residual in velocity space (used by :class:`LocalIKSolver <mjinx.solvers._local_ik.LocalIKSolver>`)
+
+To position an end-effector at a desired location, add a :class:`FrameTask <mjinx.components.tasks._obj_frame_task.FrameTask>`:
 
 .. code-block:: python
    
-   frame_task = FrameTask(name="ee_task", cost=1, gain=20, body_name=ee_name)
+   frame_task = FrameTask(name="ee_task", cost=1, gain=20, body_name="link7")
    problem.add_component(frame_task)
 
-Simple, isn't it? However, it is possible to specify the desired behaviour even further. For example, it would be nice if robot would move as little as possible. Then, it's possible to add joint regularization task :class:`JointTask <mjinx.components.tasks._joint_task.JointTask>`:
-
-.. code-block:: python
-
-   joint_task = JointTask("regularization", cost=1e-1, gain=0)
-   problem.add_component(joint_task)
-
-Barrier component
+Barrier Components
 ^^^^^^^^^^^^^^^^^
 
-Apart from specifying *desired* behavior, usually it's necessary to avoid *undesired* one: the one, which should never occur under any circumstances. `mjinx` handles it by introducing :class:`Barrier <mjinx.components.barriers._base.Barrier>`. `Barrier` represents a function :math:`h(q, t)`, that has to be strictly greater than zero: :math:`h(q, t) > 0`. Its weight is specified by only `gain` parameter.
+Barriers define *constraints* - conditions that must never be violated. A :class:`Barrier <mjinx.components.barriers._base.Barrier>` represents a function :math:`h(q, t)` that must always remain positive: :math:`h(q, t) > 0`.
 
-For example, very natural thing to ask -- don't break joint limits. The :class:`JointBarrier <mjinx.components.barriers._joint_barrier.JointBarrier>` could handle this:
+For example, to enforce joint limits, use a :class:`JointBarrier <mjinx.components.barriers._joint_barrier.JointBarrier>`:
 
 .. code-block:: python
 
    joints_barrier = JointBarrier("jnt_barrier", gain=10)
    problem.add_component(joints_barrier)
 
+When you've finished building your problem, compile it:
 
-Finally, when we done bulding :class:`Problem <mjinx.problem.Problem>`, it's time to compile it as follows:
 .. code-block:: python
 
-   problem_data: ProblemData = problem.compile()
+   problem_data = problem.compile()
 
-This command will compile all the components (compiling :class:`Component <mjinx.components._base.Component>` means building corresponding :class:`JaxComponent <mjinx.components._base.JaxComponent>`) and return instance of :class:`ProblemData <mjinx.problem.ProblemData>`. This action is required each time we change a :class:`Component <mjinx.components._base.Component>`, for exampe desired frame in :class:`FrameTask <mjinx.components.tasks._obj_frame_task.FrameTask>`. 
+Compilation converts each :class:`Component <mjinx.components._base.Component>` into its corresponding :class:`JaxComponent <mjinx.components._base.JaxComponent>`. You must recompile whenever you modify a component (e.g., changing a target position).
 
-Solving the problem
-===================
+Solving the Problem
+==================
 
-Solver
+Solvers
 ^^^^^^
 
-To solve the resulting problem, we need some solver. All solvers are derived from the :class:`Solver <mjinx.solver._base.Solver>` class. Let's take, for example, :class:`LocalIKSolver <mjinx.solver._local_ik.LocalIKSolver>`:
+MJINX provides different solvers that inherit from the :class:`Solver <mjinx.solver._base.Solver>` class. Let's use the :class:`LocalIKSolver <mjinx.solver._local_ik.LocalIKSolver>`:
+
 .. code-block:: python
 
    solver = LocalIKSolver(mjx_model, maxiter=20)
    solver_data = solver.init()
 
-The `solver_data` contains arbitrary data structure, where solver could store and update it's internal state. For example, :class:`LocalIKData <mjinx.solver._base.LocalIKData>` stores a previous solution for a warm start.
-
-Now, to solve the problem, we need to provide solver with state `q`, `solver_data`, and `problem_data`:
+To solve the problem, provide the current state ``q``, the solver data, and the problem data:
 
 .. code-block:: python
 
-   opt_solution, solver_data = solve_jit(q, solver_data, problem_data)
+   opt_solution, solver_data = solver.solve(q, solver_data, problem_data)
 
-`opt_solution` always contains optimal joint velocity `v_opt`, but might additionally contain other paraters, for example `status` and `error` for the :class:`LocalIKSolution <mjinx.solver._base.LocalIKSolution>`.
- 
+The ``opt_solution`` contains the optimal joint velocity ``v_opt`` and may include additional information.
 
-Configuration utilities
+Configuration Utilities
 ^^^^^^^^^^^^^^^^^^^^^^^
-Usually, those problems are solved in the loop. Therefore, we need a way to update the state of the model. The :mod:`mjinx.configuration` module contains many utility functions that are used all over the `mjinx`, and also might be useful for you. As such, the function :func:`mjinx.configuration.integrate <mjinx.configuration.integrate>` allows to integrate system using the model integrator and taking into account joint types.
 
-As such, we could update our state and get new configuration:
+Use :func:`mjinx.configuration.integrate <mjinx.configuration.integrate>` to advance the system state:
 
 .. code-block:: python 
 
-   q = mjinx.configuraiton.integrate(
+   q = mjinx.configuration.integrate(
       mjx_model,
       q,
       velocity=opt_solution.v_opt,
       dt=dt,
    )
 
-Loop the previous two steps, optionally update `Task`'s desired positions, and you get a velocity controller for the manipulator!
+JAX Acceleration
+===============
+One of MJINX's key advantages is its JAX compatibility. All methods in the ``Solver`` class and ``configuration`` module can be accelerated using JAX transformations.
 
-
-Jax Magic
-=========
-Reasonable question might arise: but where does `jax` advantage comes into play? 
-
-The key thing to keep in mind that all methods of `Solver` class and `configuration` functions are jax-compatible. This implies that, for example, you can jit-compile them:
+For performance, you can JIT-compile the solver and integration functions:
 
 .. code-block:: python
 
    solve_jit = jax.jit(solver.solve)
-   integrate_jit = jax.jit(integrate)
+   integrate_jit = jax.jit(mjinx.configuration.integrate)
 
-Or you can do automatic vectorization, even for components of the problem:
+You can even vectorize the computation to solve multiple problems in parallel:
 
 .. code-block:: python
 
-   # Vmap init function
+   # Vectorize initialization
    solver_data = jax.vmap(solver.init, in_axes=0)(v_init=jnp.zeros((N_batch, mjx_model.nv)))
 
-   # Create an empty (filled with None) problem_data and set vmap-ed fields via axes to vmap along
-   # The empty_problem_data would be a 
+   # Create template problem data with vmap dimensions
    with problem.set_vmap_dimension() as empty_problem_data:
       empty_problem_data.components["ee_task"].target_frame = 0
 
-   # Vmapping solve and integrate functions.
+   # Vectorize solving and integration
    solve_jit = jax.jit(
       jax.vmap(
          solver.solve,
          in_axes=(0, 0, empty_problem_data),
       )
    )
-   integrate_jit = jax.jit(jax.vmap(integrate, in_axes=(None, 0, 0, None)))
+   integrate_jit = jax.jit(jax.vmap(mjinx.configuration.integrate, in_axes=(None, 0, 0, None)))
 
+This approach enables efficient parallel computation of multiple IK solutions, significantly accelerating your robotics applications.
 
-This example will result in parallel computation of many desired trajectories at once.
+Examples
+========
+
+For more practical examples, check out the examples directory in the MJINX repository:
+
+1. ``Kuka iiwa`` local inverse kinematics (single item and vmapped over desired trajectory)
+2. ``Kuka iiwa`` global inverse kinematics (single item and vmapped over desired trajectory)
+3. ``Go2`` batched squats example

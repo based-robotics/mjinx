@@ -16,13 +16,15 @@ from mjinx.typing import ArrayOrFloat
 
 @jdc.pytree_dataclass
 class JaxProblemData:
-    """
-    A dataclass representing the compiled problem data for JAX optimization.
+    """A dataclass representing the compiled problem data for JAX optimization.
+
+    This container holds all the necessary elements required for solving an inverse
+    kinematics problem with JAX-based optimization techniques.
 
     :param model: The MuJoCo model.
     :param v_min: Minimum velocity limits.
     :param v_max: Maximum velocity limits.
-    :param components: Dictionary of JAX components.
+    :param components: Dictionary of JAX components (tasks and barriers).
     """
 
     model: mjx.Model
@@ -32,13 +34,14 @@ class JaxProblemData:
 
 
 class Problem:
-    """
-    A class representing an optimization problem for robotics applications.
+    """A class representing an optimization problem for robotics applications.
 
-    This class manages the components, velocity limits, and model for the optimization problem.
+    This class manages the components (tasks and barriers), velocity limits, and model
+    for the optimization problem. It serves as the central container for defining
+    the constraints and objectives that characterize the inverse kinematics problem.
 
     :param model: The MuJoCo model.
-    :param v_min: Minimum velocity limit (default: 1e-3).
+    :param v_min: Minimum velocity limit (default: -1e3).
     :param v_max: Maximum velocity limit (default: 1e3).
     """
 

@@ -24,7 +24,7 @@ class JaxTask(JaxComponent):
         e(q, t) = f(q, t) - f_{desired}(t)
 
     where:
-        - :math:`e(q, t)` is the error between current and desired state
+        - :math:`e(q, t)` is the error between current and desired states
         - :math:`f(q, t)` is the current value of the task function
         - :math:`f_{desired}(t)` is the desired value (target) of the task function
 

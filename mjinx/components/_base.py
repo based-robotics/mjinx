@@ -15,31 +15,15 @@ from mjinx.typing import ArrayOrFloat
 
 @jdc.pytree_dataclass
 class JaxComponent(abc.ABC):
-    r"""
-    A base class for JAX-based components in the optimization problem.
-    This class provides a framework for creating differentiable components
-    that can be used in optimization problems, particularly for robotics applications.
+    """Base class for all JAX-based components in the inverse kinematics framework.
 
-    The component is always a function :math:`f(q, t)`. The exact meaning of this function
-    depends on inherited class, while its utilization in Optimal Control Problem
-    depends on the Solver class. Note that time dependence comes only from desired component values.
-
-    One of the solvers, :py:class:`local QP solver <mjinx.solvers._local_ik.LocalIKSolver>`, is built
-    around the concept of using Jacobian:
-
-    .. math::
-
-        J(q, t) = \frac{\partial f}{\partial q}
-
-    Those are the only values that has to be implemented for any compunent. They are computed by
-    :func:`__call__` and :func:`compute_jacobian` methods.
-
-
-    :param dim: The dimension of the component's output.
-    :param model: The MuJoCo model.
-    :param vector_gain: The gain vector for the component.
+    This class provides the fundamental structure for components that can be 
+    evaluated and differentiated within the JAX ecosystem. Components represent 
+    either tasks (objectives) or barriers (constraints) in the optimization problem.
+    
+    :param gain: The gain factor applied to the component.
     :param gain_fn: A function to compute the gain dynamically.
-    :param mask_idxs: A tuple of indices to mask certain dimensions.
+    :param mask: A sequence of integers to mask certain dimensions.
     """
 
     dim: jdc.Static[int]
@@ -109,13 +93,15 @@ class JaxComponent(abc.ABC):
 AtomicComponentType = TypeVar("AtomicComponentType", bound=JaxComponent)
 
 
-class Component(Generic[AtomicComponentType], abc.ABC):
-    """
-    A generic component class that wraps atomic component implementations.
-    CopyThis class provides a high-level interface for components in the optimization problem.
+class Component(Generic[AtomicComponentType]):
+    """High-level interface for components in the inverse kinematics framework.
 
+    This class provides a Python-friendly interface for creating and manipulating
+    components, which are then compiled into JAX-compatible representations for
+    efficient computation.
+    
     :param name: The name of the component.
-    :param gain: The gain for the component.
+    :param gain: The gain factor applied to the component.
     :param gain_fn: A function to compute the gain dynamically.
     :param mask: A sequence of integers to mask certain dimensions.
     """

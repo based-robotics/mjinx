@@ -16,7 +16,7 @@ from mjinx.typing import ArrayOrFloat
 @jdc.pytree_dataclass
 class JaxObjTask(JaxTask):
     """
-    A JAX-based implementation of an object task for inverse kinematics.
+    A JAX-based implementation of an object-specific task for inverse kinematics.
 
     This class serves as a base for tasks that are applied to specific objects
     (bodies, geometries, or sites) in the robot model. The task function 

@@ -185,8 +185,7 @@ def get_transform(model: mjx.Model, data: mjx.Data, source_id: int, dest_id: int
 
 
 def integrate(model: mjx.Model, q0: jnp.ndarray, velocity: jnp.ndarray, dt: jnp.ndarray | float) -> jnp.ndarray:
-    """
-    Integrate the joint positions given initial position, velocity, and time step.
+    """Integrate the joint positions given initial position, velocity, and time step.
 
     For standard joints, integration is linear:
 
@@ -203,6 +202,9 @@ def integrate(model: mjx.Model, q0: jnp.ndarray, velocity: jnp.ndarray, dt: jnp.
     where:
         - :math:`\otimes` is quaternion multiplication
         - :math:`\\exp` is the exponential map from the Lie algebra to the Lie group
+
+    This function handles the proper integration for different joint types in the model,
+    ensuring that rotational joints maintain proper constraints (e.g., unit quaternions).
 
     :param model: The MuJoCo model.
     :param q0: The initial joint positions.

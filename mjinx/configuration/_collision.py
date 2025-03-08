@@ -183,8 +183,7 @@ def get_distance(
 
 
 def geom_point_jacobian(model: mjx.Model, data: mjx.Data, point: jnp.ndarray, body_id: jnp.ndarray) -> jnp.ndarray:
-    """
-    Compute the Jacobian of a point on a body with respect to joint velocities.
+    """Compute the Jacobian of a point on a body with respect to joint velocities.
 
     This function calculates how a specific point on a body moves in world coordinates
     when joint velocities are applied. For a point p on body b, the Jacobian is:
@@ -196,6 +195,9 @@ def geom_point_jacobian(model: mjx.Model, data: mjx.Data, point: jnp.ndarray, bo
     where:
         - :math:`J_v` relates joint velocities to the linear velocity of the point
         - :math:`J_\\omega` relates joint velocities to the angular velocity at the point
+
+    This Jacobian is essential for many robotics applications, including operational space
+    control, collision avoidance, and contact modeling.
 
     :param model: The MuJoCo model.
     :param data: The MuJoCo data.

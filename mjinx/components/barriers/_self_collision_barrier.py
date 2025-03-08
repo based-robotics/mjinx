@@ -16,11 +16,11 @@ from mjinx.typing import ArrayOrFloat, CollisionBody, CollisionPair
 
 @jdc.pytree_dataclass
 class JaxSelfCollisionBarrier(JaxBarrier):
-    """
-    A JAX implementation of a self-collision barrier function.
+    """A JAX implementation of a self-collision barrier function.
 
     This class extends JaxBarrier to provide barrier functions that prevent
-    self-collisions between different parts of the robot.
+    self-collisions between different parts of the robot. It identifies potential
+    collision pairs and computes barrier values based on their distances.
     
     The self-collision barrier enforces minimum distances between collision pairs:
 
@@ -29,14 +29,16 @@ class JaxSelfCollisionBarrier(JaxBarrier):
         h(q) = d(q) - d_{min} \geq 0
 
     where:
-        - :math:`d(q)` is the distance between a pair of geometries
-        - :math:`d_{min}` is the minimum allowed distance
-    
-    When multiple collision pairs are considered, the barrier reports the distances
-    for the n_closest_pairs, which typically represent the most critical potential collisions.
+        - :math:`d(q)` is the minimum distance between collision geometries
+        - :math:`d_{min}` is the minimum allowed distance threshold
 
-    :param d_min_vec: The minimum allowed distances between collision pairs.
-    :param collision_pairs: A list of collision pairs to check.
+    The barrier activates when geometries come closer than the specified threshold,
+    creating a repulsive effect that prevents collisions while maintaining smoothness
+    for optimization.
+
+    :param collision_pairs: A list of geometry pairs to check for collisions.
+    :param min_distance: The minimum allowed distance between geometries.
+    :param n_closest_pairs: The number of closest collision pairs to consider.
     """
 
     d_min_vec: jnp.ndarray

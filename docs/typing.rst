@@ -2,8 +2,10 @@
 
 .. _typing:
 
-Typing
+Type System
 ============
+
+MJINX uses Python's type annotations throughout the codebase to enhance code clarity, enable better IDE support, and catch potential errors. This module provides the type definitions and aliases used across the library.
 
 .. automodule:: mjinx.typing
    :members:
@@ -12,6 +14,8 @@ Typing
 
 Type Aliases
 ------------
+
+The following type aliases are defined for common data structures and function signatures:
 
 .. data:: ndarray
    :no-index:
@@ -23,7 +27,7 @@ Type Aliases
 .. data:: ArrayOrFloat
    :no-index:
 
-   Type alias for an array or a float value.
+   Type alias for an array or a scalar float value.
 
    :annotation: = ndarray | float
 

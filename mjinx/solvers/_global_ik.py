@@ -149,9 +149,13 @@ class GlobalIKSolver(Solver[GlobalIKData, GlobalIKSolution]):
     ) -> tuple[GlobalIKSolution, GlobalIKData]:
         """Solve the Global IK problem for a given configuration.
 
+        This method performs gradient-based optimization to find a configuration that
+        minimizes the task errors while satisfying barrier constraints. Unlike the local
+        solver, it operates directly on joint positions rather than velocities.
+
         :param q: The current joint configuration.
-        :param solver_data: The solver-specific data.
-        :param problem_data: The problem-specific data.
+        :param solver_data: The solver-specific data containing optimization state.
+        :param problem_data: The problem-specific data containing tasks and barriers.
         :return: A tuple containing the solver solution and updated solver data.
         :raises ValueError: If the input configuration has incorrect dimensions.
         """
