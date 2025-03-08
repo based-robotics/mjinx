@@ -19,6 +19,20 @@ class JaxPositionBarrier(JaxObjBarrier):
     A JAX implementation of a position barrier function for a specific object (body, geometry, or site).
 
     This class extends JaxObjBarrier to provide position-specific barrier functions.
+    
+    The position barrier enforces that an object's position remains within specified bounds:
+
+    .. math::
+
+        h_{min}(q) &= p(q) - p_{min} \geq 0 \\
+        h_{max}(q) &= p_{max} - p(q) \geq 0
+
+    where:
+        - :math:`p(q)` is the position of the object
+        - :math:`p_{min}` is the minimum allowed position
+        - :math:`p_{max}` is the maximum allowed position
+
+    The barrier can enforce minimum bounds, maximum bounds, or both, depending on the limit_type.
 
     :param p_min: The minimum allowed position.
     :param p_max: The maximum allowed position.
@@ -32,6 +46,12 @@ class JaxPositionBarrier(JaxObjBarrier):
     def __call__(self, data: mjx.Data) -> jnp.ndarray:
         """
         Compute the position barrier value.
+
+        For minimum limits, the barrier is: p(q) - p_min ≥ 0
+        For maximum limits, the barrier is: p_max - p(q) ≥ 0
+        
+        The barrier is active (near zero) when the position approaches its limits
+        and becomes negative if the limits are violated.
 
         :param data: The MuJoCo simulation data.
         :return: The computed position barrier value.
@@ -50,6 +70,23 @@ class PositionBarrier(ObjBarrier[JaxPositionBarrier]):
     A position barrier class that wraps the JAX position barrier implementation.
 
     This class provides a high-level interface for position-specific barrier functions.
+    
+    Position barriers create virtual boundaries in the workspace, ensuring that
+    parts of the robot remain within specified regions. They can be used to:
+    - Constrain an end effector to a specific workspace
+    - Keep the robot away from obstacles
+    - Enforce operational space constraints
+    
+    The barrier is formulated as:
+
+    .. math::
+
+        h(q) = 
+        \\begin{cases}
+            p(q) - p_{min} & \\text{for minimum limits} \\\\
+            p_{max} - p(q) & \\text{for maximum limits} \\\\
+            [p(q) - p_{min}, p_{max} - p(q)] & \\text{for both limits}
+        \\end{cases}
 
     :param p_min: The minimum allowed position.
     :param p_max: The maximum allowed position.

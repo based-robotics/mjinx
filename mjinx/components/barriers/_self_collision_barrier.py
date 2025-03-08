@@ -21,6 +21,19 @@ class JaxSelfCollisionBarrier(JaxBarrier):
 
     This class extends JaxBarrier to provide barrier functions that prevent
     self-collisions between different parts of the robot.
+    
+    The self-collision barrier enforces minimum distances between collision pairs:
+
+    .. math::
+
+        h(q) = d(q) - d_{min} \geq 0
+
+    where:
+        - :math:`d(q)` is the distance between a pair of geometries
+        - :math:`d_{min}` is the minimum allowed distance
+    
+    When multiple collision pairs are considered, the barrier reports the distances
+    for the n_closest_pairs, which typically represent the most critical potential collisions.
 
     :param d_min_vec: The minimum allowed distances between collision pairs.
     :param collision_pairs: A list of collision pairs to check.
@@ -35,6 +48,13 @@ class JaxSelfCollisionBarrier(JaxBarrier):
         """
         Compute the self-collision barrier value.
 
+        This method calculates the difference between the actual distances between
+        collision pairs and their minimum allowed distances:
+        
+        h(q) = d(q) - d_min ≥ 0
+        
+        It focuses on the n_closest_pairs, which represent the most critical potential collisions.
+
         :param data: The MuJoCo simulation data.
         :return: The computed self-collision barrier value.
         """
@@ -45,9 +65,22 @@ class JaxSelfCollisionBarrier(JaxBarrier):
         """
         Compute the Jacobian of the barrier function with respect to joint positions.
 
-        This method implements an analytical Jacobian computation which is more efficient
-        than autodifferentiation. It computes the Jacobian by calculating how changes in
-        joint positions affect the distances between collision pairs.
+        For collision barriers, the Jacobian captures how changes in joint positions
+        affect the distances between collision pairs:
+
+        .. math::
+
+            J = \\frac{\\partial d(q)}{\\partial q}
+        
+        This is computed analytically using the contact normals and point Jacobians:
+
+        .. math::
+
+            J = n^T (J_{p2} - J_{p1})
+
+        where:
+            - :math:`n` is the contact normal
+            - :math:`J_{p1}` and :math:`J_{p2}` are the Jacobians of the contact points
 
         :param data: The MuJoCo simulation data containing the current state of the system.
         :return: The Jacobian matrix of shape (n_collision_pairs, n_joints) where each entry (i,j)
