@@ -18,12 +18,6 @@ The module's modular architecture shines in its flexibility - users can begin wi
 
 Under the hood, the Problem class transforms these high-level specifications into optimized computations through its JaxProblemData representation. By leveraging JAX's JIT compilation, it ensures that even sophisticated inverse kinematics problems run with maximum efficiency.
 
-=================
-Problem Interface
-=================
-
-The Problem interface facilitates incremental construction of inverse kinematics problems. Users can add components, set velocity limits, and configure parameters as needed. The interface also supports vectorization for processing multiple problem instances simultaneously.
-
 .. automodule:: mjinx.problem
     :members:
 

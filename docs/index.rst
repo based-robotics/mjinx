@@ -63,7 +63,6 @@ If you use MJINX in your research, please cite it as follows:
     }
 
 
-
 .. toctree::
     :maxdepth: 2
     :caption: Contents:

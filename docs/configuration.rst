@@ -8,13 +8,13 @@ The configuration module serves as the mathematical foundation of MJINX, providi
 
 The module is structured into three complementary categories, each addressing a critical aspect of robot configuration:
 
-1. **Model operations** - Functions for manipulating the MuJoCo model and managing robot state
-2. **Lie algebra operations** - Specialized tools for handling rotations and transformations with mathematical rigor
-3. **Collision operations** - Algorithms for detecting and responding to potential collisions
+1. **Model** - Functions for manipulating the MuJoCo model and managing robot state
+2. **Lie Algebra** - Specialized tools for handling rotations and transformations with mathematical rigor
+3. **Collision** - Algorithms for detecting and responding to potential collisions
 
-=====
+******
 Model
-=====
+******
 
 The model operations provide fundamental capabilities for state integration, Jacobian computation, and frame transformations. These functions form the bridge between abstract mathematical representations and the physical robot model.
 
@@ -24,9 +24,9 @@ The model operations provide fundamental capabilities for state integration, Jac
     :undoc-members:
     :show-inheritance:
 
-===========
+************
 Lie Algebra
-===========
+************
 
 The Lie algebra operations implement sophisticated mathematical tools for handling rotations, quaternions, and transformations in 3D space. Based on principles from differential geometry, these functions ensure proper handling of the SE(3) and SO(3) Lie groups.
 
@@ -36,9 +36,9 @@ The Lie algebra operations implement sophisticated mathematical tools for handli
     :undoc-members:
     :show-inheritance:
 
-==========
-Collisions
-==========
+**********
+Collision
+**********
 
 The collision operations provide sophisticated algorithms for detecting potential collisions, computing distances between objects, and analyzing contact points. These functions are crucial for implementing safety constraints and realistic physical interactions.
 

@@ -6,14 +6,6 @@ Tasks define the objective functions in an inverse kinematics problem. Each task
 
 Mathematically, a task is defined as a function :math:`f: \mathcal{Q} \rightarrow \mathbb{R}^m` that maps from the configuration space :math:`\mathcal{Q}` to a task space. The error is computed as :math:`e(q) = f(q) - f_{desired}`, and the solver minimizes a weighted norm of this error: :math:`\|e(q)\|^2_W`, where :math:`W` is a positive-definite weight matrix.
 
-MJINX provides task implementations for common robotics objectives:
-
-- Controlling specific joints for posture regulation
-- Positioning robot end-effectors in Cartesian space
-- Setting object orientations using SO(3) representations
-- Managing the center of mass for balance and stability
-- Tracking trajectories in various task spaces
-
 All tasks inherit from the base Task class and follow a consistent mathematical formulation, enabling systematic composition of complex behaviors through the combination of elementary tasks.
 
 Base Task

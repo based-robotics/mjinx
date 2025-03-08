@@ -1,12 +1,20 @@
 :github_url: https://github.com/based-robotics/mjinx/tree/docs/github_pages/docs/introduction.rst
 
-***********
+============
 Quick Start
-***********
+============
 
-================
+Here's a quick start guide to get you started with MJINX.
+
+You can also follow along with this quick start guide by clicking on |colab|. This interactive notebook provides a hands-on environment to experiment with MJINX without installing anything on your local machine.
+
+   .. |colab| image:: https://colab.research.google.com/assets/colab-badge.svg
+      :target: https://colab.research.google.com/github/based-robotics/mjinx/blob/main/examples/notebooks/turoial.ipynb
+      :alt: Open in Colab
+
+****************
 Complete Example
-================
+****************
 
 Here's a complete example showing MJINX in action:
 
@@ -63,9 +71,9 @@ Here's a complete example showing MJINX in action:
 
 Let's break this down step by step to understand how MJINX works.
 
-====================
+**********************
 Building the Problem
-====================
+**********************
 
 First, create an instance of the :class:`Problem <mjinx.problem.Problem>` class with your MuJoCo MJX model:
 
@@ -114,9 +122,9 @@ When you've finished building your problem, compile it:
 
 Compilation converts each :class:`Component <mjinx.components._base.Component>` into its corresponding :class:`JaxComponent <mjinx.components._base.JaxComponent>`. You must recompile whenever you modify a component (e.g., changing a target position).
 
-===================
+*********************
 Solving the Problem
-===================
+*********************
 
 ^^^^^^^
 Solvers
@@ -152,9 +160,9 @@ Use :func:`mjinx.configuration.integrate <mjinx.configuration.integrate>` to adv
       dt=dt,
    )
 
-================
+*********************
 JAX Acceleration
-================
+*********************
 
 One of MJINX's key advantages is its JAX compatibility. All methods in the ``Solver`` class and ``configuration`` module can be accelerated using JAX transformations.
 
@@ -187,9 +195,9 @@ You can even vectorize the computation to solve multiple problems in parallel:
 
 This approach enables efficient parallel computation of multiple IK solutions, significantly accelerating your robotics applications.
 
-========
+*********
 Examples
-========
+*********
 
 For more practical examples, check out the examples directory in the MJINX repository:
 
