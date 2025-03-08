@@ -56,6 +56,6 @@ The type system provides clear interfaces between components, helps catch errors
 For detailed information about MJINX's type system, including type aliases and enumerations, see the :doc:`typing` documentation.
 
 .. toctree::
-   :maxdepth: 1
+   :maxdepth: 2
 
    typing
