@@ -1,5 +1,4 @@
 import datetime
-from typing import Tuple
 
 import jax
 import jax.numpy as jnp
@@ -24,7 +23,7 @@ def dead_beat_alip(
     left_foot_id: float,
     right_foot_id: float,
     n_steps: int,
-) -> Tuple[jnp.ndarray, jnp.ndarray, jnp.ndarray]:
+) -> tuple[jnp.ndarray, jnp.ndarray, jnp.ndarray]:
     ticks_per_step = int(T_step * freq)
     g = 9.81
     l = jnp.sqrt(g / com_height_des)
@@ -59,7 +58,13 @@ def dead_beat_alip(
         com_init_world, L_init, p_stance_world, p_swing_world, step_sign = carry
         vx_des, vy_des, wz_des = v_des
 
-        R_stance = yaw_to_R(p_stance_world[3])
+        p_stance_yaw = p_stance[2]
+        R_stance = jnp.array(
+            [
+                [jnp.cos(p_stance_yaw), -jnp.sin(p_stance_yaw)],
+                [jnp.sin(p_stance_yaw), jnp.cos(p_stance_yaw)],
+            ]
+        )
         # Transform from world to local frames
         p_stance2com = R_stance.T @ (com_init_world[:2] - p_stance_world[:2])
         p_swing2com = R_stance.T @ (com_init_world[:2] - p_swing_world[:2])
@@ -78,9 +83,6 @@ def dead_beat_alip(
                 mH * vx_des,
             ]
         )
-        jax.debug.print("L_minus: {x}", x=L_minus)
-        jax.debug.print("L_des: {x}", x=L_des)
-        jax.debug.print("-" * 40)
 
         # Formula 15
         p_des = ((L_des - cosh_lt * L_minus) / (mH * l * sinh_lt))[::-1]
@@ -170,6 +172,7 @@ def dead_beat_alip(
         (com0, L0, p_stance, p_swing, step_sign),
         v_des * jnp.ones((n_steps, 3)),
     )
+    # Adding constant height of CoM to the trajectory
     com_traj = np.concatenate(
         [
             np.array(x_traj[:, :, :2]),
