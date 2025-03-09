@@ -15,16 +15,15 @@ from mjinx.typing import ArrayOrFloat
 
 @jdc.pytree_dataclass
 class JaxComponent(abc.ABC):
-    """
-    A base class for JAX-based components in the optimization problem.
-    This class provides a framework for creating differentiable components
-    that can be used in optimization problems, particularly for robotics applications.
+    """Base class for all JAX-based components in the inverse kinematics framework.
 
-    :param dim: The dimension of the component's output.
-    :param model: The MuJoCo model.
-    :param vector_gain: The gain vector for the component.
+    This class provides the fundamental structure for components that can be
+    evaluated and differentiated within the JAX ecosystem. Components represent
+    either tasks (objectives) or barriers (constraints) in the optimization problem.
+
+    :param gain: The gain factor applied to the component.
     :param gain_fn: A function to compute the gain dynamically.
-    :param mask_idxs: A tuple of indices to mask certain dimensions.
+    :param mask: A sequence of integers to mask certain dimensions.
     """
 
     dim: jdc.Static[int]
@@ -36,7 +35,7 @@ class JaxComponent(abc.ABC):
     @abc.abstractmethod
     def __call__(self, data: mjx.Data) -> jnp.ndarray:  # pragma: no cover
         """
-        Compute the component's value.
+        Compute the component's value :math:`f(q, t)`.
 
         This method should be implemented by subclasses to provide specific
         component calculations.
@@ -57,12 +56,25 @@ class JaxComponent(abc.ABC):
         return self.__class__(**new_args)
 
     def compute_jacobian(self, data: mjx.Data) -> jnp.ndarray:
-        """
+        r"""
         Compute the Jacobian of the component with respect to the joint positions.
+        The jacobian is a matrix :math:`J \in R^{dim \times nv}` that is defined as:
+
+        .. math::
+
+            J(q, t) = \frac{\partial f}{\partial q}
+
+        The main property that is desirable for us is that given this matrix, we obtain
+        component derivative as a linear matrix w.r.t. velocities:
+
+        .. math::
+
+            \dot{f}(q, t) = \frac{\partial f}{\partial q} v = J(q, t)
+
 
         The jacobian is calculated via automatic differentiation, if it is not overwritten.
-        If :math:`nq \\neq nv`, a special mapping :py:meth:`mjinx.configuration.jac_dq2v` is computed,
-        to transform :math:`J_{dq}` into :math:`J_v`.
+        If :math:`nq \\neq nv`, a special mapping is computed to transform :math:`J_{dq}` into :math:`J_v`.
+        For details, see :py:meth:`mjinx.configuration.jac_dq2v`.
 
         :param data: The MuJoCo simulation data.
         :return: The computed Jacobian matrix.
@@ -81,13 +93,15 @@ class JaxComponent(abc.ABC):
 AtomicComponentType = TypeVar("AtomicComponentType", bound=JaxComponent)
 
 
-class Component(Generic[AtomicComponentType], abc.ABC):
-    """
-    A generic component class that wraps atomic component implementations.
-    CopyThis class provides a high-level interface for components in the optimization problem.
+class Component(Generic[AtomicComponentType]):
+    """High-level interface for components in the inverse kinematics framework.
+
+    This class provides a Python-friendly interface for creating and manipulating
+    components, which are then compiled into JAX-compatible representations for
+    efficient computation.
 
     :param name: The name of the component.
-    :param gain: The gain for the component.
+    :param gain: The gain factor applied to the component.
     :param gain_fn: A function to compute the gain dynamically.
     :param mask: A sequence of integers to mask certain dimensions.
     """
@@ -278,8 +292,7 @@ class Component(Generic[AtomicComponentType], abc.ABC):
         """
         if self._dim == -1:
             raise ValueError(
-                "component dimension is not defined yet. "
-                "Provide robot model or pass component into the problem first."
+                "component dimension is not defined yet. Provide robot model or pass component into the problem first."
             )
         return self._dim
 

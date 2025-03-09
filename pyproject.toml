@@ -5,7 +5,7 @@ description = "Numerical Inverse Kinematics based on JAX + MJX"
 authors = [
   { name = "Ivan Domrachev", email = "domrachev10@gmail.com" },
   { name = "Simeon Nedelchev", email = "simkaned@gmail.com" },
-  { name = "Lev Kozlov", email = "kozlov.l.a10@gmail.com" },
+  { name = "Lev Kozlov", email = "l.kozlov@kaist.ac.kr" },
 ]
 readme = "README.md"
 requires-python = ">=3.10"
@@ -27,6 +27,7 @@ docs = [
   "sphinx-mathjax-offline",
   "sphinx-autodoc-typehints",
   "sphinx-rtd-theme>1",
+  "sphinxcontrib-bibtex",
 ]
 visual = ["dm_control", "mediapy"]
 examples = ["mjinx[visual]", "robot_descriptions>=1.12"]

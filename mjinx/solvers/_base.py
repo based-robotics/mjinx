@@ -14,8 +14,9 @@ from mjinx.problem import JaxProblemData
 class SolverData:
     """Base class for solver-specific data.
 
-    This class serves as a placeholder for any data that a specific solver might need to maintain
-    between iterations or function calls.
+    This class serves as a placeholder for any data that a specific solver needs to maintain
+    between iterations or function calls. It enables solver implementations to preserve
+    state information and warm-start subsequent optimization steps.
     """
 
     pass
@@ -25,8 +26,9 @@ class SolverData:
 class SolverSolution:
     """Base class for solver solutions.
 
-    This class serves as a placeholder for any output solution that a specific solver would return
-    as a result.
+    This class provides the structure for returning optimization results. It contains
+    the optimal velocity solution and can be extended by specific solvers to include
+    additional solution information.
 
     :param v_opt: Optimal velocity solution.
     """
@@ -39,9 +41,25 @@ SolverSolutionType = TypeVar("SolverSolutionType", bound=SolverSolution)
 
 
 class Solver(Generic[SolverDataType, SolverSolutionType], abc.ABC):
-    """Abstract base class for solvers.
+    r"""Abstract base class for solvers.
 
     This class defines the interface for solvers used in inverse kinematics problems.
+    Solvers transform task and barrier constraints into optimization problems, which
+    can be solved to find joint configurations or velocities that satisfy the constraints.
+
+    In general, the optimization problem can be formulated as:
+
+    .. math::
+
+        \min_{q} \sum_{i} \|e_i(q)\|^2_{W_i} \quad \text{subject to} \quad h_j(q) \geq 0
+
+    where:
+        - :math:`e_i(q)` are the task errors
+        - :math:`W_i` are the task weight matrices
+        - :math:`h_j(q)` are the barrier constraints
+
+    Different solver implementations use different approaches to solve this problem,
+    such as local linearization (QP) or global nonlinear optimization.
 
     :param model: The MuJoCo model used by the solver.
     """
@@ -55,11 +73,10 @@ class Solver(Generic[SolverDataType, SolverSolutionType], abc.ABC):
         """
         self.model = model
 
-    @abc.abstractmethod
     def solve_from_data(
         self, solver_data: SolverDataType, problem_data: JaxProblemData, model_data: mjx.Data
     ) -> tuple[SolverSolutionType, SolverDataType]:
-        """Solve the inverse kinematics problem using pre-computed updateddata.
+        """Solve the inverse kinematics problem using pre-computed model data.
 
         :param solver_data: Solver-specific data.
         :param problem_data: Problem-specific data.
