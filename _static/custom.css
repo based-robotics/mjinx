@@ -1,0 +1,94 @@
+/* Jinx color palette   */
+/* #03587f - dark blue  */
+/* #a75a97 - pink       */
+/* #a16f6f - brown      */
+/* #d9ccc9 - beige      */
+/* #aecadc - light blue */
+a, a:visited, a:focus {
+  color: rgb(3, 88, 127); /* dark blue */
+  text-decoration: none;
+}
+
+a:hover, a:active {
+  color: rgb(3, 88, 127); /* dark blue */
+  text-decoration: none;
+}
+
+.wy-menu-vertical header, .wy-menu-vertical p.caption {
+    color: white;
+    font-weight: 600;
+}
+
+.wy-menu-vertical a {
+    color: rgb(167, 90, 151); /* pink */
+}
+
+.wy-menu-vertical a:hover {
+    background: rgb(167, 90, 151); /* pink */
+    color: white;
+}
+
+.wy-menu-vertical header, .wy-menu-vertical p.caption {
+    color: black;
+    font-weight: 600;
+}
+
+.wy-menu-vertical a{
+    color: black;
+}
+
+.wy-nav-content-wrap, .wy-menu li.current > a {
+    background-color: white;
+}
+
+.wy-nav-side {
+    background: rgb(174, 202, 220); /* light blue */
+}
+
+.wy-nav-top {
+    background: rgb(217, 204, 201); /* beige */
+}
+
+.wy-nav-top a {
+    color: black;
+}
+
+.wy-nav-top i {
+    color: rgb(167, 90, 151); /* pink */
+}
+
+.wy-side-nav-search {
+    background: rgb(3, 88, 127); /* dark blue */
+}
+
+.wy-side-nav-search > div.version {
+    color: white;
+}
+
+.wy-side-nav-search > a {
+    color: white;
+}
+
+pre {
+    background: #efd0f3; /* beige */
+    border-left: 5px solid #c076b1; /* brown */
+}
+
+html.writer-html4 .rst-content dl:not(.docutils) > dt,
+html.writer-html5 .rst-content dl[class]:not(.option-list):not(.field-list):not(.footnote):not(.citation):not(.glossary):not(.simple) > dt {
+    background: rgb(217, 204, 201); /* beige */
+    border-top: 3px solid #a16f6f; /* brown */
+    color: rgb(3, 88, 127); /* dark blue */
+}
+
+.rst-content .note {
+    background: rgb(217, 204, 201); /* beige */
+}
+
+.rst-content .note .admonition-title {
+    background: rgb(3, 88, 127); /* dark blue */
+}
+
+.rst-content code.literal {
+    color: rgb(161, 111, 111); /* brown */
+}
