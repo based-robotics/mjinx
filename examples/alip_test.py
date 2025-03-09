@@ -58,7 +58,7 @@ def dead_beat_alip(
         com_init_world, L_init, p_stance_world, p_swing_world, step_sign = carry
         vx_des, vy_des, wz_des = v_des
 
-        p_stance_yaw = p_stance[2]
+        p_stance_yaw = p_stance_world[3]
         R_stance = jnp.array(
             [
                 [jnp.cos(p_stance_yaw), -jnp.sin(p_stance_yaw)],
