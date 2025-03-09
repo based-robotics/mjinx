@@ -1,3 +1,4 @@
+import datetime
 from typing import Tuple
 
 import jax
@@ -6,10 +7,8 @@ import matplotlib.pyplot as plt
 import mujoco as mj
 import mujoco.mjx as mjx
 import numpy as np
-from mpl_toolkits.mplot3d import Axes3D  # necessary import for 3D plotting
+from matplotlib.animation import FuncAnimation, FFMpegFileWriter
 from robot_descriptions.cassie_mj_description import MJCF_PATH
-import datetime
-from matplotlib.animation import FuncAnimation, PillowWriter
 
 
 def dead_beat_alip(
@@ -41,20 +40,29 @@ def dead_beat_alip(
     )
     A_alip_lin = jnp.eye(4) + A_alip / freq
 
+    def yaw_to_R(yaw: jnp.ndarray) -> jnp.ndarray:
+        return jnp.array(
+            [
+                [jnp.cos(yaw), -jnp.sin(yaw)],
+                [jnp.sin(yaw), jnp.cos(yaw)],
+            ]
+        )
+
     @jax.jit
     def rollout_step(carry, v_des):
         # Carry is:
-        # com_world: CoM position in world frame
+        # com_world: CoM position in world frame (x, y)
         # L_init: CoM angular momentum
-        # p_stance: stance foot position in world frame
-        # p_swing: swing foot position in world frame
+        # p_stance: stance foot position in world frame, (x, y, z, yaw)
+        # p_swing: swing foot position in world frame (x, y, z, yaw)
         # step_sign: -1 if left foot is stance, 1 if right foot is stance
         com_init_world, L_init, p_stance_world, p_swing_world, step_sign = carry
         vx_des, vy_des, wz_des = v_des
 
+        R_stance = yaw_to_R(p_stance_world[3])
         # Transform from world to local frames
-        p_stance2com = com_init_world - p_stance_world[:2]
-        p_swing2com = com_init_world - p_swing_world[:2]
+        p_stance2com = R_stance.T @ (com_init_world - p_stance_world[:2])
+        p_swing2com = R_stance.T @ (com_init_world - p_swing_world[:2])
         x0 = jnp.concatenate([p_stance2com, L_init])
 
         # Computing desired next stance foot position
@@ -92,7 +100,7 @@ def dead_beat_alip(
         p_stance2com_traj, L_traj = x_traj[:, :2], x_traj[:, 2:]
 
         # World frame
-        com_traj_world = p_stance2com_traj + p_stance_world[:2]
+        com_traj_world = (R_stance @ p_stance2com_traj.T).T + p_stance_world[:2]
 
         # == Swing foot trajectory
         # Relative to CoM
@@ -103,10 +111,17 @@ def dead_beat_alip(
                 foot_height - 4 * foot_height * (s - 0.5) ** 2 + floor_height,
             ]
         ).T
+        _, swing_foot_yaw_traj = jax.lax.scan(
+            lambda yaw, _: (yaw + 2 * wz_des / freq, yaw + 2 * wz_des / freq),
+            p_swing_world[3],
+            None,
+            length=ticks_per_step,
+        )
         swing_foot_traj_world = jnp.hstack(
             [
-                (com_traj_world - swing_foot_traj[:, :2]),
+                com_traj_world - (R_stance @ swing_foot_traj[:, :2].T).T,
                 swing_foot_traj[:, 2:3],
+                swing_foot_yaw_traj[:, None],
             ]
         )
 
@@ -135,8 +150,8 @@ def dead_beat_alip(
     L0 = mjx_data.subtree_angmom[body_root, :2]
     print("L0: ", L0)
     # First step -- with right leg!
-    p_stance = mjx_data.xpos[left_foot_id]
-    p_swing = mjx_data.xpos[right_foot_id]
+    p_stance = jnp.concatenate([mjx_data.xpos[left_foot_id], jnp.zeros(1)])
+    p_swing = jnp.concatenate([mjx_data.xpos[right_foot_id], jnp.zeros(1)])
     step_sign = -1
 
     _, (x_traj, left_foot_traj, right_foot_traj) = jax.lax.scan(
@@ -155,21 +170,43 @@ def dead_beat_alip(
     return com_traj, np.array(left_foot_traj), np.array(right_foot_traj)
 
 
-def visualize_motion(com: np.ndarray, left_leg: np.ndarray, right_leg: np.ndarray, save_gif: bool = False):
+def visualize_motion(
+    com: np.ndarray, left_leg: np.ndarray, right_leg: np.ndarray, save: bool = False, freq: int = 100
+):
     """
-    Creates a 3D animation of CoM, left foot, and right foot trajectories.
+    Creates a 3D animation of CoM and feet trajectories with orientation.
+    Left and right foot arrays are expected to be of shape (num_steps, ticks, 4) where the last dimension
+    represents (x, y, z, yaw). Each foot is drawn as a short segment indicating the yaw orientation,
+    and a dashed line connects the Center of Mass to the foot.
 
     Args:
-        com (np.ndarray): Array of shape (num_steps, 3, ticks_per_step) for CoM positions.
-        left_leg (np.ndarray): Array of shape (num_steps, 3, ticks_per_step) for left foot positions.
-        right_leg (np.ndarray): Array of shape (num_steps, 3, ticks_per_step) for right foot positions.
+        com (np.ndarray): Array of shape (num_steps, 3, ticks) for CoM positions.
+        left_leg (np.ndarray): Array of shape (num_steps, 4, ticks) for left foot (x, y, z, yaw).
+        right_leg (np.ndarray): Array of shape (num_steps, 4, ticks) for right foot (x, y, z, yaw).
         save_gif (bool): Optionally save the animation as a GIF with a timestamp.
     """
     num_steps, ticks, _ = com.shape
     total_frames = num_steps * ticks
+    foot_orient_length = 0.05
 
-    # Compute global min/max for setting axis limits
-    all_points = np.concatenate([com.reshape(-1, 3), left_leg.reshape(-1, 3), right_leg.reshape(-1, 3)], axis=0)
+    # Compute endpoints for orientation segments to adjust axis limits
+    left_endpoints = left_leg[..., :3] + foot_orient_length * np.stack(
+        [np.cos(left_leg[..., 3]), np.sin(left_leg[..., 3]), np.zeros_like(left_leg[..., 3])], axis=-1
+    )
+    right_endpoints = right_leg[..., :3] + foot_orient_length * np.stack(
+        [np.cos(right_leg[..., 3]), np.sin(right_leg[..., 3]), np.zeros_like(right_leg[..., 3])], axis=-1
+    )
+
+    all_points = np.concatenate(
+        [
+            com.reshape(-1, 3),
+            left_leg[..., :3].reshape(-1, 3),
+            right_leg[..., :3].reshape(-1, 3),
+            left_endpoints.reshape(-1, 3),
+            right_endpoints.reshape(-1, 3),
+        ],
+        axis=0,
+    )
     x_min, y_min, z_min = all_points.min(axis=0) - 0.1
     x_max, y_max, z_max = all_points.max(axis=0) + 0.1
 
@@ -181,47 +218,78 @@ def visualize_motion(com: np.ndarray, left_leg: np.ndarray, right_leg: np.ndarra
     ax.set_xlabel("X (m)")
     ax.set_ylabel("Y (m)")
     ax.set_zlabel("Z (m)")
-    ax.set_title("3D Motion Animation")
+    ax.set_title("3D Motion Animation with Feet Orientation")
 
-    # Create markers for the three points
+    # Create the plot objects
     (com_point,) = ax.plot([], [], [], "go", markersize=8, label="Center of Mass")
-    (left_point,) = ax.plot([], [], [], "ro", markersize=8, label="Left Foot")
-    (right_point,) = ax.plot([], [], [], "bo", markersize=8, label="Right Foot")
+    (left_foot_line,) = ax.plot([], [], [], "r-", lw=2, label="Left Foot Orientation")
+    (right_foot_line,) = ax.plot([], [], [], "b-", lw=2, label="Right Foot Orientation")
+    (connection_line_left,) = ax.plot([], [], [], "r--", lw=1, label="Left Foot Connection")
+    (connection_line_right,) = ax.plot([], [], [], "b--", lw=1, label="Right Foot Connection")
     ax.legend()
     step_text = ax.text2D(0.05, 0.95, "", transform=ax.transAxes)
 
     def init():
         com_point.set_data([], [])
         com_point.set_3d_properties([])
-        left_point.set_data([], [])
-        left_point.set_3d_properties([])
-        right_point.set_data([], [])
-        right_point.set_3d_properties([])
+        left_foot_line.set_data([], [])
+        left_foot_line.set_3d_properties([])
+        right_foot_line.set_data([], [])
+        right_foot_line.set_3d_properties([])
+        connection_line_left.set_data([], [])
+        connection_line_left.set_3d_properties([])
+        connection_line_right.set_data([], [])
+        connection_line_right.set_3d_properties([])
         step_text.set_text("")
-        return com_point, left_point, right_point, step_text
+        return (com_point, left_foot_line, right_foot_line, connection_line_left, connection_line_right, step_text)
 
     def update(frame):
         step_idx = frame // ticks
         tick_idx = frame % ticks
-        cp = com[step_idx, tick_idx, :]
-        lp = left_leg[step_idx, tick_idx, :]
-        rp = right_leg[step_idx, tick_idx, :]
 
+        cp = com[step_idx, tick_idx, :]
+        left = left_leg[step_idx, tick_idx, :4]
+        right = right_leg[step_idx, tick_idx, :4]
+
+        # Compute foot orientation endpoints using yaw
+        left_endpoint = np.array(
+            [left[0] + foot_orient_length * np.cos(left[3]), left[1] + foot_orient_length * np.sin(left[3]), left[2]]
+        )
+        right_endpoint = np.array(
+            [
+                right[0] + foot_orient_length * np.cos(right[3]),
+                right[1] + foot_orient_length * np.sin(right[3]),
+                right[2],
+            ]
+        )
+
+        # Update center of mass marker
         com_point.set_data([cp[0]], [cp[1]])
         com_point.set_3d_properties([cp[2]])
-        left_point.set_data([lp[0]], [lp[1]])
-        left_point.set_3d_properties([lp[2]])
-        right_point.set_data([rp[0]], [rp[1]])
-        right_point.set_3d_properties([rp[2]])
+
+        # Update foot orientation lines
+        left_foot_line.set_data([left[0], left_endpoint[0]], [left[1], left_endpoint[1]])
+        left_foot_line.set_3d_properties([left[2], left_endpoint[2]])
+
+        right_foot_line.set_data([right[0], right_endpoint[0]], [right[1], right_endpoint[1]])
+        right_foot_line.set_3d_properties([right[2], right_endpoint[2]])
+
+        # Update connection lines from CoM to feet
+        connection_line_left.set_data([cp[0], left[0]], [cp[1], left[1]])
+        connection_line_left.set_3d_properties([cp[2], left[2]])
+
+        connection_line_right.set_data([cp[0], right[0]], [cp[1], right[1]])
+        connection_line_right.set_3d_properties([cp[2], right[2]])
+
         step_text.set_text(f"Step: {step_idx + 1}")
-        return com_point, left_point, right_point, step_text
+        return (com_point, left_foot_line, right_foot_line, connection_line_left, connection_line_right, step_text)
 
-    anim = FuncAnimation(fig, update, frames=total_frames, init_func=init, blit=True, interval=100)
+    anim = FuncAnimation(fig, update, frames=total_frames, init_func=init, interval=1000 // freq)
 
-    if save_gif:
+    if save:
         timestamp = datetime.datetime.now().strftime("%Y%m%d%H%M%S")
-        filename = f"motion_animation_{timestamp}.gif"
-        writer = PillowWriter(fps=10)
+        filename = f"motion_animation_{timestamp}.mp4"
+        writer = FFMpegFileWriter(fps=freq)
         anim.save(filename, writer=writer)
         print(f"Animation saved as {filename}")
 
@@ -249,7 +317,7 @@ if __name__ == "__main__":
     com_traj, left_foot_traj, right_foot_traj = dead_beat_alip(
         model=model,
         q=q0,
-        v_des=jnp.array([0.4, 1.0, 0.0]),
+        v_des=jnp.array([0.2, 0.0, 0.5]),
         com_height_des=com0[2] - floor_height,
         T_step=0.2,
         freq=100,
@@ -258,6 +326,6 @@ if __name__ == "__main__":
         floor_height=floor_height,
         left_foot_id=left_foot_id,
         right_foot_id=right_foot_id,
-        n_steps=10,
+        n_steps=100,
     )
-    visualize_motion(com_traj, left_foot_traj, right_foot_traj)
+    visualize_motion(com_traj, left_foot_traj, right_foot_traj, save=True, freq=100)
