@@ -59,6 +59,7 @@ class TestLocalIK(unittest.TestCase):
             tol=1e-5,
             termination_check_frequency=2,
             implicit_diff_solve=lambda x: x,
+            use_analytical_solver=True,
         )
         _ = LocalIKSolver(self.model, **osqp_params)
 
@@ -97,3 +98,64 @@ class TestLocalIK(unittest.TestCase):
         )
 
         np.testing.assert_almost_equal(new_solution.v_opt, new_solution_from_data.v_opt, decimal=3)
+
+    def test_analytical_solver(self):
+        """Test the analytical solver for unconstrained problems."""
+        # Create a problem with only tasks (no barriers) to test the unconstrained case
+        problem_unconstrained = Problem(
+            self.model,
+            v_min=-np.ones(self.model.nv) * 1000,  # Set wide velocity limits
+            v_max=np.ones(self.model.nv) * 1000,  # to ensure they're not active
+        )
+        problem_unconstrained.add_component(ComTask("com_task", cost=1.0, gain=1.0))
+        problem_data_unconstrained = problem_unconstrained.compile()
+
+        # Create model data
+        model_data = mjx.make_data(self.model).replace(qpos=np.ones(self.model.nq))
+
+        # Create solvers with analytical solver enabled and disabled
+        solver_analytical = LocalIKSolver(model=self.model, use_analytical_solver=True)
+        solver_osqp = LocalIKSolver(model=self.model, use_analytical_solver=False)
+
+        # Initialize solver data
+        solver_data = solver_analytical.init()
+
+        # Solve using both solvers
+        solution_analytical, _ = solver_analytical.solve_from_data(
+            solver_data,
+            problem_data_unconstrained,
+            model_data,
+        )
+
+        solution_osqp, _ = solver_osqp.solve_from_data(
+            solver_data,
+            problem_data_unconstrained,
+            model_data,
+        )
+
+        # Verify that both solutions are similar
+        np.testing.assert_almost_equal(solution_analytical.v_opt, solution_osqp.v_opt, decimal=3)
+
+        # Verify that the analytical solver used fewer iterations
+        self.assertEqual(solution_analytical.iterations, 1)
+        self.assertGreater(solution_osqp.iterations, 1)
+
+        # Test with active velocity limits
+        problem_constrained = Problem(
+            self.model,
+            v_min=np.zeros(self.model.nv),  # Set tight velocity limits
+            v_max=np.zeros(self.model.nv) + 0.001,
+        )
+        problem_constrained.add_component(ComTask("com_task", cost=1.0, gain=1.0))
+        problem_data_constrained = problem_constrained.compile()
+
+        # Solve with tight velocity limits
+        solution_constrained, _ = solver_analytical.solve_from_data(
+            solver_data,
+            problem_data_constrained,
+            model_data,
+        )
+
+        # Verify that the velocity limits are respected
+        self.assertTrue(np.all(solution_constrained.v_opt >= problem_data_constrained.v_min))
+        self.assertTrue(np.all(solution_constrained.v_opt <= problem_data_constrained.v_max))
