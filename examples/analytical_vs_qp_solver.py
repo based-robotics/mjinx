@@ -54,7 +54,7 @@ problem_data = problem.compile()
 print("Initializing solvers...")
 # Create solvers with analytical solver enabled and disabled
 solver_analytical = LocalIKSolver(mjx_model, use_analytical_solver=True)
-solver_qp = LocalIKSolver(mjx_model, use_analytical_solver=False, maxiter=30, tol = 1e-12)
+solver_qp = LocalIKSolver(mjx_model, use_analytical_solver=False, maxiter=30, tol=1e-12)
 
 # --- Initial configuration ---
 # Use a small batch size for faster execution and easier debugging
@@ -127,9 +127,7 @@ for step in range(num_steps):
 
     # Solve with analytical solver (will compute solution directly and clip to velocity limits)
     t1 = perf_counter()
-    opt_solution_analytical, solver_data_analytical = solve_analytical_jit(
-        q_init, solver_data_analytical, problem_data
-    )
+    opt_solution_analytical, solver_data_analytical = solve_analytical_jit(q_init, solver_data_analytical, problem_data)
     t2 = perf_counter()
     solve_times_analytical[step] = t2 - t1
 
@@ -145,15 +143,14 @@ for step in range(num_steps):
     # Integrate solutions
     q_init = integrate_jit(mjx_model, q_init, opt_solution_analytical.v_opt, dt).copy()
 
-
     # print(f"v_analytical: {opt_solution_analytical.v_opt[0]}")
     # print(f"v_qp: {opt_solution_qp.v_opt[0]}")
     difference = opt_solution_analytical.v_opt - opt_solution_qp.v_opt
-    print(20*"=")
-    print(f' Average difference in v across all batch elements: {np.linalg.norm(difference/N_batch)}')
-    print(f' Maximum difference in v across all batch elements: {np.max(np.linalg.norm(difference, axis=1)/N_batch)}')
-    print(f' Residual between analytical and qp solution for first batch element: {difference[0]}')
-    print(f' Completed step {step + 1}/{num_steps}')
+    print(20 * "=")
+    print(f" Average difference in v across all batch elements: {np.linalg.norm(difference/N_batch)}")
+    print(f" Maximum difference in v across all batch elements: {np.max(np.linalg.norm(difference, axis=1)/N_batch)}")
+    print(f" Residual between analytical and qp solution for first batch element: {difference[0]}")
+    print(f" Completed step {step + 1}/{num_steps}")
 
 # Print performance report
 print("\n=== Performance Report ===")
@@ -181,4 +178,3 @@ print("\nVelocity solution differences (L2 norm):")
 print(f"  Average: {np.mean(v_diffs_flat):.6f}")
 print(f"  Maximum: {np.max(v_diffs_flat):.6f}")
 print(f"  Minimum: {np.min(v_diffs_flat):.6f}")
-

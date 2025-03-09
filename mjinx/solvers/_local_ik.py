@@ -12,6 +12,7 @@ import mujoco.mjx as mjx
 from jaxopt import OSQP
 from typing_extensions import Unpack
 
+
 import mjinx.typing as mjt
 from mjinx.components._base import JaxComponent
 from mjinx.components.barriers._base import JaxBarrier
@@ -358,6 +359,7 @@ class LocalIKSolver(Solver[LocalIKData, LocalIKSolution]):
         """
         # Solve the linear system P*v = -c using Cholesky decomposition
         cfac = jax.scipy.linalg.cho_factor(P)
+
         return jax.scipy.linalg.cho_solve(cfac, -c)
 
     def __solve_equality_constrained(
