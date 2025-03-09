@@ -43,7 +43,7 @@ problem.add_component(frame_task)
 
 # Add a joint task with small weight for regularization
 # This ensures the system is well-conditioned and has a unique solution
-joint_task = JointTask("joint_reg", cost=0.01, gain=1.0)
+joint_task = JointTask("joint_reg", cost=0.05, gain=1.0)
 # Set the target to the initial configuration to provide a "home" position
 joint_task.target = np.zeros(mjx_model.nq)
 problem.add_component(joint_task)
@@ -53,8 +53,8 @@ problem_data = problem.compile()
 # --- Initializing solvers ---
 print("Initializing solvers...")
 # Create solvers with analytical solver enabled and disabled
-solver_analytical = LocalIKSolver(mjx_model, use_analytical_solver=True, maxiter=10)
-solver_qp = LocalIKSolver(mjx_model, use_analytical_solver=False, maxiter=10)
+solver_analytical = LocalIKSolver(mjx_model, use_analytical_solver=True)
+solver_qp = LocalIKSolver(mjx_model, use_analytical_solver=False, maxiter=30, tol = 1e-12)
 
 # --- Initial configuration ---
 # Use a small batch size for faster execution and easier debugging
@@ -105,11 +105,10 @@ print("Warmup completed. JIT compilation should now be finished.")
 # === Performance comparison ===
 print("\n=== Starting performance comparison ===")
 dt = 2e-2
-num_steps = 20  # Small number of steps for quick testing
+num_steps = 10  # Small number of steps for quick testing
 
 # Reset configurations and solver data for actual performance measurement
-q_analytical = q.copy()
-q_qp = q.copy()
+q_init = q.copy()
 solver_data_analytical = jax.vmap(solver_analytical.init, in_axes=0)(v_init=jnp.zeros((N_batch, mjx_model.nv)))
 solver_data_qp = jax.vmap(solver_qp.init, in_axes=0)(v_init=jnp.zeros((N_batch, mjx_model.nv)))
 
@@ -129,14 +128,14 @@ for step in range(num_steps):
     # Solve with analytical solver (will compute solution directly and clip to velocity limits)
     t1 = perf_counter()
     opt_solution_analytical, solver_data_analytical = solve_analytical_jit(
-        q_analytical, solver_data_analytical, problem_data
+        q_init, solver_data_analytical, problem_data
     )
     t2 = perf_counter()
     solve_times_analytical[step] = t2 - t1
 
     # Solve with QP solver (will use OSQP to solve the full QP problem)
     t1 = perf_counter()
-    opt_solution_qp, solver_data_qp = solve_qp_jit(q_qp, solver_data_qp, problem_data)
+    opt_solution_qp, solver_data_qp = solve_qp_jit(q_init, solver_data_qp, problem_data)
     t2 = perf_counter()
     solve_times_qp[step] = t2 - t1
 
@@ -144,14 +143,17 @@ for step in range(num_steps):
     v_diffs[step] = np.linalg.norm(np.array(opt_solution_analytical.v_opt) - np.array(opt_solution_qp.v_opt), axis=1)
 
     # Integrate solutions
-    q_analytical = integrate_jit(mjx_model, q_analytical, opt_solution_analytical.v_opt, dt)
-    q_qp = integrate_jit(mjx_model, q_qp, opt_solution_qp.v_opt, dt)
+    q_init = integrate_jit(mjx_model, q_init, opt_solution_analytical.v_opt, dt).copy()
 
-    # Compare position solutions after integration
-    q_diffs[step] = np.linalg.norm(np.array(q_analytical) - np.array(q_qp), axis=1)
 
-    # Print progress
-    print(f"Completed step {step + 1}/{num_steps}")
+    # print(f"v_analytical: {opt_solution_analytical.v_opt[0]}")
+    # print(f"v_qp: {opt_solution_qp.v_opt[0]}")
+    difference = opt_solution_analytical.v_opt - opt_solution_qp.v_opt
+    print(20*"=")
+    print(f' Average difference in v across all batch elements: {np.linalg.norm(difference/N_batch)}')
+    print(f' Maximum difference in v across all batch elements: {np.max(np.linalg.norm(difference, axis=1)/N_batch)}')
+    print(f' Residual between analytical and qp solution for first batch element: {difference[0]}')
+    print(f' Completed step {step + 1}/{num_steps}')
 
 # Print performance report
 print("\n=== Performance Report ===")
@@ -180,9 +182,3 @@ print(f"  Average: {np.mean(v_diffs_flat):.6f}")
 print(f"  Maximum: {np.max(v_diffs_flat):.6f}")
 print(f"  Minimum: {np.min(v_diffs_flat):.6f}")
 
-# Position solution differences
-q_diffs_flat = q_diffs.flatten()
-print("\nPosition solution differences after integration (L2 norm):")
-print(f"  Average: {np.mean(q_diffs_flat):.6f}")
-print(f"  Maximum: {np.max(q_diffs_flat):.6f}")
-print(f"  Minimum: {np.min(q_diffs_flat):.6f}")
