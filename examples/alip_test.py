@@ -377,15 +377,18 @@ if __name__ == "__main__":
     com0 = data.subtree_com[model.body_rootid[0]]
     floor_height = data.xpos[left_foot_id][2]
 
-    n_steps = 100
-    v_des = jnp.array([0.2, 0.0, 0.5]) * jnp.ones((n_steps, 3))
+    n_steps = 10
+    freq = 10
+    v_des = jnp.array([0.2, 0.0, -0.5]) * jnp.ones((n_steps, 3))
+
     dead_beat_fn = make_dead_beat_alip(
         T_step=0.2,
-        freq=100,
+        freq=10,
         left_foot_id=left_foot_id,
         right_foot_id=right_foot_id,
-        n_steps=100,
+        n_steps=n_steps,
     )
+
     t0 = perf_counter()
     com_traj, left_foot_traj, right_foot_traj = dead_beat_fn(
         mjx_model=model,
@@ -397,7 +400,9 @@ if __name__ == "__main__":
         floor_height=floor_height,
     )
     t1 = perf_counter()
-    print("ALIP compilation time:", (t1 - t0) * 1e3, "ms")
+    print("ALIP warmup time:", (t1 - t0) * 1e3, "ms")
+    v_des = jnp.array([0.3, 0.0, 0.]) * jnp.ones((n_steps, 3))
+    t0 = perf_counter()
     com_traj, left_foot_traj, right_foot_traj = dead_beat_fn(
         mjx_model=model,
         mjx_data=data,
@@ -407,5 +412,6 @@ if __name__ == "__main__":
         foot_height=0.03,
         floor_height=floor_height,
     )
-    print("ALIP execution time:", (perf_counter() - t1) * 1e3, "ms")
-    visualize_motion(com_traj, left_foot_traj, right_foot_traj, freq=100)
+    t1 = perf_counter()
+    print("ALIP execution time:", (t1 -t0) * 1e3, "ms")
+    visualize_motion(com_traj, left_foot_traj, right_foot_traj, freq=freq)
