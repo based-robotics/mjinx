@@ -23,6 +23,7 @@ The model operations provide fundamental capabilities for state integration, Jac
     :members:
     :undoc-members:
     :show-inheritance:
+    :member-order: bysource
 
 ************
 Lie Algebra
@@ -34,6 +35,7 @@ The Lie algebra operations implement sophisticated mathematical tools for handli
     :members:
     :undoc-members:
     :show-inheritance:
+    :member-order: bysource
 
 **********
 Collision
@@ -45,3 +47,4 @@ The collision operations provide sophisticated algorithms for detecting potentia
     :members:
     :undoc-members:
     :show-inheritance:
+    :member-order: bysource

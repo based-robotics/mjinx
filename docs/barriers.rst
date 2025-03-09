@@ -22,6 +22,7 @@ The foundation for all barrier constraints, defining the core mathematical prope
 
 .. automodule:: mjinx.components.barriers._base
     :members:
+    :member-order: bysource
 
 Joint Barrier
 -------------
@@ -29,6 +30,7 @@ Enforces joint limit constraints, preventing the robot from exceeding mechanical
 
 .. automodule:: mjinx.components.barriers._joint_barrier
     :members:
+    :member-order: bysource
 
 Base Body Barrier
 -----------------
@@ -36,6 +38,7 @@ The foundation for barriers applied to specific bodies, geometries, or sites in 
 
 .. automodule:: mjinx.components.barriers._obj_barrier
     :members:
+    :member-order: bysource
 
 Body Position Barrier
 ---------------------
@@ -43,6 +46,7 @@ Enforces position constraints on specific bodies, geometries, or sites, useful f
 
 .. automodule:: mjinx.components.barriers._obj_position_barrier
     :members:
+    :member-order: bysource
 
 Self Collision Barrier
 ----------------------
@@ -50,3 +54,4 @@ Prevents different parts of the robot from colliding with each other, essential 
 
 .. automodule:: mjinx.components.barriers._self_collision_barrier
     :members:
+    :member-order: bysource

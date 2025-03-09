@@ -23,6 +23,17 @@ extensions = [
     "sphinxcontrib.bibtex",
 ]
 
+autodoc_type_aliases = {
+    "ndarray": ":data:`mjinx.typing.ndarray`",
+    "ArrayOrFloat": ":data:`mjinx.typing.ArrayOrFloat`",
+    "ClassKFunctions": ":data:`mjinx.typing.ClassKFunctions`",
+    "CollisionBody": ":data:`mjinx.typing.CollisionBody`",
+    "CollisionPair": ":data:`mjinx.typing.CollisionPair`",
+    "SimplifiedContact": ":class:`mjinx.typing.SimplifiedContact`",
+    "PositionLimitType": ":class:`mjinx.typing.PositionLimitType`",
+}
+# Set always_use_bars_union option to True for sphinx_autodoc_typehints
+always_use_bars_union = True
 
 # List of modules to be mocked up
 autodoc_mock_imports = []

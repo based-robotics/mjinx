@@ -20,4 +20,5 @@ Under the hood, the Problem class transforms these high-level specifications int
 
 .. automodule:: mjinx.problem
     :members:
+    :member-order: bysource
 

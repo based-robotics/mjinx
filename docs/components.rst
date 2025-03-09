@@ -28,6 +28,7 @@ The Component class serves as the abstract base class from which all specific co
 .. automodule:: mjinx.components._base
     :members:
     :special-members: __call__
+    :member-order: bysource
 
 ********
 Tasks

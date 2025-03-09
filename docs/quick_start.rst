@@ -212,6 +212,7 @@ Examples
 
 For more practical applications, explore the examples in the MJINX repository:
 
-1. ``Kuka iiwa`` local inverse kinematics (single item and vectorized trajectory tracking)
-2. ``Kuka iiwa`` global inverse kinematics (single item and vectorized trajectory tracking)
-3. ``Go2`` quadruped robot batched squats example
+1. `Kuka iiwa local inverse kinematics <https://github.com/based-robotics/mjinx/tree/main/examples/local_ik_vmapped_output.py>`_
+2. `Kuka iiwa global inverse kinematics <https://github.com/based-robotics/mjinx/tree/main/examples/global_ik_vmapped_output.py>`_
+3. `Unitree Go2 quadruped robot batched squats <https://github.com/based-robotics/mjinx/tree/main/examples/go2_squat.py>`_
+4. `Unitree G1 humanoid batched squats with hand manipulation <https://github.com/based-robotics/mjinx/tree/main/examples/g1_heart.py>`_

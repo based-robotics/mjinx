@@ -8,9 +8,9 @@ Solvers
 
 MJINX provides multiple solver implementations for inverse kinematics problems, each with different characteristics suitable for various applications.
 
-*********
+***********
 Base Solver
-*********
+***********
 
 The abstract base class defining the interface for all solvers.
 
@@ -18,6 +18,7 @@ The abstract base class defining the interface for all solvers.
     :members:
     :undoc-members:
     :show-inheritance:
+    :member-order: bysource
 
 
 ***************
@@ -30,10 +31,11 @@ A Quadratic Programming (QP) based solver that linearizes the problem at each st
     :members:
     :undoc-members:
     :show-inheritance:
+    :member-order: bysource
 
-***************
+****************
 Global IK Solver
-***************
+****************
 
 A nonlinear optimization solver that directly optimizes joint positions. This solver can find solutions that avoid local minima and is suitable for complex positioning tasks.
 
@@ -41,3 +43,4 @@ A nonlinear optimization solver that directly optimizes joint positions. This so
     :members:
     :undoc-members:
     :show-inheritance:
+    :member-order: bysource

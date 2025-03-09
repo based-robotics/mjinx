@@ -16,4 +16,5 @@ Using visualization alongside MJINX's computational capabilities allows for both
 
 .. automodule:: mjinx.visualize
     :members:
+    :member-order: bysource
 

@@ -14,6 +14,7 @@ The foundational class that all tasks extend. It defines the core interface and 
 
 .. automodule:: mjinx.components.tasks._base
     :members:
+    :member-order: bysource
 
 Center of Mass Task
 -------------------
@@ -21,6 +22,7 @@ Controls the position of the robot's center of mass, critical for maintaining ba
 
 .. automodule:: mjinx.components.tasks._com_task
     :members:
+    :member-order: bysource
 
 Joint Task
 ----------
@@ -28,6 +30,7 @@ Directly controls joint positions, useful for regularization, posture optimizati
 
 .. automodule:: mjinx.components.tasks._joint_task
     :members:
+    :member-order: bysource
 
 Base Body Task
 --------------
@@ -35,6 +38,7 @@ The foundation for tasks that target specific bodies, geometries, or sites in th
 
 .. automodule:: mjinx.components.tasks._obj_task
     :members:
+    :member-order: bysource
 
 Body Frame Task
 ---------------
@@ -42,6 +46,7 @@ Controls the complete pose (position and orientation) of a body, geometry, or si
 
 .. automodule:: mjinx.components.tasks._obj_frame_task
     :members:
+    :member-order: bysource
 
 Body Position Task
 ------------------
@@ -49,3 +54,4 @@ Controls just the position of a body, geometry, or site, ignoring orientation. U
 
 .. automodule:: mjinx.components.tasks._obj_position_task
     :members:
+    :member-order: bysource
