@@ -292,8 +292,7 @@ class Component(Generic[AtomicComponentType]):
         """
         if self._dim == -1:
             raise ValueError(
-                "component dimension is not defined yet. "
-                "Provide robot model or pass component into the problem first."
+                "component dimension is not defined yet. Provide robot model or pass component into the problem first."
             )
         return self._dim
 

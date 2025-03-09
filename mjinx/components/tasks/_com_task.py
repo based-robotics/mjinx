@@ -158,6 +158,6 @@ class ComTask(Task[JaxComTask]):
         target_com_jnp = jnp.array(target_com)
         if target_com_jnp.shape[-1] != self._dim:
             raise ValueError(
-                "invalid last dimension of target CoM : " f"{target_com_jnp.shape[-1]} given, expected {self._dim} "
+                f"invalid last dimension of target CoM : {target_com_jnp.shape[-1]} given, expected {self._dim} "
             )
         self._target_com = target_com_jnp

@@ -152,8 +152,7 @@ class JointTask(Task[JaxJointTask]):
             self.target_q = jnp.zeros(self.dim)
         elif self.target_q.shape[-1] != self.dim:
             raise ValueError(
-                "provided model is incompatible with target q: "
-                f"{len(self.target_q)} is set, model expects {self.dim}."
+                f"provided model is incompatible with target q: {len(self.target_q)} is set, model expects {self.dim}."
             )
 
     @property

@@ -62,7 +62,7 @@ class PositionLimitType(Enum):
                 return PositionLimitType.BOTH
             case _:
                 raise ValueError(
-                    f"[PositionLimitType] invalid position limit type: {type}. " f"Expected {{'min', 'max', 'both'}}"
+                    f"[PositionLimitType] invalid position limit type: {type}. Expected {{'min', 'max', 'both'}}"
                 )
 
     @staticmethod
