@@ -211,37 +211,10 @@ q_max = mj_model.jnt_range[:, 1].copy()
 
 # --- Mujoco visualization ---
 # Initialize render window and launch it at the background
-vis = BatchVisualizer(MJCF_PATH, n_models=5, alpha=0.2, record=True)
+vis = BatchVisualizer(MJCF_PATH, n_models=8, alpha=0.2, record=True)
 com_marker_names = [f"com_marker_{i}" for i in range(vis.n_models)]
 left_foot_marker_names = [f"left_foot_marker_{i}" for i in range(vis.n_models)]
 right_foot_marker_names = [f"right_foot_marker_{i}" for i in range(vis.n_models)]
-
-vis.add_markers(
-    name=com_marker_names,
-    size=0.025,
-    marker_alpha=0.8,
-    color_begin=np.array([0, 1.0, 0.53]),
-    color_end=np.array([0.38, 0.94, 1.0]),
-    n_markers=vis.n_models,
-)
-vis.add_markers(
-    name=left_foot_marker_names,
-    size=jnp.array([0.15, 0.025, 0.025]),
-    marker_alpha=0.8,
-    color_begin=np.array([0, 1.0, 0.53]),
-    color_end=np.array([0.38, 0.94, 1.0]),
-    marker_type=mj.mjtGeom.mjGEOM_ELLIPSOID,
-    n_markers=vis.n_models,
-)
-vis.add_markers(
-    name=right_foot_marker_names,
-    size=jnp.array([0.15, 0.025, 0.025]),
-    marker_alpha=0.8,
-    color_begin=np.array([0, 1.0, 0.53]),
-    color_end=np.array([0.38, 0.94, 1.0]),
-    marker_type=mj.mjtGeom.mjGEOM_ELLIPSOID,
-    n_markers=vis.n_models,
-)
 
 # === Mjinx ===
 # --- Constructing the problem ---
@@ -285,7 +258,7 @@ problem.add_component(model_equality_constraint)
 solver = LocalIKSolver(mjx_model, maxiter=10)
 
 # Initializing initial condition
-N_batch = 100
+N_batch = 128
 q0 = mj_model.keyframe("home").qpos
 mjx_data = update(mjx_model, jnp.array(q0))
 q = jnp.tile(q0, (N_batch, 1))
@@ -295,11 +268,15 @@ left_foot_id = mjx.name2id(mjx_model, mj.mjtObj.mjOBJ_BODY, "left-foot")
 right_foot_id = mjx.name2id(mjx_model, mj.mjtObj.mjOBJ_BODY, "right-foot")
 
 # === ALIP ===
-T_step = 0.25
+T_step = 0.34
 n_steps = int(ts[-1] / T_step)
 # The angular velocity is selected so that the robot makes a full turn in the given time
-# v_des = jnp.array([0.2, 0.0, 2 * jnp.pi / ts[-1]]) * jnp.ones((n_steps, 3))
-v_des = jnp.array([0.4, 0.0, 0.0]) * jnp.ones((n_steps, 3))
+v_des = jnp.concatenate(
+    [
+        jnp.array([0.3, 0.0, 0.0]) * jnp.ones((n_steps // 2, 3)),
+        jnp.array([-0.3, 0.0, 0.0]) * jnp.ones((n_steps // 2, 3)),
+    ]
+)
 floor_height = mjx_data.xpos[left_foot_id][2]
 
 com0 = mjx_data.subtree_com[mjx_model.body_rootid[0]]
@@ -334,11 +311,11 @@ com_traj, left_foot_traj, right_foot_traj = dead_beat_fn(
     foot_height=foot_height,
     floor_height=floor_height,
 )
-com_traj = np.array(com_traj).reshape((-1, 4))
-left_feet_traj = np.array(left_foot_traj).reshape((-1, 4))
-right_feet_traj = np.array(right_foot_traj).reshape((-1, 4))
+com_traj = np.array(com_traj)
+left_feet_traj = np.array(left_foot_traj)
+right_feet_traj = np.array(right_foot_traj)
 
-n_ticks = com_traj.shape[0]
+n_ticks = com_traj.shape[1]
 offsets = np.floor(np.linspace(0, n_steps, num=N_batch, endpoint=False)).astype(int)
 
 # Compiling the problem upon any parameters update
@@ -402,14 +379,14 @@ try:
         # Compute the current tick based on time
         current_tick = int(i % n_ticks)
         # Compute the current step based on the time
-        current_step = int(t / n_steps)
+        current_step = i // n_ticks
         # Each robot gets a different tick index by adding its offset
-        step_indices = (current_step + offsets) % n_ticks
+        step_indices = (current_step + offsets) % n_steps
 
         # Extract the (xyz, yaw) values for each task.
-        com_vals = com_traj[current_tick, :]  # shape: (N_batch, 4)
-        left_vals = left_feet_traj[current_tick, :]  # shape: (N_batch, 4)
-        right_vals = right_feet_traj[current_tick, :]  # shape: (N_batch, 4)
+        com_vals = com_traj[step_indices, current_tick, :]  # shape: (N_batch, 4)
+        left_vals = left_feet_traj[step_indices, current_tick, :]  # shape: (N_batch, 4)
+        right_vals = right_feet_traj[step_indices, current_tick, :]  # shape: (N_batch, 4)
 
         # Convert yaw to quaternion for each task
         torso_quat = yaw_to_quat(com_vals[:, 3], torso_quat)
@@ -439,28 +416,6 @@ try:
         indices = np.arange(0, N_batch, N_batch // vis.n_models)
 
         vis.update(q[:: N_batch // vis.n_models])
-
-        # For the CoM task, target_com is (N_batch, 3) already.
-        com_viz = com_vals[indices, :3]  # shape: (vis.n_models, 3)
-        # For the feet tasks, use the translation (first three entries) from the SE3 target.
-        left_foot_viz = left_vals[indices, :3]
-        right_foot_viz = right_vals[indices, :3]
-
-        for i in range(vis.n_models):
-            vis.marker_data[f"com_marker_{i}"].pos = com_viz[i]
-            vis.marker_data[f"left_foot_marker_{i}"].pos = left_foot_viz[i]
-            # Original orientation from ALIP
-            vis.marker_data[f"left_foot_marker_{i}"].rot = yaw_to_quat(
-                left_vals[indices[i], 3], np.array([1, 0, 0, 0])
-            )
-            # Orientation transformed in the Cassie foot frame
-            vis.marker_data[f"left_foot_marker_{i}"].rot = left_target_se3[i, 3:]
-            vis.marker_data[f"right_foot_marker_{i}"].pos = right_foot_viz[i]
-            # Original orientation from ALIP
-            vis.marker_data[f"right_foot_marker_{i}"].rot = yaw_to_quat(
-                right_vals[indices[i], 3], np.array([1, 0, 0, 0])
-            )
-            # vis.marker_data[f"right_foot_marker_{i}"].rot = right_target_se3[i, 3:]
 
 except KeyboardInterrupt:
     print("Finalizing the simulation as requested...")
