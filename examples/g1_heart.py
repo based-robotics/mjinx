@@ -67,7 +67,7 @@ print("Setting up optimization problem...")
 problem = Problem(mjx_model, v_min=-5, v_max=5)
 
 # Creating components of interest and adding them to the problem
-joints_barrier = JointBarrier("jnt_range", gain=1.0, floating_base=True)
+joints_barrier = JointBarrier("jnt_range", gain=1.0)
 
 com_task = ComTask("com_task", cost=1.0, gain=2.0, mask=[1, 1, 0])
 torso_task = FrameTask("torso_task", cost=1.0, gain=2.0, obj_name="pelvis", mask=[0, 0, 0, 1, 1, 1])

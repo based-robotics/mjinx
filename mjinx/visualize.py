@@ -184,13 +184,13 @@ class BatchVisualizer:
                     worldbody.remove(child)
 
         # Try to find and load meshes from the xml file directory
-        mesh_elements = root.findall(".//mesh")
+        mesh_elements = root.findall(".//mesh") + root.findall(".//texture")
         assets: dict[str, bytes] = {}
         for mesh in mesh_elements:
             file_attr = mesh.get("file")
             if file_attr:
                 # Remove the hash from the file attribute
-                new_file_attr = file_attr[: file_attr.find("-")] + file_attr[file_attr.rfind(".") :]
+                new_file_attr = file_attr[: file_attr.rfind("-")] + file_attr[file_attr.rfind(".") :]
 
                 asset_path = self.__find_asset(model_directory, new_file_attr)
                 with open(asset_path, "rb") as f:
@@ -254,6 +254,8 @@ class BatchVisualizer:
         for material in mjcf_model.find_all("material"):
             if material.rgba is not None:
                 material.rgba[3] *= alpha
+            else:
+                material.rgba = np.array([1, 1, 1, alpha])
 
         # Change color and collision properties for all geometries
         for g in mjcf_model.find_all("geom"):
