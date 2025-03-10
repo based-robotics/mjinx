@@ -16,6 +16,20 @@ class JaxTask(JaxComponent):
 
     This class serves as a base for all tasks in the inverse kinematics problem.
 
+    Tasks are components that represent goals or objectives for the robot's configuration.
+    Mathematically, a task defines a function:
+
+    .. math::
+
+        e(q, t) = f(q, t) - f_{desired}(t)
+
+    where:
+        - :math:`e(q, t)` is the error between current and desired states
+        - :math:`f(q, t)` is the current value of the task function
+        - :math:`f_{desired}(t)` is the desired value (target) of the task function
+
+    The goal of optimization is typically to minimize this error or drive it to zero.
+
     :param matrix_cost: The cost matrix associated with the task.
     :param lm_damping: The Levenberg-Marquardt damping factor.
     """
@@ -27,7 +41,8 @@ class JaxTask(JaxComponent):
         """
         Compute the error for the task.
 
-        This method is equivalent to calling the task object directly.
+        This method is equivalent to calling the task object directly and calculates
+        the error :math:`e(q, t)` between the current state and the desired state.
 
         :param data: The MuJoCo simulation data.
         :return: The error vector for the task.
@@ -43,7 +58,16 @@ class Task(Generic[AtomicTaskType], Component[AtomicTaskType]):
     A high-level representation of a task for inverse kinematics.
 
     This class provides an interface for creating and manipulating tasks
-    in the inverse kinematics problem.
+    in the inverse kinematics problem. The optimization cost associated with a task
+    can be formulated as:
+
+    .. math::
+
+        C(q, t) = e(q, t)^T W e(q, t)
+
+    where:
+        - :math:`e(q, t)` is the task error vector
+        - :math:`W` is the cost weight matrix defined by the `matrix_cost` property
 
     :param name: The name of the task.
     :param cost: The cost associated with the task.
@@ -78,7 +102,7 @@ class Task(Generic[AtomicTaskType], Component[AtomicTaskType]):
         """
         super().__init__(name, gain, gain_fn, mask)
         if lm_damping < 0:
-            raise ValueError("lm_damping has to be positive")
+            raise ValueError("lm_damping must be non-negative")
         self.lm_damping = lm_damping
 
         self.update_cost(cost)

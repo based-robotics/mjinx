@@ -19,6 +19,23 @@ class JaxPositionTask(JaxObjTask):
     This class represents a task that aims to achieve a specific target position
     for an object (body, geometry, or site) in the robot model.
 
+    The task function maps joint positions to the object's position in the world frame:
+
+    .. math::
+
+        f(q) = p(q)
+
+    where :math:`p(q)` is the position of the object in world coordinates.
+
+    The error is computed as the difference between the current and target positions:
+
+    .. math::
+
+        e(q) = p(q) - p_{target}
+
+    The Jacobian of this task is the object's position Jacobian, which relates changes in
+    joint positions to changes in the object's position.
+
     :param target_pos: The target position to be achieved.
     """
 
@@ -27,6 +44,12 @@ class JaxPositionTask(JaxObjTask):
     def __call__(self, data: mjx.Data) -> jnp.ndarray:
         """
         Compute the error between the current position and the target position.
+
+        The error is given by:
+
+        .. math::
+
+            e(q) = p(q) - p_{target}
 
         :param data: The MuJoCo simulation data.
         :return: The error vector representing the difference between the current and target positions.
@@ -98,6 +121,6 @@ class PositionTask(ObjTask[JaxPositionTask]):
         target_pos_array = jnp.array(target_pos)
         if target_pos_array.shape[-1] != self._dim:
             raise ValueError(
-                "invalid dimension of the target positin value: " f"{len(target_pos)} given, expected {self._dim} "
+                f"Invalid dimension of the target position: expected {self._dim}, got {target_pos_array.shape[-1]}"
             )
         self._target_pos = target_pos_array

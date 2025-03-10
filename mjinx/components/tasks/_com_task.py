@@ -17,11 +17,27 @@ from mjinx.typing import ArrayOrFloat
 
 @jdc.pytree_dataclass
 class JaxComTask(JaxTask):
-    """
+    r"""
     A JAX-based implementation of a center of mass (CoM) task for inverse kinematics.
 
     This class represents a task that aims to achieve a specific target center of mass
     for the robot model.
+
+    The task function maps joint positions to the robot's center of mass position:
+
+    .. math::
+
+        f(q) = \frac{\sum_i m_i p_i(q)}{\sum_i m_i}
+
+    where:
+        - :math:`m_i` is the mass of body i
+        - :math:`p_i(q)` is the position of body i's center of mass
+
+    The error is computed as the difference between the current and target CoM positions:
+
+    .. math::
+
+        e(q) = p_c(q) - p_{c_{target}}
 
     :param target_com: The target center of mass position to be achieved.
     """
@@ -30,8 +46,14 @@ class JaxComTask(JaxTask):
 
     @final
     def __call__(self, data: mjx.Data) -> jnp.ndarray:
-        """
+        r"""
         Compute the error between the current center of mass and the target center of mass.
+
+        The error is given by:
+
+        .. math::
+
+            e(q) = p_c(q) - p_{c_{target}}
 
         :param data: The MuJoCo simulation data.
         :return: The error vector representing the difference between the current and target center of mass.
@@ -132,9 +154,10 @@ class ComTask(Task[JaxComTask]):
         :param target_com: The new target center of mass as a sequence of values.
         :raises ValueError: If the provided sequence doesn't have the correct length.
         """
+
         target_com_jnp = jnp.array(target_com)
         if target_com_jnp.shape[-1] != self._dim:
             raise ValueError(
-                "invalid last dimension of target CoM : " f"{target_com_jnp.shape[-1]} given, expected {self._dim} "
+                f"invalid last dimension of target CoM : {target_com_jnp.shape[-1]} given, expected {self._dim} "
             )
         self._target_com = target_com_jnp

@@ -17,11 +17,29 @@ from mjinx.typing import ArrayOrFloat, ndarray
 
 @jdc.pytree_dataclass
 class JaxFrameTask(JaxObjTask):
-    """
+    r"""
     A JAX-based implementation of a frame task for inverse kinematics.
 
     This class represents a task that aims to achieve a specific target frame
     for a given object in the robot model.
+
+    The task function maps joint positions to the object's frame (pose) in the world frame:
+
+    .. math::
+
+        f(q) = T(q) \in SE(3)
+
+    where :math:`T(q)` is the transformation matrix representing the object's pose.
+
+    The error is computed using the logarithmic map in SE(3), which represents the
+    relative transformation between current and target frames as a twist vector:
+
+    .. math::
+
+        e(q) = \log(T(q)^{-1} T_{target})
+
+    This formulation provides a natural way to interpolate between frames and
+    control both position and orientation simultaneously.
 
     :param target_frame: The target frame to be achieved.
     """
@@ -30,8 +48,17 @@ class JaxFrameTask(JaxObjTask):
 
     @final
     def __call__(self, data: mjx.Data) -> jnp.ndarray:
-        """
+        r"""
         Compute the error between the current frame and the target frame.
+
+        The error is given by the logarithmic map in SE(3):
+
+        .. math::
+
+            e(q) = \log(T(q)^{-1} T_{target})
+
+        This creates a 6D twist vector representing the relative transformation
+        between the current and target frames.
 
         :param data: The MuJoCo simulation data.
         :return: The error vector representing the difference between the current and target frames.
@@ -40,11 +67,19 @@ class JaxFrameTask(JaxObjTask):
 
     @final
     def compute_jacobian(self, data: mjx.Data) -> jnp.ndarray:
-        """
+        r"""
         Compute the Jacobian of the frame task.
 
-        This method calculates the Jacobian matrix that represents how changes
-        in joint positions affect the frame task error.
+        The Jacobian relates changes in joint positions to changes in the frame task error.
+        It is computed as:
+
+        .. math::
+
+            J = -J_{\log} \cdot J_{frame}^T
+
+        where:
+            - :math:`J_{\log}` is the Jacobian of the logarithmic map at the relative transformation
+            - :math:`J_{frame}` is the geometric Jacobian of the object's frame
 
         :param data: The MuJoCo simulation data.
         :return: The Jacobian matrix of the frame task.
@@ -124,7 +159,9 @@ class FrameTask(ObjTask[JaxFrameTask]):
         if not isinstance(target_frame, SE3):
             target_frame_jnp = jnp.array(target_frame)
             if target_frame_jnp.shape[-1] != SE3.parameters_dim:
-                raise ValueError("target frame provided via array must has length 7 (xyz + quaternion (scalar first))")
+                raise ValueError(
+                    "Target frame provided via array must have length 7 (xyz + quaternion with scalar first)"
+                )
 
             xyz, quat = target_frame_jnp[..., :3], target_frame_jnp[..., 3:]
             target_frame_se3 = SE3.from_rotation_and_translation(
