@@ -33,6 +33,7 @@ and `MuJoCo MJX <https://mujoco.readthedocs.io/en/stable/mjx.html>`_. The librar
      <img src="https://github.com/based-robotics/mjinx/raw/main/img/local_ik_output.gif" style="width: 200px;" alt="KUKA arm example">
      <img src="https://github.com/based-robotics/mjinx/raw/main/img/go2_stance.gif" style="width: 200px;" alt="GO2 robot example">
      <img src="https://github.com/based-robotics/mjinx/raw/main/img/g1_heart.gif" style="width: 200px;" alt="Heart path example">
+     <img src="https://github.com/based-robotics/mjinx/raw/main/img/cassie_caravan.gif" style="width: 200px;" alt="Heart path example">
    </div>
 
 *************
