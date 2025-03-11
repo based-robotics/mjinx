@@ -11,10 +11,10 @@
 **Mjinx** is a library for auto-differentiable numerical inverse kinematics, powered by **JAX** and **Mujoco MJX**. The library was heavily inspired by the similar Pinocchio-based tool [pink](https://github.com/stephane-caron/pink/tree/main) and Mujoco-based analogue [mink](https://github.com/kevinzakka/mink/tree/main).
 
 <p align="center">
-  <img src="img/local_ik_output.gif" style="width: 300px" />
-  <img src="img/go2_stance.gif" style="width: 300px" /> 
-  <img src="img/g1_heart.gif" style="width: 300px"/>
-  <img src="img/cassie_caravan.gif" style="width: 300px"/>
+  <img src="img/local_ik_output.gif" style="width: 400px" />
+  <img src="img/go2_stance.gif" style="width: 400px" /> 
+  <img src="img/g1_heart.gif" style="width: 400px"/>
+  <img src="img/cassie_caravan.gif" style="width: 400px"/>
 </p>
 
 ## Key features
