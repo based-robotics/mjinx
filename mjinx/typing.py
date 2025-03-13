@@ -28,7 +28,7 @@ CollisionBody: TypeAlias = int | str
 CollisionPair: TypeAlias = tuple[int, int]
 """Type alias for a pair of collision body IDs."""
 
-ArrayLike = np.typing.ArrayLike | jax.typing.ArrayLike
+ArrayLike: TypeAlias = np.typing.ArrayLike | jax.typing.ArrayLike
 """Type alias for an array-like object, either a numpy array or a JAX array-like object."""
 
 

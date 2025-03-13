@@ -25,6 +25,7 @@ extensions = [
 
 autodoc_type_aliases = {
     "ndarray": ":data:`mjinx.typing.ndarray`",
+    "ArrayLike": ":data:`mjinx.typing.ArrayLike`",
     "ArrayOrFloat": ":data:`mjinx.typing.ArrayOrFloat`",
     "ClassKFunctions": ":data:`mjinx.typing.ClassKFunctions`",
     "CollisionBody": ":data:`mjinx.typing.CollisionBody`",
