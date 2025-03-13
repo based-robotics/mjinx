@@ -77,7 +77,7 @@ class Constraint(Generic[AtomicConstraintType], Component[AtomicConstraintType])
         self,
         name: str,
         gain: ArrayOrFloat,
-        mask: Sequence[int] = None,
+        mask: Sequence[int] | None = None,
         hard_constraint: bool = False,
         soft_constraint_cost: ArrayLike | None = None,
     ):

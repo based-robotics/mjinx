@@ -88,7 +88,6 @@ class LocalIKSolution(SolverSolution):
     :param status: Solver status code indicating outcome (success, infeasible, etc.).
     """
 
-    v_opt: jnp.ndarray
     dual_var_eq: jnp.ndarray
     dual_var_ineq: jnp.ndarray
     iterations: int
@@ -185,11 +184,18 @@ class LocalIKSolver(Solver[LocalIKData, LocalIKSolution]):
         self,
         problem_data: JaxProblemData,
         model_data: mjx.Data,
-    ) -> tuple[jnp.ndarray, jnp.ndarray, jnp.ndarray, jnp.ndarray]:
-        """Compute the matrices for the QP problem.
+    ) -> tuple[
+        jnp.ndarray,
+        jnp.ndarray,
+        jnp.ndarray | None,
+        jnp.ndarray | None,
+        jnp.ndarray,
+        jnp.ndarray,
+    ]:
+        r"""Compute the matrices for the QP problem.
 
         This method constructs the matrices needed for the quadratic program:
-        
+ 
         .. math::
         
             \min_{v} \frac{1}{2} v^T P v + c^T v \quad \text{subject to} \quad G v \leq h
