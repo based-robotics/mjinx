@@ -100,8 +100,8 @@ class TestJointBarrier(unittest.TestCase):
         self.assertIsInstance(jax_component, JaxJointBarrier)
         self.assertEqual(jax_component.dim, 2)
         np.testing.assert_array_equal(jax_component.vector_gain, jnp.ones(2))
-        np.testing.assert_array_equal(jax_component.full_q_min, jnp.array([-1.0]))
-        np.testing.assert_array_equal(jax_component.full_q_max, jnp.array([1.0]))
+        np.testing.assert_array_equal(jax_component.q_min, jnp.array([-1.0]))
+        np.testing.assert_array_equal(jax_component.q_max, jnp.array([1.0]))
 
     def test_call(self):
         """Test jax component actual computation"""
@@ -112,9 +112,9 @@ class TestJointBarrier(unittest.TestCase):
             gain_fn=lambda x: x,
             mask_idxs=(0,),
             safe_displacement_gain=0.0,
-            full_q_min=jnp.array([-1.0]),
-            full_q_max=jnp.array([1.0]),
-            floating_base=False,
+            q_min=jnp.array([-1.0]),
+            q_max=jnp.array([1.0]),
+            qmask_idxs=jnp.zeros(1, dtype=jnp.uint8),
         )
 
         self.data.replace(qpos=jnp.array([0.5]))
@@ -123,8 +123,8 @@ class TestJointBarrier(unittest.TestCase):
         result = barrier(self.data)
         expected = jnp.concatenate(
             [
-                joint_difference(self.model, self.data.qpos, barrier.full_q_min),
-                joint_difference(self.model, barrier.full_q_max, self.data.qpos),
+                joint_difference(self.model, self.data.qpos, barrier.q_min),
+                joint_difference(self.model, barrier.q_max, self.data.qpos),
             ]
         )
         np.testing.assert_array_almost_equal(result, expected)
@@ -160,29 +160,15 @@ class TestJointBarrier(unittest.TestCase):
         barrier = JointBarrier(
             name="test_barrier",
             gain=1.0,
-            q_min=[-1, -1, -1],  # Min limits for the 3 hinge joints
-            q_max=[1, 1, 1],  # Max limits for the 3 hinge joints
-            floating_base=True,
+            q_min=[-1.0, -1.0, -1.0],
+            q_max=[1.0, 1.0, 1.0],
         )
-
-        # Test accessing full_q_min and full_q_max without setting the model
-        with self.assertRaises(ValueError):
-            _ = barrier.full_q_min
-
-        with self.assertRaises(ValueError):
-            _ = barrier.full_q_max
 
         # Update the model
         barrier.update_model(self.model)
 
         # Test the dimension of the barrier
         self.assertEqual(barrier.dim, 6)  # 2 * (nv - 6) = 2 * 3 = 6
-
-        # Test full_q_min and full_q_max
-        expected_full_q_min = jnp.array([0, 0, 0, 1, 0, 0, 0, -1, -1, -1])
-        expected_full_q_max = jnp.array([0, 0, 0, 1, 0, 0, 0, 1, 1, 1])
-        np.testing.assert_allclose(barrier.full_q_min, expected_full_q_min, rtol=1e-4)
-        np.testing.assert_allclose(barrier.full_q_max, expected_full_q_max, rtol=1e-4)
 
         # Test the computation
         # Set qpos to middle of the range

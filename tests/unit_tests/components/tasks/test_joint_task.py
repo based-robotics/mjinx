@@ -100,8 +100,8 @@ class TestJointTask(unittest.TestCase):
         np.testing.assert_array_equal(jax_component.vector_gain, jnp.ones(2) * 2.0)
         self.assertEqual(jax_component.gain_fn(4), 8)
         self.assertEqual(jax_component.lm_damping, 0.5)
-        np.testing.assert_array_equal(jax_component.full_target_q, jnp.array([jnt_des[0], 0.0, jnt_des[1]]))
-        self.assertEqual(jax_component.mask_idxs, (0, 2))
+        np.testing.assert_array_equal(jax_component.target_q, jnp.array([jnt_des[0], jnt_des[1]]))
+        np.testing.assert_array_equal(jax_component.mask_idxs, jnp.array((0, 2)))
 
         data = mjx.fwd_position(self.model, mjx.make_data(self.model))
         com_value = jax_component(data)
@@ -133,11 +133,7 @@ class TestJointTask(unittest.TestCase):
         """
         self.model = mjx.put_model(mj.MjModel.from_xml_string(xml))
         self.data = mjx.make_data(self.model)
-        task = JointTask(name="test_task", cost=1.0, gain=1.0, floating_base=True)
-
-        # Test accessing full_target_q without setting the model
-        with self.assertRaises(ValueError):
-            _ = task.full_target_q
+        task = JointTask(name="test_task", cost=1.0, gain=1.0)
 
         # Update the model
         task.update_model(self.model)
@@ -150,9 +146,8 @@ class TestJointTask(unittest.TestCase):
         task.update_target_q(target_q)
         np.testing.assert_allclose(task.target_q, jnp.array(target_q))
 
-        # Test full_target_q
-        expected_full_target_q = jnp.array([0, 0, 0, 1, 0, 0, 0, 0.5, 1.0, -0.5])
-        np.testing.assert_allclose(task.full_target_q, expected_full_target_q)
+        # Test target_q
+        np.testing.assert_allclose(task.target_q, target_q)
 
         # Test the computation
         # Set qpos to initial position (all zeros)
