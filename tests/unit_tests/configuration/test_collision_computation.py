@@ -90,7 +90,6 @@ class TestCollisionPairs(unittest.TestCase):
         contact = compute_collision_pairs(self.box_sphere_model, self.box_sphere_data, collision_pairs)
 
         self.assertIsNotNone(contact.dist)
-        print(contact.dist)
         np.testing.assert_allclose(contact.dist, -0.2, atol=1e-6)
 
     def test_multiple_collision_pairs(self):

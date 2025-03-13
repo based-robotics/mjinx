@@ -3,7 +3,8 @@ import unittest
 import jax
 import jax.numpy as jnp
 import mujoco as mj
-from jaxlie import SE3
+import jaxlie
+from jaxlie import SE3, SO3
 from mujoco import mjx
 
 from mjinx.configuration import (
@@ -266,7 +267,7 @@ class TestConfiguration(unittest.TestCase):
         ]
 
         # Get distances
-        distances = get_distance(self.model, self.data, collision_pairs)
+        distances, poses, frames = get_distance(self.model, self.data, collision_pairs)
 
         # Check if the output is a jax array
         self.assertIsInstance(distances, jax.Array)
