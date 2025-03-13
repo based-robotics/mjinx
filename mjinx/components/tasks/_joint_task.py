@@ -95,8 +95,8 @@ class JointTask(Task[JaxJointTask]):
     """
 
     JaxComponentType: type = JaxJointTask
-    _target_q: jnp.ndarray | None
-    _qmask_idxs: jnp.ndarray | None
+    _target_q: jnp.ndarray
+    _qmask_idxs: jnp.ndarray
 
     def __init__(
         self,
@@ -109,7 +109,6 @@ class JointTask(Task[JaxJointTask]):
     ):
         super().__init__(name, cost, gain, gain_fn, lm_damping, mask=None)
         self._final_mask = mask
-        self._target_q = None
 
     def update_model(self, model: mjx.Model):
         """

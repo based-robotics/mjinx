@@ -115,7 +115,7 @@ class Component(Generic[AtomicComponentType]):
     _gain: jnp.ndarray
     _gain_fn: Callable[[float], float]
     _mask: jnp.ndarray | None
-    _mask_idxs: tuple[int, ...]
+    _mask_idxs: tuple[int, ...] | jnp.ndarray
 
     __modified: bool
 

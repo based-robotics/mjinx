@@ -161,9 +161,7 @@ def make_dead_beat_alip(
             # == Stance foot trajectory
             stance_foot_traj_world = jnp.tile(p_stance_world, (ticks_per_step, 1))
 
-            left_foot_traj = jax.lax.cond(
-                step_sign == 1, lambda: swing_foot_traj_world, lambda: stance_foot_traj_world
-            )
+            left_foot_traj = jax.lax.cond(step_sign == 1, lambda: swing_foot_traj_world, lambda: stance_foot_traj_world)
             right_foot_traj = jax.lax.cond(
                 step_sign == 1, lambda: stance_foot_traj_world, lambda: swing_foot_traj_world
             )

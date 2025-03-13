@@ -252,4 +252,6 @@ class JointBarrier(Barrier[JaxJointBarrier]):
 
         :return: The indices of the masked joints.
         """
+        if self._qmask_idxs is None:
+            raise ValueError("qmask_idxs is not yet defined. Update the model first.")
         return self._qmask_idxs
