@@ -34,10 +34,10 @@ class JaxJointTask(JaxTask):
     For robots with quaternion joints or a floating base, a more sophisticated
     difference function is used to properly handle the joint topology.
 
-    :param full_target_q: The full target joint positions vector for all joints in the system.
+    :param target_q: The full target joint positions vector for all joints in the system.
     """
 
-    full_target_q: jnp.ndarray
+    target_q: jnp.ndarray
     qmask_idxs: jnp.ndarray
 
     def __call__(self, data: mjx.Data) -> jnp.ndarray:
@@ -56,7 +56,7 @@ class JaxJointTask(JaxTask):
         :param data: The MuJoCo simulation data.
         :return: The error vector representing the difference between the current and target joint positions.
         """
-        return (data.qpos - self.full_target_q)[self.qmask_idxs,]
+        return data.qpos[self.qmask_idxs,] - self.target_q
 
     def compute_jacobian(self, data: mjx.Data) -> jnp.ndarray:
         r"""
@@ -73,8 +73,8 @@ class JaxJointTask(JaxTask):
         :param data: The MuJoCo simulation data.
         :return: The Jacobian matrix of the barrier function.
         """
-        constraint_matrix = jnp.zeros((self.dim // 2, self.model.nv))
-        constraint_matrix = constraint_matrix.at[jnp.arange(self.dim // 2), self.mask_idxs].set(1)
+        constraint_matrix = jnp.zeros((self.dim, self.model.nv))
+        constraint_matrix = constraint_matrix.at[jnp.arange(self.dim), self.mask_idxs].set(1)
         return constraint_matrix
 
 
@@ -106,12 +106,10 @@ class JointTask(Task[JaxJointTask]):
         gain_fn: Callable[[float], float] | None = None,
         lm_damping: float = 0,
         mask: Sequence[int] | None = None,
-        floating_base: bool = False,
     ):
         super().__init__(name, cost, gain, gain_fn, lm_damping, mask=None)
         self._final_mask = mask
         self._target_q = None
-        self._floating_base = floating_base
 
     def update_model(self, model: mjx.Model):
         """
@@ -204,22 +202,12 @@ class JointTask(Task[JaxJointTask]):
         self._target_q = target_q_jnp
 
     @property
-    def full_target_q(self) -> jnp.ndarray:
+    def qmask_idxs(self) -> jnp.ndarray:
         """
-        Get the full target joint positions vector for all joints in the system.
+        Get the indices of the masked joint positions.
 
-        :return: The full target joint positions vector.
-        :raises ValueError: If the model is not defined yet.
+        :return: The indices of the masked joint positions.
         """
-        if self._model is None:
-            raise ValueError("Model has not been defined yet.")
-        return get_joint_zero(self.model).at[self.mask_idxs_jnt_space,].set(self._target_q)
-
-    @property
-    def floating_base(self) -> bool:
-        """
-        Check if the robot has a floating base.
-
-        :return: True if the robot has a floating base, False otherwise.
-        """
-        return self._floating_base
+        if self._qmask_idxs is None:
+            raise ValueError("qmask_idxs is not yet defined. Provide an instance of a model first")
+        return self._qmask_idxs
