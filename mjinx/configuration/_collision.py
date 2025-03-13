@@ -73,8 +73,7 @@ def geom_groups(
         groups_geoms.setdefault(key, []).append((g1, g2))
 
     groups_contacts = {
-        key: SimplifiedContact(geom=np.array(val), dist=None, pos=None, frame=None)
-        for key, val in groups_geoms.items()
+        key: SimplifiedContact(geom=np.array(val), dist=None, pos=None, frame=None) for key, val in groups_geoms.items()
     }
     return groups_contacts
 
