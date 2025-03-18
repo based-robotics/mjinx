@@ -5,20 +5,17 @@ from jaxlie import SE3, SO3
 from mujoco import mjx
 
 
-def update(model: mjx.Model, q: jnp.ndarray, make_constraint: bool = True) -> mjx.Data:
+def update(model: mjx.Model, data: mjx.Data) -> mjx.Data:
     """
     Update the MuJoCo data with new joint positions.
 
     :param model: The MuJoCo model.
-    :param q: The new joint positions.
+    :param data: MuJoCo data.
     :return: Updated MuJoCo data.
     """
-    data = mjx.make_data(model)
-    data = data.replace(qpos=q)
     data = mjx.kinematics(model, data)
     data = mjx.com_pos(model, data)
-    if make_constraint:
-        data = mjx.make_constraint(model, data)
+    data = mjx.make_constraint(model, data)
 
     return data
 
