@@ -169,6 +169,7 @@ class JointTask(Task[JaxJointTask]):
             qmask_idxs=self._qmask_idxs,
             mask_idxs=self._mask_idxs,
             dim=self._dim,
+            matrix_cost=self.matrix_cost,
         )
 
     @property

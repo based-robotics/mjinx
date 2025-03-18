@@ -97,7 +97,7 @@ print("Initializing solver...")
 solver = LocalIKSolver(mjx_model, maxiter=10)
 
 # Initializing initial condition
-N_batch = 65536
+N_batch = 2048
 np.random.seed(42)
 q0 = jnp.array(
     [
@@ -160,7 +160,7 @@ compute_target_frame_vmapped = jax.jit(jax.vmap(compute_target_frame, in_axes=(0
 t_warmup = perf_counter()
 print("Performing warmup calls...")
 # Warmup iterations for JIT compilation
-frame_task.target_frame = np.array([[0.4, 0.2, 0.7, 1, 0, 0, 0] for _ in range(N_batch)])
+frame_task.target_frame = jnp.array([[0.4, 0.2, 0.7, 1, 0, 0, 0] for _ in range(N_batch)])
 problem_data = problem.compile()
 opt_solution, _ = solve_jit(q, mjx_data, solver_data, problem_data)
 q_warmup = integrate_jit(mjx_model, q, opt_solution.v_opt, 0)

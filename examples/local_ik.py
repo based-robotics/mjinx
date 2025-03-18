@@ -6,6 +6,9 @@ for a Kuka iiwa robot. It shows how to set up the problem, add tasks and barrier
 and visualize the results using MuJoCo's viewer.
 """
 
+from collections import defaultdict
+from time import perf_counter
+
 import jax
 import jax.numpy as jnp
 import mujoco as mj
@@ -13,8 +16,6 @@ import mujoco.mjx as mjx
 import numpy as np
 from mujoco import viewer
 from robot_descriptions.iiwa14_mj_description import MJCF_PATH
-from time import perf_counter
-from collections import defaultdict
 
 from mjinx.components.barriers import JointBarrier, PositionBarrier, SelfCollisionBarrier
 from mjinx.components.tasks import FrameTask

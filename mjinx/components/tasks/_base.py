@@ -142,7 +142,8 @@ class Task(Generic[AtomicTaskType], Component[AtomicTaskType]):
 
     def update_model(self, model):
         super().update_model(model)
-        self._jax_component = jdc.replace(self._jax_component, matrix_cost=self.matrix_cost)
+        if self._dim != -1:
+            self._jax_component = jdc.replace(self._jax_component, matrix_cost=self.matrix_cost)
 
     @property
     def matrix_cost(self) -> jnp.ndarray:

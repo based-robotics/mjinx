@@ -133,6 +133,7 @@ class FrameTask(ObjTask[JaxFrameTask]):
         super().__init__(name, cost, gain, obj_name, obj_type, gain_fn, lm_damping, mask)
         self.target_frame = SE3.identity()
         self._dim = SE3.tangent_dim if mask is None else len(self.mask_idxs)
+        self._jax_component = jdc.replace(self._jax_component, dim=self._dim)
 
     @property
     def target_frame(self) -> SE3:

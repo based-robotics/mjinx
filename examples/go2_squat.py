@@ -78,7 +78,7 @@ print("Initializing solver...")
 solver = LocalIKSolver(mjx_model, maxiter=10)
 
 # Initializing initial condition
-N_batch = 10000
+N_batch = 512
 q0 = np.array(
     [
         -0.0,  # Torso position
@@ -105,7 +105,7 @@ q0 = np.array(
 q = jnp.tile(q0, (N_batch, 1))
 
 # TODO: implement update_from_model_data
-mjx_data = update(mjx_model, jnp.array(q0))
+mjx_data = update(mjx_model, mjx.make_data(mjx_model).replace(qpos=jnp.array(q0)))
 
 for foot in ["FL", "FR", "RL", "RR"]:
     foot_pos = mjx_data.geom_xpos[mjx.name2id(mjx_model, mj.mjtObj.mjOBJ_GEOM, foot)]
@@ -127,14 +127,14 @@ with problem.set_vmap_dimension() as empty_problem_data:
 solve_jit = jax.jit(
     jax.vmap(
         solver.solve,
-        in_axes=(0, 0, empty_problem_data),
+        in_axes=(0, None, 0, empty_problem_data),
     )
 )
 integrate_jit = jax.jit(jax.vmap(integrate, in_axes=(None, 0, 0, None)), static_argnames=["dt"])
 
 
-def get_frame_traj(i: int, t: float) -> np.ndarray:
-    angle = np.pi / 8 * np.sin(t + 2 * np.pi * i / N_batch)
+def get_frame_traj(i: int, t: float) -> jnp.ndarray:
+    angle = jnp.pi / 8 * jnp.sin(t + 2 * jnp.pi * i / N_batch)
     R = jnp.array(
         [
             [jnp.cos(angle), 0, jnp.sin(angle)],
@@ -148,7 +148,7 @@ def get_frame_traj(i: int, t: float) -> np.ndarray:
     )
 
 
-def get_com_traj(i: int, t: float) -> np.ndarray:
+def get_com_traj(i: int, t: float) -> jnp.ndarray:
     return jnp.array([0.0, 0.0, 0.2 + 0.1 * jnp.sin(t + 2 * jnp.pi * i / N_batch + jnp.pi / 2)])
 
 
@@ -164,7 +164,7 @@ frame_task.target_frame = SE3.from_rotation_and_translation(
 )
 com_task.target_com = np.array([[0.0, 0.0, 0.2] for _ in range(N_batch)])
 problem_data = problem.compile()
-opt_solution, solver_data = solve_jit(q, solver_data, problem_data)
+opt_solution, solver_data = solve_jit(q, mjx_data, solver_data, problem_data)
 q_warmup = integrate_jit(mjx_model, q, opt_solution.v_opt, 1e-2)
 
 get_frame_traj_vmapped(jnp.arange(N_batch), 0.0)
@@ -198,7 +198,7 @@ try:
 
         # Solving the instance of the problem
         t1 = perf_counter()
-        opt_solution, solver_data = solve_jit(q, solver_data, problem_data)
+        opt_solution, solver_data = solve_jit(q, mjx_data, solver_data, problem_data)
         t2 = perf_counter()
         solve_times.append(t2 - t1)
 

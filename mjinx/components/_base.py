@@ -120,7 +120,7 @@ class Component(Generic[AtomicComponentType]):
     _gain: jnp.ndarray
     _gain_fn: Callable[[float], float]
     _mask: jnp.ndarray | None
-    _mask_idxs: tuple[int, ...] | jnp.ndarray
+    _mask_idxs: tuple[int, ...] | jnp.ndarray | None
 
     __modified: bool
 
@@ -153,7 +153,7 @@ class Component(Generic[AtomicComponentType]):
             self._mask_idxs = tuple(i for i in range(len(self._mask)) if self._mask[i])
         else:
             self._mask = None
-            self._mask_idxs = ()
+            self._mask_idxs = None
 
         self._jax_component = self.JaxComponentType(
             **{attr: None for attr in self.JaxComponentType.__dataclass_fields__.keys()}
