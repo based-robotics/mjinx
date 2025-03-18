@@ -1,0 +1,461 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Type System &mdash; mjinx 0.1.1 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="_static/custom.css?v=3cbe8de9" />
+
+  
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=a58bc63e"></script>
+      <script src="_static/doctools.js?v=9bcbadda"></script>
+      <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="prev" title="Developer Notes" href="developer-notes.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            mjinx
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="quick_start.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="problem.html">Problem</a></li>
+<li class="toctree-l1"><a class="reference internal" href="configuration.html">Configuration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="components.html">Components</a></li>
+<li class="toctree-l1"><a class="reference internal" href="solvers.html">Solvers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="visualization.html">Visualization</a></li>
+<li class="toctree-l1"><a class="reference internal" href="references.html">References</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="developer-notes.html">Developer Notes</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="developer-notes.html#code-organization">Code Organization</a></li>
+<li class="toctree-l2"><a class="reference internal" href="developer-notes.html#development-guidelines">Development Guidelines</a></li>
+<li class="toctree-l2"><a class="reference internal" href="developer-notes.html#jax-considerations">JAX Considerations</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="developer-notes.html#types">Types</a><ul class="current">
+<li class="toctree-l3 current"><a class="current reference internal" href="#">Type System</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#mjinx.typing.ArrayLike"><code class="docutils literal notranslate"><span class="pre">ArrayLike</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#mjinx.typing.ArrayOrFloat"><code class="docutils literal notranslate"><span class="pre">ArrayOrFloat</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#mjinx.typing.ClassKFunctions"><code class="docutils literal notranslate"><span class="pre">ClassKFunctions</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#mjinx.typing.CollisionBody"><code class="docutils literal notranslate"><span class="pre">CollisionBody</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#mjinx.typing.CollisionPair"><code class="docutils literal notranslate"><span class="pre">CollisionPair</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#mjinx.typing.PositionLimitType"><code class="docutils literal notranslate"><span class="pre">PositionLimitType</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#mjinx.typing.SimplifiedContact"><code class="docutils literal notranslate"><span class="pre">SimplifiedContact</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#mjinx.typing.ndarray"><code class="docutils literal notranslate"><span class="pre">ndarray</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#type-aliases">Type Aliases</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#enumerations">Enumerations</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">mjinx</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="developer-notes.html">Developer Notes</a></li>
+      <li class="breadcrumb-item active">Type System</li>
+      <li class="wy-breadcrumbs-aside">
+              <!-- User defined GitHub URL -->
+              <a href="https://github.com/based-robotics/mjinx/tree/docs/github_pages/docs/typing.rst" class="fa fa-github"> Edit on GitHub</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="type-system">
+<h1>Type System<a class="headerlink" href="#type-system" title="Link to this heading"></a></h1>
+<p>MJINX uses Python’s type annotations throughout the codebase to enhance code clarity, enable better IDE support, and catch potential errors. This module provides the type definitions and aliases used across the library.</p>
+<p id="module-mjinx.typing">This module contains type definitions and aliases used throughout the mjinx library.</p>
+<dl class="py data">
+<dt class="sig sig-object py" id="mjinx.typing.ArrayLike">
+<span class="sig-name descname"><span class="pre">ArrayLike</span></span><a class="headerlink" href="#mjinx.typing.ArrayLike" title="Link to this definition"></a></dt>
+<dd><p>Type alias for an array-like object, either a numpy array or a JAX array-like object.</p>
+<p>alias of <code class="xref py py-class docutils literal notranslate"><span class="pre">_Buffer</span></code> | <code class="xref py py-class docutils literal notranslate"><span class="pre">_SupportsArray</span></code>[<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.dtype.html#numpy.dtype" title="(in NumPy v2.2)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dtype</span></code></a>[<code class="xref py py-obj docutils literal notranslate"><span class="pre">Any</span></code>]] | <code class="xref py py-class docutils literal notranslate"><span class="pre">_NestedSequence</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">_SupportsArray</span></code>[<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.dtype.html#numpy.dtype" title="(in NumPy v2.2)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dtype</span></code></a>[<code class="xref py py-obj docutils literal notranslate"><span class="pre">Any</span></code>]]] | <code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code> | <code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code> | <code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code> | <code class="xref py py-class docutils literal notranslate"><span class="pre">complex</span></code> | <code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code> | <code class="xref py py-class docutils literal notranslate"><span class="pre">bytes</span></code> | <code class="xref py py-class docutils literal notranslate"><span class="pre">_NestedSequence</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code> | <code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code> | <code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code> | <code class="xref py py-class docutils literal notranslate"><span class="pre">complex</span></code> | <code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code> | <code class="xref py py-class docutils literal notranslate"><span class="pre">bytes</span></code>] | <a class="reference external" href="https://docs.jax.dev/en/latest/_autosummary/jax.Array.html#jax.Array" title="(in JAX)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Array</span></code></a> | <a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.2)"><code class="xref py py-class docutils literal notranslate"><span class="pre">ndarray</span></code></a> | <a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.bool" title="(in NumPy v2.2)"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></a> | <a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.number" title="(in NumPy v2.2)"><code class="xref py py-class docutils literal notranslate"><span class="pre">number</span></code></a></p>
+</dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="mjinx.typing.ArrayOrFloat">
+<span class="sig-name descname"><span class="pre">ArrayOrFloat</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">TypeAlias</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">numpy.ndarray</span> <span class="pre">|</span> <span class="pre">jax.Array</span> <span class="pre">|</span> <span class="pre">float</span></em><a class="headerlink" href="#mjinx.typing.ArrayOrFloat" title="Link to this definition"></a></dt>
+<dd><p>Type alias for an array or a float value.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="mjinx.typing.ClassKFunctions">
+<span class="sig-name descname"><span class="pre">ClassKFunctions</span></span><a class="headerlink" href="#mjinx.typing.ClassKFunctions" title="Link to this definition"></a></dt>
+<dd><p>Type alias for Class K functions, which are scalar functions that take and return ndarrays.</p>
+</dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="mjinx.typing.CollisionBody">
+<span class="sig-name descname"><span class="pre">CollisionBody</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">TypeAlias</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">int</span> <span class="pre">|</span> <span class="pre">str</span></em><a class="headerlink" href="#mjinx.typing.CollisionBody" title="Link to this definition"></a></dt>
+<dd><p>Type alias for collision body representation, either as an integer ID or a string name.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="mjinx.typing.CollisionPair">
+<span class="sig-name descname"><span class="pre">CollisionPair</span></span><a class="headerlink" href="#mjinx.typing.CollisionPair" title="Link to this definition"></a></dt>
+<dd><p>Type alias for a pair of collision body IDs.</p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="mjinx.typing.PositionLimitType">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">PositionLimitType</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">value</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mjinx.typing.PositionLimitType" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Enum</span></code></p>
+<p>Type which describes possible position limits.</p>
+<p>The position limit could be only minimal, only maximal, or minimal and maximal.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="mjinx.typing.PositionLimitType.BOTH">
+<span class="sig-name descname"><span class="pre">BOTH</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">2</span></em><a class="headerlink" href="#mjinx.typing.PositionLimitType.BOTH" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="mjinx.typing.PositionLimitType.MAX">
+<span class="sig-name descname"><span class="pre">MAX</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">1</span></em><a class="headerlink" href="#mjinx.typing.PositionLimitType.MAX" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="mjinx.typing.PositionLimitType.MIN">
+<span class="sig-name descname"><span class="pre">MIN</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0</span></em><a class="headerlink" href="#mjinx.typing.PositionLimitType.MIN" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="mjinx.typing.PositionLimitType.from_str">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">from_str</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">type</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mjinx.typing.PositionLimitType.from_str" title="Link to this definition"></a></dt>
+<dd><p>Generates position limit type from string.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>type</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span>) – position limit type.</p>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>ValueError</strong> – limit name is not ‘min’, ‘max’, or ‘both’.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="#mjinx.typing.PositionLimitType" title="mjinx.typing.PositionLimitType"><code class="xref py py-class docutils literal notranslate"><span class="pre">mjinx.typing.PositionLimitType</span></code></a></span></p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>corresponding enum type.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="mjinx.typing.PositionLimitType.includes_max">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">includes_max</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">type</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mjinx.typing.PositionLimitType.includes_max" title="Link to this definition"></a></dt>
+<dd><p>Either given limit includes maximum limit or not.</p>
+<p>Returns true, if limit is either MIN or BOTH, and false otherwise.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>type</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="#mjinx.typing.PositionLimitType" title="mjinx.typing.PositionLimitType"><code class="xref py py-class docutils literal notranslate"><span class="pre">mjinx.typing.PositionLimitType</span></code></a></span>) – limit to be processes.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></span></p>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>True, if limit includes maximum limit, False otherwise.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="mjinx.typing.PositionLimitType.includes_min">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">includes_min</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">type</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mjinx.typing.PositionLimitType.includes_min" title="Link to this definition"></a></dt>
+<dd><p>Either given limit includes minimum limit or not.</p>
+<p>Returns true, if limit is either MIN or BOTH, and false otherwise.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>type</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="#mjinx.typing.PositionLimitType" title="mjinx.typing.PositionLimitType"><code class="xref py py-class docutils literal notranslate"><span class="pre">mjinx.typing.PositionLimitType</span></code></a></span>) – limit to be processes.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></span></p>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>True, if limit includes minimum limit, False otherwise.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="mjinx.typing.SimplifiedContact">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">SimplifiedContact</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">geom</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dist</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pos</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">frame</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mjinx.typing.SimplifiedContact" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">PyTreeNode</span></code></p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="mjinx.typing.SimplifiedContact.dist">
+<span class="sig-name descname"><span class="pre">dist</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.jax.dev/en/latest/_autosummary/jax.Array.html#jax.Array" title="(in JAX)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Array</span></code></a></em><a class="headerlink" href="#mjinx.typing.SimplifiedContact.dist" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="mjinx.typing.SimplifiedContact.frame">
+<span class="sig-name descname"><span class="pre">frame</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.jax.dev/en/latest/_autosummary/jax.Array.html#jax.Array" title="(in JAX)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Array</span></code></a></em><a class="headerlink" href="#mjinx.typing.SimplifiedContact.frame" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="mjinx.typing.SimplifiedContact.geom">
+<span class="sig-name descname"><span class="pre">geom</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.jax.dev/en/latest/_autosummary/jax.Array.html#jax.Array" title="(in JAX)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Array</span></code></a></em><a class="headerlink" href="#mjinx.typing.SimplifiedContact.geom" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="mjinx.typing.SimplifiedContact.pos">
+<span class="sig-name descname"><span class="pre">pos</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.jax.dev/en/latest/_autosummary/jax.Array.html#jax.Array" title="(in JAX)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Array</span></code></a></em><a class="headerlink" href="#mjinx.typing.SimplifiedContact.pos" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="mjinx.typing.SimplifiedContact.replace">
+<span class="sig-name descname"><span class="pre">replace</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">changes</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mjinx.typing.SimplifiedContact.replace" title="Link to this definition"></a></dt>
+<dd><p>Return a new object replacing specified fields with new values.</p>
+<p>This is especially useful for frozen classes.  Example usage:</p>
+<blockquote>
+<div><p>&#64;dataclass(frozen=True)
+class C:</p>
+<blockquote>
+<div><p>x: int
+y: int</p>
+</div></blockquote>
+<p>c = C(1, 2)
+c1 = replace(c, x=3)
+assert c1.x == 3 and c1.y == 2</p>
+</div></blockquote>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="mjinx.typing.ndarray">
+<span class="sig-name descname"><span class="pre">ndarray</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">TypeAlias</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">numpy.ndarray</span> <span class="pre">|</span> <span class="pre">jax.Array</span></em><a class="headerlink" href="#mjinx.typing.ndarray" title="Link to this definition"></a></dt>
+<dd><p>Type alias for numpy or JAX numpy arrays.</p>
+</dd></dl>
+
+</section>
+<section id="type-aliases">
+<h1>Type Aliases<a class="headerlink" href="#type-aliases" title="Link to this heading"></a></h1>
+<p>The following type aliases are defined for common data structures and function signatures:</p>
+<dl class="py data">
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">ndarray</span></span></dt>
+<dd><p>Type alias for numpy or JAX numpy arrays.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Annotation<span class="colon">:</span></dt>
+<dd class="field-odd"><p>= np.ndarray | jnp.ndarray</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">ArrayOrFloat</span></span></dt>
+<dd><p>Type alias for an array or a scalar float value.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Annotation<span class="colon">:</span></dt>
+<dd class="field-odd"><p>= ndarray | float</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">ClassKFunctions</span></span></dt>
+<dd><p>Type alias for Class K functions, which are scalar functions that take and return ndarrays.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Annotation<span class="colon">:</span></dt>
+<dd class="field-odd"><p>= Callable[[ndarray], ndarray]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">CollisionBody</span></span></dt>
+<dd><p>Type alias for collision body representation, either as an integer ID or a string name.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Annotation<span class="colon">:</span></dt>
+<dd class="field-odd"><p>= int | str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">CollisionPair</span></span></dt>
+<dd><p>Type alias for a pair of collision body IDs.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Annotation<span class="colon">:</span></dt>
+<dd class="field-odd"><p>= tuple[int, int]</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="enumerations">
+<h1>Enumerations<a class="headerlink" href="#enumerations" title="Link to this heading"></a></h1>
+<dl class="py class">
+<dt class="sig sig-object py">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">PositionLimitType</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">value</span></span></em><span class="sig-paren">)</span></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Enum</span></code></p>
+<p>Type which describes possible position limits.</p>
+<p>The position limit could be only minimal, only maximal, or minimal and maximal.</p>
+<p>Enumeration of possible position limit types.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">MIN</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0</span></em></dt>
+<dd><p>Minimum position limit.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">MAX</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">1</span></em></dt>
+<dd><p>Maximum position limit.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">BOTH</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">2</span></em></dt>
+<dd><p>Both minimum and maximum position limits.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">BOTH</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">2</span></em></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">MAX</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">1</span></em></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">MIN</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0</span></em></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">from_str</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">type</span></span></em><span class="sig-paren">)</span></dt>
+<dd><p>Generates position limit type from string.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>type</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span>) – position limit type.</p>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>ValueError</strong> – limit name is not ‘min’, ‘max’, or ‘both’.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="#mjinx.typing.PositionLimitType" title="mjinx.typing.PositionLimitType"><code class="xref py py-class docutils literal notranslate"><span class="pre">mjinx.typing.PositionLimitType</span></code></a></span></p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>corresponding enum type.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">includes_max</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">type</span></span></em><span class="sig-paren">)</span></dt>
+<dd><p>Either given limit includes maximum limit or not.</p>
+<p>Returns true, if limit is either MIN or BOTH, and false otherwise.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>type</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="#mjinx.typing.PositionLimitType" title="mjinx.typing.PositionLimitType"><code class="xref py py-class docutils literal notranslate"><span class="pre">mjinx.typing.PositionLimitType</span></code></a></span>) – limit to be processes.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></span></p>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>True, if limit includes maximum limit, False otherwise.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">includes_min</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">type</span></span></em><span class="sig-paren">)</span></dt>
+<dd><p>Either given limit includes minimum limit or not.</p>
+<p>Returns true, if limit is either MIN or BOTH, and false otherwise.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>type</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="#mjinx.typing.PositionLimitType" title="mjinx.typing.PositionLimitType"><code class="xref py py-class docutils literal notranslate"><span class="pre">mjinx.typing.PositionLimitType</span></code></a></span>) – limit to be processes.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></span></p>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>True, if limit includes minimum limit, False otherwise.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="developer-notes.html" class="btn btn-neutral float-left" title="Developer Notes" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2022 Ivan Domrachev, Simeon Nedelchev..</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

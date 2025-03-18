@@ -1,0 +1,869 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Base Barrier &mdash; mjinx 0.1.1 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="_static/custom.css?v=3cbe8de9" />
+
+  
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=a58bc63e"></script>
+      <script src="_static/doctools.js?v=9bcbadda"></script>
+      <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Base Constraint" href="constraints.html" />
+    <link rel="prev" title="Base Task" href="tasks.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            mjinx
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="quick_start.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="problem.html">Problem</a></li>
+<li class="toctree-l1"><a class="reference internal" href="configuration.html">Configuration</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="components.html">Components</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="components.html#base-component">Base Component</a></li>
+<li class="toctree-l2"><a class="reference internal" href="components.html#tasks">Tasks</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="components.html#barriers">Barriers</a><ul class="current">
+<li class="toctree-l3 current"><a class="current reference internal" href="#">Base Barrier</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#mjinx.components.barriers._base.JaxBarrier"><code class="docutils literal notranslate"><span class="pre">JaxBarrier</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#mjinx.components.barriers._base.Barrier"><code class="docutils literal notranslate"><span class="pre">Barrier</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#joint-barrier">Joint Barrier</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#mjinx.components.barriers._joint_barrier.JaxJointBarrier"><code class="docutils literal notranslate"><span class="pre">JaxJointBarrier</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#mjinx.components.barriers._joint_barrier.JointBarrier"><code class="docutils literal notranslate"><span class="pre">JointBarrier</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#base-body-barrier">Base Body Barrier</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#mjinx.components.barriers._obj_barrier.JaxObjBarrier"><code class="docutils literal notranslate"><span class="pre">JaxObjBarrier</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#mjinx.components.barriers._obj_barrier.ObjBarrier"><code class="docutils literal notranslate"><span class="pre">ObjBarrier</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#body-position-barrier">Body Position Barrier</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#mjinx.components.barriers._obj_position_barrier.JaxPositionBarrier"><code class="docutils literal notranslate"><span class="pre">JaxPositionBarrier</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#mjinx.components.barriers._obj_position_barrier.PositionBarrier"><code class="docutils literal notranslate"><span class="pre">PositionBarrier</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#self-collision-barrier">Self Collision Barrier</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#mjinx.components.barriers._self_collision_barrier.JaxSelfCollisionBarrier"><code class="docutils literal notranslate"><span class="pre">JaxSelfCollisionBarrier</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#mjinx.components.barriers._self_collision_barrier.SelfCollisionBarrier"><code class="docutils literal notranslate"><span class="pre">SelfCollisionBarrier</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="components.html#constraints">Constraints</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="solvers.html">Solvers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="visualization.html">Visualization</a></li>
+<li class="toctree-l1"><a class="reference internal" href="references.html">References</a></li>
+<li class="toctree-l1"><a class="reference internal" href="developer-notes.html">Developer Notes</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">mjinx</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="components.html">Components</a></li>
+      <li class="breadcrumb-item active">Base Barrier</li>
+      <li class="wy-breadcrumbs-aside">
+              <!-- User defined GitHub URL -->
+              <a href="https://github.com/based-robotics/mjinx/tree/docs/github_pages/docs/barriers.rst" class="fa fa-github"> Edit on GitHub</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <p id="barriers">Barriers implement inequality constraints in the inverse kinematics problem. Each barrier defines a scalar function <span class="math notranslate nohighlight">\(h: \mathcal{Q} \rightarrow \mathbb{R}\)</span> that must remain positive (<span class="math notranslate nohighlight">\(h(q) \geq 0\)</span>), creating a boundary that the solver must respect. This approach is mathematically equivalent to control barrier functions (CBFs) <span id="id1">[<a class="reference internal" href="references.html#id5" title="Aaron D Ames, Samuel Coogan, Magnus Egerstedt, Gennaro Notomista, Koushil Sreenath, and Paulo Tabuada. Control barrier functions: theory and applications. In 2019 18th European control conference (ECC), 3420–3431. Ieee, 2019.">Ames <em>et al.</em>, 2019</a>]</span>, which have been widely adopted in robotics for safety-critical control.</p>
+<p>The barrier formulation creates a continuous constraint boundary that prevents the system from entering prohibited regions of the configuration space. In the optimization problem, these constraints are typically enforced through linearization at each step:</p>
+<div class="math notranslate nohighlight">
+\[\nabla h(q)^T \dot{q} \geq -\alpha h(q)\]</div>
+<p>where <span class="math notranslate nohighlight">\(\alpha\)</span> is a gain parameter that controls how aggressively the system is pushed away from the constraint boundary.</p>
+<p>All barriers follow a consistent mathematical formulation while adapting to specific constraint types, enabling systematic enforcement of safety and feasibility requirements.</p>
+<section id="base-barrier">
+<h1>Base Barrier<a class="headerlink" href="#base-barrier" title="Link to this heading"></a></h1>
+<p>The foundation for all barrier constraints, defining the core mathematical properties and interface.</p>
+<dl class="py class" id="module-mjinx.components.barriers._base">
+<dt class="sig sig-object py" id="mjinx.components.barriers._base.JaxBarrier">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">JaxBarrier</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dim</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vector_gain</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gain_fn</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mask_idxs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">safe_displacement_gain</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mjinx.components.barriers._base.JaxBarrier" title="Link to this definition"></a></dt>
+<dd><p>A base class for implementing barrier functions in JAX.</p>
+<p>This class provides a framework for creating barrier functions that can be used
+in optimization problems, particularly for constraint handling in robotics applications.</p>
+<p>A barrier function is defined mathematically as a function:</p>
+<div class="math notranslate nohighlight">
+\[h(q) \geq 0\]</div>
+<p>where the constraint is satisfied when h(q) is non-negative. As h(q) approaches zero,
+the barrier “activates” to prevent constraint violation. In optimization problems,
+the barrier helps enforce constraints by adding a penalty term that increases rapidly
+as the system approaches constraint boundaries.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>safe_displacement_gain</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></span>) – The gain for computing safe displacements.</p>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="mjinx.components.barriers._base.JaxBarrier.compute_barrier">
+<span class="sig-name descname"><span class="pre">compute_barrier</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mjinx.components.barriers._base.JaxBarrier.compute_barrier" title="Link to this definition"></a></dt>
+<dd><p>Compute the barrier function value.</p>
+<p>This method calculates the value of the barrier function h(q) at the current state.
+The barrier is active when h(q) is close to zero and satisfied when h(q) &gt; 0.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>data</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">Data</span></code></span>) – The MuJoCo simulation data.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.jax.dev/en/latest/_autosummary/jax.Array.html#jax.Array" title="(in JAX)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Array</span></code></a></span></p>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The computed barrier value.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="mjinx.components.barriers._base.JaxBarrier.compute_safe_displacement">
+<span class="sig-name descname"><span class="pre">compute_safe_displacement</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mjinx.components.barriers._base.JaxBarrier.compute_safe_displacement" title="Link to this definition"></a></dt>
+<dd><p>Compute a safe displacement to move away from constraint boundaries.</p>
+<p>When the barrier function value is close to zero, this method computes
+a displacement in joint space that helps move the system away from the constraint boundary:</p>
+<div class="math notranslate nohighlight">
+\[\Delta q_{safe} = \alpha \nabla h(q)\]</div>
+<dl class="simple">
+<dt>where:</dt><dd><ul class="simple">
+<li><p><span class="math notranslate nohighlight">\(\alpha\)</span> is the safe_displacement_gain</p></li>
+<li><p><span class="math notranslate nohighlight">\(\nabla h(q)\)</span> is the gradient of the barrier function</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>data</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">Data</span></code></span>) – The MuJoCo simulation data.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.jax.dev/en/latest/_autosummary/jax.Array.html#jax.Array" title="(in JAX)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Array</span></code></a></span></p>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>A joint displacement vector to move away from constraint boundaries.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="mjinx.components.barriers._base.Barrier">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">Barrier</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gain</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gain_fn</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">safe_displacement_gain</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mask</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mjinx.components.barriers._base.Barrier" title="Link to this definition"></a></dt>
+<dd><p>A generic barrier class that wraps atomic barrier implementations.</p>
+<p>This class provides a high-level interface for barrier functions, allowing
+for easy integration into optimization problems. Barrier functions are used
+to enforce constraints by creating a potential field that pushes the system
+away from constraint boundaries.</p>
+<p>In optimization problems, barriers are typically integrated as inequality constraints
+or as penalty terms in the objective function:</p>
+<div class="math notranslate nohighlight">
+\[\min_{q} f(q) \quad \text{subject to} \quad h(q) \geq 0\]</div>
+<p>or as a penalty term:</p>
+<div class="math notranslate nohighlight">
+\[\min_{q} f(q) - \lambda \log(h(q))\]</div>
+<p>where <span class="math notranslate nohighlight">\(\lambda\)</span> is a weight parameter.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>safe_displacement_gain</strong> – The gain for computing safe displacements.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="joint-barrier">
+<h1>Joint Barrier<a class="headerlink" href="#joint-barrier" title="Link to this heading"></a></h1>
+<p>Enforces joint limit constraints, preventing the robot from exceeding mechanical limits.</p>
+<dl class="py class" id="module-mjinx.components.barriers._joint_barrier">
+<dt class="sig sig-object py" id="mjinx.components.barriers._joint_barrier.JaxJointBarrier">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">JaxJointBarrier</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dim</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vector_gain</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gain_fn</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mask_idxs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">safe_displacement_gain</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">q_min</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">q_max</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">qmask_idxs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mjinx.components.barriers._joint_barrier.JaxJointBarrier" title="Link to this definition"></a></dt>
+<dd><p>A JAX implementation of a joint barrier function.</p>
+<p>This class extends the JaxBarrier to specifically handle joint limits in a robotic system.
+It computes barrier values based on the current joint positions relative to their
+minimum and maximum limits.</p>
+<p>The joint barrier enforces that joint positions remain within their specified limits:</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}h_{min}(q) &amp;= q - q_{min} \geq 0 \\
+h_{max}(q) &amp;= q_{max} - q \geq 0\end{split}\]</div>
+<dl class="simple">
+<dt>where:</dt><dd><ul class="simple">
+<li><p><span class="math notranslate nohighlight">\(q\)</span> is the joint position vector</p></li>
+<li><p><span class="math notranslate nohighlight">\(q_{min}\)</span> is the vector of minimum joint limits</p></li>
+<li><p><span class="math notranslate nohighlight">\(q_{max}\)</span> is the vector of maximum joint limits</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>q_min</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.jax.dev/en/latest/_autosummary/jax.Array.html#jax.Array" title="(in JAX)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Array</span></code></a></span>) – The minimum joint limits.</p></li>
+<li><p><strong>q_max</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.jax.dev/en/latest/_autosummary/jax.Array.html#jax.Array" title="(in JAX)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Array</span></code></a></span>) – The maximum joint limits.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="mjinx.components.barriers._joint_barrier.JaxJointBarrier.compute_jacobian">
+<span class="sig-name descname"><span class="pre">compute_jacobian</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mjinx.components.barriers._joint_barrier.JaxJointBarrier.compute_jacobian" title="Link to this definition"></a></dt>
+<dd><p>Compute the Jacobian of the joint barrier function.</p>
+<p>For joint barriers, the Jacobian has a simple form:
+- For lower limits (<span class="math notranslate nohighlight">\(q - q_{min}\)</span>): <span class="math notranslate nohighlight">\(J = I\)</span> (identity matrix)
+- For upper limits (<span class="math notranslate nohighlight">\(q_{max} - q\)</span>): <span class="math notranslate nohighlight">\(J = -I\)</span> (negative identity matrix)</p>
+<p>These are combined into a single Jacobian matrix, with appropriate
+adjustments for masked joints and floating base.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>data</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">Data</span></code></span>) – The MuJoCo simulation data.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.jax.dev/en/latest/_autosummary/jax.Array.html#jax.Array" title="(in JAX)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Array</span></code></a></span></p>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The Jacobian matrix of the barrier function.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="mjinx.components.barriers._joint_barrier.JointBarrier">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">JointBarrier</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gain</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gain_fn</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">safe_displacement_gain</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">q_min</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">q_max</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mask</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mjinx.components.barriers._joint_barrier.JointBarrier" title="Link to this definition"></a></dt>
+<dd><p>A high-level joint barrier class that wraps the JaxJointBarrier implementation.</p>
+<p>This class provides an interface for creating and managing joint barriers,
+including methods for updating joint limits and handling model-specific details.</p>
+<p>Joint barriers are one of the most common constraint types in robotics, ensuring that
+joint positions respect their mechanical limits. They can be incorporated into
+optimization problems to prevent solutions that would require impossible joint configurations.</p>
+<p>The barrier function is formulated to create a potential field that increases as
+joints approach their limits, effectively pushing the optimization away from invalid regions.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>name</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span>) – The name of the barrier.</p></li>
+<li><p><strong>gain</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.2)"><code class="xref py py-class docutils literal notranslate"><span class="pre">ndarray</span></code></a> | <a class="reference external" href="https://docs.jax.dev/en/latest/_autosummary/jax.Array.html#jax.Array" title="(in JAX)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Array</span></code></a> | <code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></span>) – The gain for the barrier function.</p></li>
+<li><p><strong>gain_fn</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">Callable</span></code>[[<code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>], <code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>] | <code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span>) – A function to compute the gain dynamically.</p></li>
+<li><p><strong>safe_displacement_gain</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></span>) – The gain for computing safe displacements.</p></li>
+<li><p><strong>q_min</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">Sequence</span></code> | <code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span>) – The minimum joint limits.</p></li>
+<li><p><strong>q_max</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">Sequence</span></code> | <code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span>) – The maximum joint limits.</p></li>
+<li><p><strong>mask</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">Sequence</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code>] | <code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span>) – A sequence of integers to mask certain joints.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="mjinx.components.barriers._joint_barrier.JointBarrier.JaxComponentType">
+<span class="sig-name descname"><span class="pre">JaxComponentType</span></span><a class="headerlink" href="#mjinx.components.barriers._joint_barrier.JointBarrier.JaxComponentType" title="Link to this definition"></a></dt>
+<dd><p>alias of <a class="reference internal" href="#mjinx.components.barriers._joint_barrier.JaxJointBarrier" title="mjinx.components.barriers._joint_barrier.JaxJointBarrier"><code class="xref py py-class docutils literal notranslate"><span class="pre">JaxJointBarrier</span></code></a></p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="mjinx.components.barriers._joint_barrier.JointBarrier.q_min">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">q_min</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.jax.dev/en/latest/_autosummary/jax.Array.html#jax.Array" title="(in JAX)"><span class="pre">Array</span></a></em><a class="headerlink" href="#mjinx.components.barriers._joint_barrier.JointBarrier.q_min" title="Link to this definition"></a></dt>
+<dd><p>Get the minimum joint limits.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The minimum joint limits.</p>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>ValueError</strong> – If q_min is not defined.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="mjinx.components.barriers._joint_barrier.JointBarrier.update_q_min">
+<span class="sig-name descname"><span class="pre">update_q_min</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">q_min</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mjinx.components.barriers._joint_barrier.JointBarrier.update_q_min" title="Link to this definition"></a></dt>
+<dd><p>Update the minimum joint limits.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>q_min</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.2)"><code class="xref py py-class docutils literal notranslate"><span class="pre">ndarray</span></code></a> | <a class="reference external" href="https://docs.jax.dev/en/latest/_autosummary/jax.Array.html#jax.Array" title="(in JAX)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Array</span></code></a></span>) – The new minimum joint limits.</p>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>ValueError</strong> – If the dimension of q_min is incorrect.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="mjinx.components.barriers._joint_barrier.JointBarrier.q_max">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">q_max</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.jax.dev/en/latest/_autosummary/jax.Array.html#jax.Array" title="(in JAX)"><span class="pre">Array</span></a></em><a class="headerlink" href="#mjinx.components.barriers._joint_barrier.JointBarrier.q_max" title="Link to this definition"></a></dt>
+<dd><p>Get the maximum joint limits.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The maximum joint limits.</p>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>ValueError</strong> – If q_max is not defined.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="mjinx.components.barriers._joint_barrier.JointBarrier.update_q_max">
+<span class="sig-name descname"><span class="pre">update_q_max</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">q_max</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mjinx.components.barriers._joint_barrier.JointBarrier.update_q_max" title="Link to this definition"></a></dt>
+<dd><p>Update the maximum joint limits.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>q_max</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.2)"><code class="xref py py-class docutils literal notranslate"><span class="pre">ndarray</span></code></a> | <a class="reference external" href="https://docs.jax.dev/en/latest/_autosummary/jax.Array.html#jax.Array" title="(in JAX)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Array</span></code></a></span>) – The new maximum joint limits.</p>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>ValueError</strong> – If the dimension of q_max is incorrect.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="mjinx.components.barriers._joint_barrier.JointBarrier.update_model">
+<span class="sig-name descname"><span class="pre">update_model</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mjinx.components.barriers._joint_barrier.JointBarrier.update_model" title="Link to this definition"></a></dt>
+<dd><p>Update the barrier with a new model.</p>
+<p>This method updates internal parameters based on the new model,
+including dimensions and joint limits if not previously set.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>model</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">Model</span></code></span>) – The new MuJoCo model.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="mjinx.components.barriers._joint_barrier.JointBarrier.qmask_idxs">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">qmask_idxs</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.jax.dev/en/latest/_autosummary/jax.Array.html#jax.Array" title="(in JAX)"><span class="pre">Array</span></a></em><a class="headerlink" href="#mjinx.components.barriers._joint_barrier.JointBarrier.qmask_idxs" title="Link to this definition"></a></dt>
+<dd><p>Get the indices of the masked joints.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The indices of the masked joints.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="base-body-barrier">
+<h1>Base Body Barrier<a class="headerlink" href="#base-body-barrier" title="Link to this heading"></a></h1>
+<p>The foundation for barriers applied to specific bodies, geometries, or sites in the robot model. This abstract class provides common functionality for all object-specific barriers.</p>
+<p id="module-mjinx.components.barriers._obj_barrier">Frame task implementation.</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="mjinx.components.barriers._obj_barrier.JaxObjBarrier">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">JaxObjBarrier</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dim</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vector_gain</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gain_fn</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mask_idxs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">safe_displacement_gain</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">obj_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">obj_type</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mjinx.components.barriers._obj_barrier.JaxObjBarrier" title="Link to this definition"></a></dt>
+<dd><p>A JAX implementation of an object-specific barrier function.</p>
+<p>This class extends JaxBarrier to provide barrier functions that are
+specific to a particular object (body, geometry, or site) in the robot model.</p>
+<p>Object barriers define constraints on properties of specific objects, such as
+their position, orientation, or other attributes. The general form is:</p>
+<div class="math notranslate nohighlight">
+\[h(q) = g(p(q)) \geq 0\]</div>
+<dl class="simple">
+<dt>where:</dt><dd><ul class="simple">
+<li><p><span class="math notranslate nohighlight">\(p(q)\)</span> is some property of the object (e.g., position)</p></li>
+<li><p><span class="math notranslate nohighlight">\(g(\cdot)\)</span> is a function that converts this property into a barrier value</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>obj_id</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></span>) – The ID of the object (body, geometry, or site) to which this barrier applies.</p></li>
+<li><p><strong>obj_type</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">mjtObj</span></code></span>) – The type of the object (mjOBJ_BODY, mjOBJ_GEOM, or mjOBJ_SITE).</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="mjinx.components.barriers._obj_barrier.JaxObjBarrier.get_pos">
+<span class="sig-name descname"><span class="pre">get_pos</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mjinx.components.barriers._obj_barrier.JaxObjBarrier.get_pos" title="Link to this definition"></a></dt>
+<dd><p>Get the position of the object in the world frame.</p>
+<p>This method returns the position based on the object type (body, geom, or site).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>data</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">Data</span></code></span>) – The MuJoCo simulation data.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.jax.dev/en/latest/_autosummary/jax.Array.html#jax.Array" title="(in JAX)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Array</span></code></a></span></p>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>A 3D vector representing the object’s position in the world frame.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="mjinx.components.barriers._obj_barrier.JaxObjBarrier.get_rotation">
+<span class="sig-name descname"><span class="pre">get_rotation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mjinx.components.barriers._obj_barrier.JaxObjBarrier.get_rotation" title="Link to this definition"></a></dt>
+<dd><p>Get the rotation of the object in the world frame.</p>
+<p>This method returns the rotation based on the object type (body, geom, or site).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>data</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">Data</span></code></span>) – The MuJoCo simulation data.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://brentyi.github.io/jaxlie/api/jaxlie/_so3/#jaxlie._so3.SO3" title="(in jaxlie)"><code class="xref py py-class docutils literal notranslate"><span class="pre">SO3</span></code></a></span></p>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>An SO3 object representing the object’s rotation in the world frame.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="mjinx.components.barriers._obj_barrier.JaxObjBarrier.get_frame">
+<span class="sig-name descname"><span class="pre">get_frame</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mjinx.components.barriers._obj_barrier.JaxObjBarrier.get_frame" title="Link to this definition"></a></dt>
+<dd><p>Get the full pose (position and rotation) of the object in the world frame.</p>
+<p>This method combines the position and rotation to return a complete pose.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>data</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">Data</span></code></span>) – The MuJoCo simulation data.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://brentyi.github.io/jaxlie/api/jaxlie/_se3/#jaxlie._se3.SE3" title="(in jaxlie)"><code class="xref py py-class docutils literal notranslate"><span class="pre">SE3</span></code></a></span></p>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>An SE3 object representing the object’s pose in the world frame.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="mjinx.components.barriers._obj_barrier.ObjBarrier">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">ObjBarrier</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gain</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">obj_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">obj_type=&lt;mjtObj.mjOBJ_BODY:</span> <span class="pre">1&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gain_fn=None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">safe_displacement_gain=0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mask=None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mjinx.components.barriers._obj_barrier.ObjBarrier" title="Link to this definition"></a></dt>
+<dd><p>A generic object barrier class that wraps atomic object barrier implementations.</p>
+<p>This class provides a high-level interface for object-specific barrier functions,
+which can be applied to bodies, geometries, or sites in the robot model.</p>
+<p>Object barriers create constraints that depend on specific robot parts, such as:
+- Position limits for end effectors
+- Orientation constraints for specific links
+- Workspace boundaries for manipulators</p>
+<p>The barrier function ensures that these constraints are satisfied during optimization
+by creating a potential field that increases as the system approaches constraint boundaries.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>name</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span>) – The name of the barrier.</p></li>
+<li><p><strong>gain</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.2)"><code class="xref py py-class docutils literal notranslate"><span class="pre">ndarray</span></code></a> | <a class="reference external" href="https://docs.jax.dev/en/latest/_autosummary/jax.Array.html#jax.Array" title="(in JAX)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Array</span></code></a> | <code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></span>) – The gain for the barrier function.</p></li>
+<li><p><strong>obj_name</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span>) – The name of the object (body, geometry, or site) to which this barrier applies.</p></li>
+<li><p><strong>obj_type</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">mjtObj</span></code></span>) – The type of the object (mjOBJ_BODY, mjOBJ_GEOM, or mjOBJ_SITE).</p></li>
+<li><p><strong>gain_fn</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">Callable</span></code>[[<code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>], <code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>] | <code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span>) – A function to compute the gain dynamically.</p></li>
+<li><p><strong>safe_displacement_gain</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></span>) – The gain for computing safe displacements.</p></li>
+<li><p><strong>mask</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">Sequence</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code>] | <code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span>) – A sequence of integers to mask certain dimensions.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py property">
+<dt class="sig sig-object py" id="mjinx.components.barriers._obj_barrier.ObjBarrier.obj_name">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">obj_name</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><a class="headerlink" href="#mjinx.components.barriers._obj_barrier.ObjBarrier.obj_name" title="Link to this definition"></a></dt>
+<dd><p>Get the name of the object to which this barrier applies.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The name of the object.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="mjinx.components.barriers._obj_barrier.ObjBarrier.obj_id">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">obj_id</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></em><a class="headerlink" href="#mjinx.components.barriers._obj_barrier.ObjBarrier.obj_id" title="Link to this definition"></a></dt>
+<dd><p>Get the ID of the body to which this barrier applies.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The ID of the body.</p>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>ValueError</strong> – If the body ID is not available.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="mjinx.components.barriers._obj_barrier.ObjBarrier.obj_type">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">obj_type</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">mjtObj</span></em><a class="headerlink" href="#mjinx.components.barriers._obj_barrier.ObjBarrier.obj_type" title="Link to this definition"></a></dt>
+<dd><p>Get the type of the object associated with the barrier..</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The MuJoCo object type (mjOBJ_BODY, mjOBJ_GEOM, or mjOBJ_SITE).</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="mjinx.components.barriers._obj_barrier.ObjBarrier.update_model">
+<span class="sig-name descname"><span class="pre">update_model</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mjinx.components.barriers._obj_barrier.ObjBarrier.update_model" title="Link to this definition"></a></dt>
+<dd><p>Update the model and retrieve the object ID.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>model</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">Model</span></code></span>) – The MuJoCo model.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The updated model.</p>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>ValueError</strong> – If the object with the specified name is not found.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="body-position-barrier">
+<h1>Body Position Barrier<a class="headerlink" href="#body-position-barrier" title="Link to this heading"></a></h1>
+<p>Enforces position constraints on specific bodies, geometries, or sites, useful for defining workspace limits.</p>
+<dl class="py class" id="module-mjinx.components.barriers._obj_position_barrier">
+<dt class="sig sig-object py" id="mjinx.components.barriers._obj_position_barrier.JaxPositionBarrier">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">JaxPositionBarrier</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dim</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vector_gain</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gain_fn</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mask_idxs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">safe_displacement_gain</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">obj_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">obj_type</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">p_min</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">p_max</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">limit_type_mask_idxs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mjinx.components.barriers._obj_position_barrier.JaxPositionBarrier" title="Link to this definition"></a></dt>
+<dd><p>A JAX implementation of a position barrier function for a specific object (body, geometry, or site).</p>
+<p>This class extends JaxObjBarrier to provide position-specific barrier functions.</p>
+<p>The position barrier enforces that an object’s position remains within specified bounds:</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}h_{min}(q) &amp;= p(q) - p_{min} \geq 0 \\
+h_{max}(q) &amp;= p_{max} - p(q) \geq 0\end{split}\]</div>
+<dl class="simple">
+<dt>where:</dt><dd><ul class="simple">
+<li><p><span class="math notranslate nohighlight">\(p(q)\)</span> is the position of the object</p></li>
+<li><p><span class="math notranslate nohighlight">\(p_{min}\)</span> is the minimum allowed position</p></li>
+<li><p><span class="math notranslate nohighlight">\(p_{max}\)</span> is the maximum allowed position</p></li>
+</ul>
+</dd>
+</dl>
+<p>The barrier can enforce minimum bounds, maximum bounds, or both, depending on the limit_type.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>p_min</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.jax.dev/en/latest/_autosummary/jax.Array.html#jax.Array" title="(in JAX)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Array</span></code></a></span>) – The minimum allowed position.</p></li>
+<li><p><strong>p_max</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.jax.dev/en/latest/_autosummary/jax.Array.html#jax.Array" title="(in JAX)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Array</span></code></a></span>) – The maximum allowed position.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="mjinx.components.barriers._obj_position_barrier.PositionBarrier">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">PositionBarrier</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gain</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">obj_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">obj_type=&lt;mjtObj.mjOBJ_BODY:</span> <span class="pre">1&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">p_min=None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">p_max=None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">limit_type='both'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gain_fn=None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">safe_displacement_gain=0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mask=None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mjinx.components.barriers._obj_position_barrier.PositionBarrier" title="Link to this definition"></a></dt>
+<dd><p>A position barrier class that wraps the JAX position barrier implementation.</p>
+<p>This class provides a high-level interface for position-specific barrier functions.</p>
+<p>Position barriers create virtual boundaries in the workspace, ensuring that
+parts of the robot remain within specified regions. They can be used to:
+- Constrain an end effector to a specific workspace
+- Keep the robot away from obstacles
+- Enforce operational space constraints</p>
+<p>The barrier is formulated as:</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}h(q) = 
+\begin{cases}
+    p(q) - p_{min} &amp; \text{for minimum limits} \\
+    p_{max} - p(q) &amp; \text{for maximum limits} \\
+    [p(q) - p_{min}, p_{max} - p(q)] &amp; \text{for both limits}
+\end{cases}\end{split}\]</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>p_min</strong> (<span class="sphinx_autodoc_typehints-type">ArrayOrFloat | None</span>) – The minimum allowed position.</p></li>
+<li><p><strong>p_max</strong> (<span class="sphinx_autodoc_typehints-type">ArrayOrFloat | None</span>) – The maximum allowed position.</p></li>
+<li><p><strong>limit_type</strong> (<span class="sphinx_autodoc_typehints-type">str</span>) – The type of limit to apply (‘min’, ‘max’, or ‘both’).</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="mjinx.components.barriers._obj_position_barrier.PositionBarrier.JaxComponentType">
+<span class="sig-name descname"><span class="pre">JaxComponentType</span></span><a class="headerlink" href="#mjinx.components.barriers._obj_position_barrier.PositionBarrier.JaxComponentType" title="Link to this definition"></a></dt>
+<dd><p>alias of <a class="reference internal" href="#mjinx.components.barriers._obj_position_barrier.JaxPositionBarrier" title="mjinx.components.barriers._obj_position_barrier.JaxPositionBarrier"><code class="xref py py-class docutils literal notranslate"><span class="pre">JaxPositionBarrier</span></code></a></p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="mjinx.components.barriers._obj_position_barrier.PositionBarrier.limit_type">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">limit_type</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">:class:`mjinx.typing.PositionLimitType`</span></em><a class="headerlink" href="#mjinx.components.barriers._obj_position_barrier.PositionBarrier.limit_type" title="Link to this definition"></a></dt>
+<dd><p>Get the type of limit applied to the position barrier.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The limit type.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="mjinx.components.barriers._obj_position_barrier.PositionBarrier.p_min">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">p_min</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.jax.dev/en/latest/_autosummary/jax.Array.html#jax.Array" title="(in JAX)"><span class="pre">Array</span></a></em><a class="headerlink" href="#mjinx.components.barriers._obj_position_barrier.PositionBarrier.p_min" title="Link to this definition"></a></dt>
+<dd><p>Get the minimum allowed position.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The minimum position.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="mjinx.components.barriers._obj_position_barrier.PositionBarrier.update_p_min">
+<span class="sig-name descname"><span class="pre">update_p_min</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">p_min</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mjinx.components.barriers._obj_position_barrier.PositionBarrier.update_p_min" title="Link to this definition"></a></dt>
+<dd><p>Update the minimum allowed position.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>p_min</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="typing.html#mjinx.typing.ArrayOrFloat" title="mjinx.typing.ArrayOrFloat"><code class="xref py py-data docutils literal notranslate"><span class="pre">mjinx.typing.ArrayOrFloat</span></code></a></span>) – The new minimum position.</p>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>ValueError</strong> – If the dimension of p_min is incorrect.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="mjinx.components.barriers._obj_position_barrier.PositionBarrier.p_max">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">p_max</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.jax.dev/en/latest/_autosummary/jax.Array.html#jax.Array" title="(in JAX)"><span class="pre">Array</span></a></em><a class="headerlink" href="#mjinx.components.barriers._obj_position_barrier.PositionBarrier.p_max" title="Link to this definition"></a></dt>
+<dd><p>Get the maximum allowed position.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The maximum position.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="mjinx.components.barriers._obj_position_barrier.PositionBarrier.update_p_max">
+<span class="sig-name descname"><span class="pre">update_p_max</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">p_max</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mjinx.components.barriers._obj_position_barrier.PositionBarrier.update_p_max" title="Link to this definition"></a></dt>
+<dd><p>Update the maximum allowed position.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>p_max</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="typing.html#mjinx.typing.ArrayOrFloat" title="mjinx.typing.ArrayOrFloat"><code class="xref py py-data docutils literal notranslate"><span class="pre">mjinx.typing.ArrayOrFloat</span></code></a></span>) – The new maximum position.</p>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>ValueError</strong> – If the dimension of p_max is incorrect.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="self-collision-barrier">
+<h1>Self Collision Barrier<a class="headerlink" href="#self-collision-barrier" title="Link to this heading"></a></h1>
+<p>Prevents different parts of the robot from colliding with each other, essential for complex manipulators.</p>
+<dl class="py class" id="module-mjinx.components.barriers._self_collision_barrier">
+<dt class="sig sig-object py" id="mjinx.components.barriers._self_collision_barrier.JaxSelfCollisionBarrier">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">JaxSelfCollisionBarrier</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dim</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vector_gain</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gain_fn</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mask_idxs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">safe_displacement_gain</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">d_min_vec</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">collision_pairs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_closest_pairs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mjinx.components.barriers._self_collision_barrier.JaxSelfCollisionBarrier" title="Link to this definition"></a></dt>
+<dd><p>A JAX implementation of a self-collision barrier function.</p>
+<p>This class extends JaxBarrier to provide barrier functions that prevent
+self-collisions between different parts of the robot. It identifies potential
+collision pairs and computes barrier values based on their distances.</p>
+<p>The self-collision barrier enforces minimum distances between collision pairs:</p>
+<div class="math notranslate nohighlight">
+\[h(q) = d(q) - d_{min} \geq 0\]</div>
+<dl class="simple">
+<dt>where:</dt><dd><ul class="simple">
+<li><p><span class="math notranslate nohighlight">\(d(q)\)</span> is the minimum distance between collision geometries</p></li>
+<li><p><span class="math notranslate nohighlight">\(d_{min}\)</span> is the minimum allowed distance threshold</p></li>
+</ul>
+</dd>
+</dl>
+<p>The barrier activates when geometries come closer than the specified threshold,
+creating a repulsive effect that prevents collisions while maintaining smoothness
+for optimization.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>collision_pairs</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code>[<a class="reference internal" href="typing.html#mjinx.typing.CollisionPair" title="mjinx.typing.CollisionPair"><code class="xref py py-data docutils literal notranslate"><span class="pre">mjinx.typing.CollisionPair</span></code></a>]</span>) – A list of geometry pairs to check for collisions.</p></li>
+<li><p><strong>min_distance</strong> – The minimum allowed distance between geometries.</p></li>
+<li><p><strong>n_closest_pairs</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></span>) – The number of closest collision pairs to consider.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="mjinx.components.barriers._self_collision_barrier.JaxSelfCollisionBarrier.compute_jacobian">
+<span class="sig-name descname"><span class="pre">compute_jacobian</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mjinx.components.barriers._self_collision_barrier.JaxSelfCollisionBarrier.compute_jacobian" title="Link to this definition"></a></dt>
+<dd><p>Compute the Jacobian of the barrier function with respect to joint positions.</p>
+<p>For collision barriers, the Jacobian captures how changes in joint positions
+affect the distances between collision pairs:</p>
+<div class="math notranslate nohighlight">
+\[J = \frac{\partial d(q)}{\partial q}\]</div>
+<p>This is computed analytically using the contact normals and point Jacobians:</p>
+<div class="math notranslate nohighlight">
+\[J = n^T (J_{p2} - J_{p1})\]</div>
+<dl class="simple">
+<dt>where:</dt><dd><ul class="simple">
+<li><p><span class="math notranslate nohighlight">\(n\)</span> is the contact normal</p></li>
+<li><p><span class="math notranslate nohighlight">\(J_{p1}\)</span> and <span class="math notranslate nohighlight">\(J_{p2}\)</span> are the Jacobians of the contact points</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>data</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">Data</span></code></span>) – The MuJoCo simulation data containing the current state of the system.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.jax.dev/en/latest/_autosummary/jax.Array.html#jax.Array" title="(in JAX)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Array</span></code></a></span></p>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The Jacobian matrix of shape (n_collision_pairs, n_joints) where each entry (i,j)
+represents how the i-th collision distance changes with respect to the j-th joint position.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="mjinx.components.barriers._self_collision_barrier.SelfCollisionBarrier">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">SelfCollisionBarrier</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gain</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gain_fn</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">safe_displacement_gain</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">d_min</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">collision_bodies</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">()</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">excluded_collisions</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">()</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_closest_pairs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">-1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mjinx.components.barriers._self_collision_barrier.SelfCollisionBarrier" title="Link to this definition"></a></dt>
+<dd><p>A self-collision barrier class that wraps the JAX self-collision barrier implementation.</p>
+<p>This class provides a high-level interface for self-collision barrier functions.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>name</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span>) – The name of the barrier.</p></li>
+<li><p><strong>gain</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="typing.html#mjinx.typing.ArrayOrFloat" title="mjinx.typing.ArrayOrFloat"><code class="xref py py-data docutils literal notranslate"><span class="pre">mjinx.typing.ArrayOrFloat</span></code></a></span>) – The gain for the barrier function.</p></li>
+<li><p><strong>gain_fn</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">Callable</span></code>[[<code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>], <code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>] | <code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span>) – A function to compute the gain dynamically.</p></li>
+<li><p><strong>safe_displacement_gain</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></span>) – The gain for computing safe displacements. Defaults to identity function</p></li>
+<li><p><strong>d_min</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></span>) – The minimum allowed distance between collision pairs. Defaults to zero.</p></li>
+<li><p><strong>collision_bodies</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">Sequence</span></code>[<a class="reference internal" href="typing.html#mjinx.typing.CollisionBody" title="mjinx.typing.CollisionBody"><code class="xref py py-data docutils literal notranslate"><span class="pre">mjinx.typing.CollisionBody</span></code></a>]</span>) – A sequence of bodies to check for collisions. Defaults to zero.</p></li>
+<li><p><strong>excluded_collisions</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">Sequence</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code>[<a class="reference internal" href="typing.html#mjinx.typing.CollisionBody" title="mjinx.typing.CollisionBody"><code class="xref py py-data docutils literal notranslate"><span class="pre">mjinx.typing.CollisionBody</span></code></a>, <a class="reference internal" href="typing.html#mjinx.typing.CollisionBody" title="mjinx.typing.CollisionBody"><code class="xref py py-data docutils literal notranslate"><span class="pre">mjinx.typing.CollisionBody</span></code></a>]]</span>) – A sequence of body pairs to exclude from collision checking.
+Defaults to no excluded pairs.</p></li>
+<li><p><strong>n_closest_pairs</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></span>) – amount of closest pairs to consider. Defaults to all pairs considered.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="mjinx.components.barriers._self_collision_barrier.SelfCollisionBarrier.JaxComponentType">
+<span class="sig-name descname"><span class="pre">JaxComponentType</span></span><a class="headerlink" href="#mjinx.components.barriers._self_collision_barrier.SelfCollisionBarrier.JaxComponentType" title="Link to this definition"></a></dt>
+<dd><p>alias of <a class="reference internal" href="#mjinx.components.barriers._self_collision_barrier.JaxSelfCollisionBarrier" title="mjinx.components.barriers._self_collision_barrier.JaxSelfCollisionBarrier"><code class="xref py py-class docutils literal notranslate"><span class="pre">JaxSelfCollisionBarrier</span></code></a></p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="mjinx.components.barriers._self_collision_barrier.SelfCollisionBarrier.validate_body_pair">
+<span class="sig-name descname"><span class="pre">validate_body_pair</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">body1_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">body2_id</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mjinx.components.barriers._self_collision_barrier.SelfCollisionBarrier.validate_body_pair" title="Link to this definition"></a></dt>
+<dd><p>Validate if a pair of bodies should be considered for collision checking.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>body1_id</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></span>) – The ID of the first body.</p></li>
+<li><p><strong>body2_id</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></span>) – The ID of the second body.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></span></p>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>True if the pair is valid for collision checking, False otherwise.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="mjinx.components.barriers._self_collision_barrier.SelfCollisionBarrier.body2id">
+<span class="sig-name descname"><span class="pre">body2id</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">body</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mjinx.components.barriers._self_collision_barrier.SelfCollisionBarrier.body2id" title="Link to this definition"></a></dt>
+<dd><p>Convert a body identifier to its corresponding ID in the model.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>body</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="typing.html#mjinx.typing.CollisionBody" title="mjinx.typing.CollisionBody"><code class="xref py py-data docutils literal notranslate"><span class="pre">mjinx.typing.CollisionBody</span></code></a></span>) – The body identifier (either an integer ID or a string name).</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The integer ID of the body.</p>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>ValueError</strong> – If the body identifier is invalid.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="mjinx.components.barriers._self_collision_barrier.SelfCollisionBarrier.update_model">
+<span class="sig-name descname"><span class="pre">update_model</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mjinx.components.barriers._self_collision_barrier.SelfCollisionBarrier.update_model" title="Link to this definition"></a></dt>
+<dd><p>Update the model and generate collision pairs.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>model</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">Model</span></code></span>) – The MuJoCo model.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="mjinx.components.barriers._self_collision_barrier.SelfCollisionBarrier.d_min_vec">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">d_min_vec</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.jax.dev/en/latest/_autosummary/jax.Array.html#jax.Array" title="(in JAX)"><span class="pre">Array</span></a></em><a class="headerlink" href="#mjinx.components.barriers._self_collision_barrier.SelfCollisionBarrier.d_min_vec" title="Link to this definition"></a></dt>
+<dd><p>Get the vector of minimum allowed distances for each collision pair.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>An array of minimum distances.</p>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>ValueError</strong> – If the dimension is not set.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="tasks.html" class="btn btn-neutral float-left" title="Base Task" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="constraints.html" class="btn btn-neutral float-right" title="Base Constraint" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2022 Ivan Domrachev, Simeon Nedelchev..</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

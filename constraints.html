@@ -1,0 +1,308 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Base Constraint &mdash; mjinx 0.1.1 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="_static/custom.css?v=3cbe8de9" />
+
+  
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=a58bc63e"></script>
+      <script src="_static/doctools.js?v=9bcbadda"></script>
+      <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Solvers" href="solvers.html" />
+    <link rel="prev" title="Base Barrier" href="barriers.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            mjinx
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="quick_start.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="problem.html">Problem</a></li>
+<li class="toctree-l1"><a class="reference internal" href="configuration.html">Configuration</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="components.html">Components</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="components.html#base-component">Base Component</a></li>
+<li class="toctree-l2"><a class="reference internal" href="components.html#tasks">Tasks</a></li>
+<li class="toctree-l2"><a class="reference internal" href="components.html#barriers">Barriers</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="components.html#constraints">Constraints</a><ul class="current">
+<li class="toctree-l3 current"><a class="current reference internal" href="#">Base Constraint</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#mjinx.components.constraints._base.JaxConstraint"><code class="docutils literal notranslate"><span class="pre">JaxConstraint</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#mjinx.components.constraints._base.Constraint"><code class="docutils literal notranslate"><span class="pre">Constraint</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#model-equality-constraint">Model Equality Constraint</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#mjinx.components.constraints._equality_constraint.JaxModelEqualityConstraint"><code class="docutils literal notranslate"><span class="pre">JaxModelEqualityConstraint</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#mjinx.components.constraints._equality_constraint.ModelEqualityConstraint"><code class="docutils literal notranslate"><span class="pre">ModelEqualityConstraint</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="solvers.html">Solvers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="visualization.html">Visualization</a></li>
+<li class="toctree-l1"><a class="reference internal" href="references.html">References</a></li>
+<li class="toctree-l1"><a class="reference internal" href="developer-notes.html">Developer Notes</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">mjinx</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="components.html">Components</a></li>
+      <li class="breadcrumb-item active">Base Constraint</li>
+      <li class="wy-breadcrumbs-aside">
+              <!-- User defined GitHub URL -->
+              <a href="https://github.com/based-robotics/mjinx/tree/docs/github_pages/docs/constraints.rst" class="fa fa-github"> Edit on GitHub</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <p id="constraints">Constraints represent a new type of component with a strictly enforced equality, either hardly or softly.</p>
+<p>The constratin is formulated as <span class="math notranslate nohighlight">\(f(q) = 0\)</span>. Those constraints might be either treated strictly as differentiated exponentially stable equality: <span class="math notranslate nohighlight">\(\nabla h(q)^T v = -\alpha h(q)\)</span>, with <span class="math notranslate nohighlight">\(\alpha\)</span> controls constraint enforcement and <span class="math notranslate nohighlight">\(v\)</span> is the velocity vector, or as a soft constraint – task with high gain.</p>
+<section id="base-constraint">
+<h1>Base Constraint<a class="headerlink" href="#base-constraint" title="Link to this heading"></a></h1>
+<p>The foundational class that all constraints extend. It defines the core interface and mathematical properties for constraint objectives.</p>
+<dl class="py class" id="module-mjinx.components.constraints._base">
+<dt class="sig sig-object py" id="mjinx.components.constraints._base.JaxConstraint">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">JaxConstraint</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dim</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vector_gain</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gain_fn</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mask_idxs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">active</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hard_constraint</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">soft_constraint_cost</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mjinx.components.constraints._base.JaxConstraint" title="Link to this definition"></a></dt>
+<dd><p>A JAX-based representation of an equality constraint.</p>
+<p>This class defines an equality constraint function f(x) = 0 for optimization tasks.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>active</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></span>) – Indicates whether the constraint is active.</p></li>
+<li><p><strong>hard_constraint</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></span>) – A flag that specifies if the constraint is hard (True) or soft (False).</p></li>
+<li><p><strong>soft_constraint_cost</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.jax.dev/en/latest/_autosummary/jax.Array.html#jax.Array" title="(in JAX)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Array</span></code></a></span>) – The cost matrix used for soft constraint relaxation.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="mjinx.components.constraints._base.JaxConstraint.compute_constraint">
+<span class="sig-name descname"><span class="pre">compute_constraint</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mjinx.components.constraints._base.JaxConstraint.compute_constraint" title="Link to this definition"></a></dt>
+<dd><p>Compute the equality constraint function value.</p>
+<p>Evaluates the constraint function f(x) = 0 based on the current simulation data.
+For soft constraints, the computed value is later penalized by the associated cost;
+for hard constraints, the evaluation is directly used in the Ax = b formulation.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>data</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">Data</span></code></span>) – The MuJoCo simulation data.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.jax.dev/en/latest/_autosummary/jax.Array.html#jax.Array" title="(in JAX)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Array</span></code></a></span></p>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The computed constraint value.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="mjinx.components.constraints._base.Constraint">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">Constraint</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gain</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mask</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hard_constraint</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">soft_constraint_cost</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mjinx.components.constraints._base.Constraint" title="Link to this definition"></a></dt>
+<dd><p>A high-level component for formulating equality constraints.</p>
+<p>This class wraps an atomic JAX constraint (JaxConstraint) and provides a framework to
+manage constraints within the optimization problem. Equality constraints are specified as:</p>
+<div class="math notranslate nohighlight">
+\[f(x) = 0\]</div>
+<dl class="simple">
+<dt>They can be treated in one of two ways:</dt><dd><ul class="simple">
+<li><p>As a soft constraint. In this mode, the constraint violation is penalized by a cost
+(typically with a high gain), transforming the constraint into a task.</p></li>
+<li><p>As a hard constraint. Here, the constraint is enforced as a strict equality in the following form:</p></li>
+</ul>
+</dd>
+</dl>
+<div class="math notranslate nohighlight">
+\[\nabla h(q)^T v = -\alpha h(q),\]</div>
+<p>where <span class="math notranslate nohighlight">\(\alpha\)</span> controls constraint enforcement and <span class="math notranslate nohighlight">\(v\)</span> is the velocity vector.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>matrix_cost</strong> – The cost matrix associated with the task.</p></li>
+<li><p><strong>lm_damping</strong> – The Levenberg-Marquardt damping factor.</p></li>
+<li><p><strong>active</strong> – Determines if the constraint is active.</p></li>
+<li><p><strong>hard_constraint</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></span>) – Indicates whether the constraint is hard (True) or soft (False).</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py property">
+<dt class="sig sig-object py" id="mjinx.components.constraints._base.Constraint.soft_constraint_cost">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">soft_constraint_cost</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.jax.dev/en/latest/_autosummary/jax.Array.html#jax.Array" title="(in JAX)"><span class="pre">Array</span></a></em><a class="headerlink" href="#mjinx.components.constraints._base.Constraint.soft_constraint_cost" title="Link to this definition"></a></dt>
+<dd><p>Get the cost matrix associated with a soft constraint.</p>
+<p>For soft constraints, any violation is penalized by a cost if self._soft_constraint_cost is not None else 1e2 * jnp.eye(self.dim)”</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The cost matrix for the soft constraint.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="model-equality-constraint">
+<h1>Model Equality Constraint<a class="headerlink" href="#model-equality-constraint" title="Link to this heading"></a></h1>
+<p>The constraints, described in MuJoCo model as equality constrainst.</p>
+<dl class="py class" id="module-mjinx.components.constraints._equality_constraint">
+<dt class="sig sig-object py" id="mjinx.components.constraints._equality_constraint.JaxModelEqualityConstraint">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">JaxModelEqualityConstraint</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dim</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vector_gain</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gain_fn</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mask_idxs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">active</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hard_constraint</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">soft_constraint_cost</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mjinx.components.constraints._equality_constraint.JaxModelEqualityConstraint" title="Link to this definition"></a></dt>
+<dd><p>A JAX-based equality constraint derived from the simulation model.</p>
+<p>Equality constraints respresent all constrainst in the mujoco, which could be defined in
+&lt;equality&gt; tag in the xml file. More details could be found here: <a class="reference external" href="https://mujoco.readthedocs.io/en/stable/XMLreference.html#equality">https://mujoco.readthedocs.io/en/stable/XMLreference.html#equality</a>.</p>
+<p>This class utilized the fact, that during kinematics computations, the equality value are computed as well,
+and the jacobian of the equalities are stored in data.efc_J, and the residuals are stored in data.efc_pos.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>data</strong> – A MuJoCo simulation data structure containing model-specific constraint information.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A jax.numpy.ndarray with the positions corresponding to the equality constraints.</p>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="mjinx.components.constraints._equality_constraint.JaxModelEqualityConstraint.compute_jacobian">
+<span class="sig-name descname"><span class="pre">compute_jacobian</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mjinx.components.constraints._equality_constraint.JaxModelEqualityConstraint.compute_jacobian" title="Link to this definition"></a></dt>
+<dd><p>Compute the Jacobian matrix of the equality constraint.</p>
+<p>Retrieves the relevant rows of the Jacobian matrix from the simulation data,
+filtering by equality constraint type and applying the mask indices.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>data</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">Data</span></code></span>) – The MuJoCo simulation data.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.jax.dev/en/latest/_autosummary/jax.Array.html#jax.Array" title="(in JAX)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Array</span></code></a></span></p>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>A jax.numpy.ndarray representing the Jacobian matrix of the equality constraints.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="mjinx.components.constraints._equality_constraint.ModelEqualityConstraint">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">ModelEqualityConstraint</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'equality_constraint'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gain</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">100</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hard_constraint</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">soft_constraint_cost</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mjinx.components.constraints._equality_constraint.ModelEqualityConstraint" title="Link to this definition"></a></dt>
+<dd><p>High-level component that aggregates all equality constraints from the simulation model.</p>
+<p>The main purpose of the wrapper is to recalculate mask based on the dimensions of the equality constrain
+and compute proper dimensionality.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>name</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span>) – The unique identifier for the constraint.</p></li>
+<li><p><strong>gain</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.2)"><code class="xref py py-class docutils literal notranslate"><span class="pre">ndarray</span></code></a> | <a class="reference external" href="https://docs.jax.dev/en/latest/_autosummary/jax.Array.html#jax.Array" title="(in JAX)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Array</span></code></a> | <code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></span>) – The gain for the constraint function, affecting its impact.</p></li>
+<li><p><strong>hard_constraint</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></span>) – If True, the constraint is handled as a hard constraint.
+Defaults to False (i.e., soft constraint).</p></li>
+<li><p><strong>soft_constraint_cost</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">_Buffer</span></code> | <code class="xref py py-class docutils literal notranslate"><span class="pre">_SupportsArray</span></code>[<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.dtype.html#numpy.dtype" title="(in NumPy v2.2)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dtype</span></code></a>[<code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code>]] | <code class="xref py py-class docutils literal notranslate"><span class="pre">_NestedSequence</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">_SupportsArray</span></code>[<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.dtype.html#numpy.dtype" title="(in NumPy v2.2)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dtype</span></code></a>[<code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code>]]] | <code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code> | <code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code> | <code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code> | <code class="xref py py-class docutils literal notranslate"><span class="pre">complex</span></code> | <code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code> | <code class="xref py py-class docutils literal notranslate"><span class="pre">bytes</span></code> | <code class="xref py py-class docutils literal notranslate"><span class="pre">_NestedSequence</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code> | <code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code> | <code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code> | <code class="xref py py-class docutils literal notranslate"><span class="pre">complex</span></code> | <code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code> | <code class="xref py py-class docutils literal notranslate"><span class="pre">bytes</span></code>] | <a class="reference external" href="https://docs.jax.dev/en/latest/_autosummary/jax.Array.html#jax.Array" title="(in JAX)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Array</span></code></a> | <a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.2)"><code class="xref py py-class docutils literal notranslate"><span class="pre">ndarray</span></code></a> | <a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.bool" title="(in NumPy v2.2)"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></a> | <a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.number" title="(in NumPy v2.2)"><code class="xref py py-class docutils literal notranslate"><span class="pre">number</span></code></a> | <code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span>) – The cost used to relax a soft constraint. If not provided, a default high gain
+cost matrix (scaled identity matrix) based on the component dimension will be used.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="mjinx.components.constraints._equality_constraint.ModelEqualityConstraint.JaxComponentType">
+<span class="sig-name descname"><span class="pre">JaxComponentType</span></span><a class="headerlink" href="#mjinx.components.constraints._equality_constraint.ModelEqualityConstraint.JaxComponentType" title="Link to this definition"></a></dt>
+<dd><p>alias of <a class="reference internal" href="#mjinx.components.constraints._equality_constraint.JaxModelEqualityConstraint" title="mjinx.components.constraints._equality_constraint.JaxModelEqualityConstraint"><code class="xref py py-class docutils literal notranslate"><span class="pre">JaxModelEqualityConstraint</span></code></a></p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="mjinx.components.constraints._equality_constraint.ModelEqualityConstraint.update_model">
+<span class="sig-name descname"><span class="pre">update_model</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mjinx.components.constraints._equality_constraint.ModelEqualityConstraint.update_model" title="Link to this definition"></a></dt>
+<dd><p>Update the equality constraint using the provided MuJoCo model.</p>
+<p>This method computes the total dimension of the equality constraints by iterating
+over the equality types in the model. Based on the type of each equality constraint,
+it sets the mask indices and component dimension accordingly.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>model</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">MjModel</span></code></span>) – The MuJoCo model instance.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span></p>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="barriers.html" class="btn btn-neutral float-left" title="Base Barrier" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="solvers.html" class="btn btn-neutral float-right" title="Solvers" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2022 Ivan Domrachev, Simeon Nedelchev..</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
