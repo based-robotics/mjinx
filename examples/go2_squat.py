@@ -52,7 +52,7 @@ problem = Problem(mjx_model, v_min=-5, v_max=5)
 # Creating components of interest and adding them to the problem
 com_task = ComTask("com_task", cost=5.0, gain=10.0)
 frame_task = FrameTask("body_orientation_task", cost=1.0, gain=10, obj_name="base", mask=[0, 0, 0, 1, 1, 1])
-joints_barrier = JointBarrier("jnt_range", gain=0.1, floating_base=True)
+joints_barrier = JointBarrier("jnt_range", gain=0.1)
 
 problem.add_component(com_task)
 problem.add_component(frame_task)
@@ -223,13 +223,13 @@ finally:
     if solve_times:
         avg_solve = sum(solve_times) / len(solve_times)
         std_solve = np.std(solve_times)
-        print(f"solve          : {avg_solve*1000:8.3f} ± {std_solve*1000:8.3f} ms")
+        print(f"solve          : {avg_solve * 1000:8.3f} ± {std_solve * 1000:8.3f} ms")
     if integrate_times:
         avg_integrate = sum(integrate_times) / len(integrate_times)
         std_integrate = np.std(integrate_times)
-        print(f"integrate      : {avg_integrate*1000:8.3f} ± {std_integrate*1000:8.3f} ms")
+        print(f"integrate      : {avg_integrate * 1000:8.3f} ± {std_integrate * 1000:8.3f} ms")
 
     if solve_times and integrate_times:
         avg_total = sum(t1 + t2 for t1, t2 in zip(solve_times, integrate_times)) / len(solve_times)
-        print(f"\nAverage computation time per step: {avg_total*1000:.3f} ms")
-        print(f"Effective computation rate: {1/avg_total:.1f} Hz")
+        print(f"\nAverage computation time per step: {avg_total * 1000:.3f} ms")
+        print(f"Effective computation rate: {1 / avg_total:.1f} Hz")

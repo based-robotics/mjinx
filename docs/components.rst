@@ -54,3 +54,16 @@ MJINX provides several barrier implementations:
    :maxdepth: 1
 
    barriers
+
+***********
+Constraints
+***********
+
+Constraints represent a new type of component with a strictly enforced equality condition :math:`f(q) = 0`. Those constraints might be either treated strictly as differentiated exponentially stable equality: :math:`\nabla h(q)^T v = -\alpha h(q)`, with :math:`\alpha` controls constraint enforcement and :math:`v` is the velocity vector, or as a soft constraint -- task with high gain.
+
+Yet, only the following constraints are implemented:
+
+.. toctree::
+   :maxdepth: 1
+
+   constraints

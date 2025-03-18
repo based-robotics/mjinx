@@ -115,7 +115,7 @@ class Component(Generic[AtomicComponentType]):
     _gain: jnp.ndarray
     _gain_fn: Callable[[float], float]
     _mask: jnp.ndarray | None
-    _mask_idxs: tuple[int, ...]
+    _mask_idxs: tuple[int, ...] | jnp.ndarray
 
     __modified: bool
 
@@ -323,7 +323,7 @@ class Component(Generic[AtomicComponentType]):
             raise ValueError("either mask should be provided explicitly, or dimension should be set")
         elif self._mask is None:
             self._mask, self._mask_idxs = self._get_default_mask()
-        return self._mask_idxs
+        return tuple(self._mask_idxs)
 
     def _build_component(self) -> AtomicComponentType:
         """

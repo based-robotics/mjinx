@@ -2,10 +2,10 @@ from collections.abc import Callable, Sequence
 
 import jax.numpy as jnp
 import jax_dataclasses as jdc
+import mujoco as mj
 import mujoco.mjx as mjx
 
 from mjinx.components.barriers._base import Barrier, JaxBarrier
-from mjinx.configuration import get_joint_zero, joint_difference
 from mjinx.typing import ArrayOrFloat, ndarray
 
 
@@ -30,14 +30,13 @@ class JaxJointBarrier(JaxBarrier):
         - :math:`q_{min}` is the vector of minimum joint limits
         - :math:`q_{max}` is the vector of maximum joint limits
 
-    :param full_q_min: The minimum joint limits for all joints in the system.
-    :param full_q_max: The maximum joint limits for all joints in the system.
-    :param floating_base: A boolean indicating whether the robot has a floating base.
+    :param q_min: The minimum joint limits.
+    :param q_max: The maximum joint limits.
     """
 
-    full_q_min: jnp.ndarray
-    full_q_max: jnp.ndarray
-    floating_base: jdc.Static[bool]
+    q_min: jnp.ndarray
+    q_max: jnp.ndarray
+    qmask_idxs: jnp.ndarray
 
     def __call__(self, data: mjx.Data) -> jnp.ndarray:
         r"""
@@ -52,11 +51,10 @@ class JaxJointBarrier(JaxBarrier):
         :param data: The MuJoCo simulation data.
         :return: An array of barrier values for the lower and upper joint limits.
         """
-        mask_idxs = tuple(idx + 6 for idx in self.mask_idxs) if self.floating_base else self.mask_idxs
         return jnp.concatenate(
             [
-                joint_difference(self.model, data.qpos, self.full_q_min)[mask_idxs,],
-                joint_difference(self.model, self.full_q_max, data.qpos)[mask_idxs,],
+                data.qpos[self.qmask_idxs,] - self.q_min,
+                self.q_max - data.qpos[self.qmask_idxs],
             ]
         )
 
@@ -74,12 +72,9 @@ class JaxJointBarrier(JaxBarrier):
         :param data: The MuJoCo simulation data.
         :return: The Jacobian matrix of the barrier function.
         """
-        half_jac_matrix = (
-            jnp.eye(self.dim // 2, self.model.nv, 6)[self.mask_idxs,]
-            if self.floating_base
-            else jnp.eye(self.model.nv)[self.mask_idxs,]
-        )
-        return jnp.vstack([half_jac_matrix, -half_jac_matrix])
+        constraint_matrix = jnp.zeros((self.dim // 2, self.model.nv))
+        constraint_matrix = constraint_matrix.at[jnp.arange(self.dim // 2), self.mask_idxs].set(1)
+        return jnp.vstack([constraint_matrix, -constraint_matrix])
 
 
 class JointBarrier(Barrier[JaxJointBarrier]):
@@ -103,12 +98,13 @@ class JointBarrier(Barrier[JaxJointBarrier]):
     :param q_min: The minimum joint limits.
     :param q_max: The maximum joint limits.
     :param mask: A sequence of integers to mask certain joints.
-    :param floating_base: A boolean indicating whether the robot has a floating base.
     """
 
     JaxComponentType: type = JaxJointBarrier
     _q_min: jnp.ndarray | None
     _q_max: jnp.ndarray | None
+    _qmask: jnp.ndarray | None
+    _qmask_idxs: jnp.ndarray | None
 
     def __init__(
         self,
@@ -119,12 +115,11 @@ class JointBarrier(Barrier[JaxJointBarrier]):
         q_min: Sequence | None = None,
         q_max: Sequence | None = None,
         mask: Sequence[int] | None = None,
-        floating_base: bool = False,
     ):
-        super().__init__(name, gain, gain_fn, safe_displacement_gain, mask=mask)
+        super().__init__(name, gain, gain_fn, safe_displacement_gain, mask=None)
         self._q_min = jnp.array(q_min) if q_min is not None else None
         self._q_max = jnp.array(q_max) if q_max is not None else None
-        self.__floating_base = floating_base
+        self._final_mask = mask
 
     @property
     def q_min(self) -> jnp.ndarray:
@@ -201,17 +196,6 @@ class JointBarrier(Barrier[JaxJointBarrier]):
             )
         self._q_max = jnp.array(q_max)
 
-    @property
-    def mask_idxs_jnt_space(self) -> tuple[int, ...]:
-        """
-        Get the masked joint indices in joint space.
-
-        :return: A tuple of masked joint indices.
-        """
-        if self.floating_base:
-            return tuple(mask_idx + 7 for mask_idx in self.mask_idxs)
-        return self.mask_idxs
-
     def update_model(self, model: mjx.Model):
         """
         Update the barrier with a new model.
@@ -223,45 +207,51 @@ class JointBarrier(Barrier[JaxJointBarrier]):
         """
         super().update_model(model)
 
-        self._dim = 2 * self.model.nv if not self.floating_base else 2 * (self.model.nv - 6)
-        self._mask = jnp.zeros(self._dim // 2)
-        self._mask_idxs = tuple(range(self._dim // 2))
+        self._mask = jnp.ones(self.model.nv, dtype=jnp.uint32)
+        self._qmask = jnp.ones(self.model.nq, dtype=jnp.uint32)
+        jnt_mask = (self.model.jnt_type != mj.mjtJoint.mjJNT_FREE) & (self.model.jnt_type != mj.mjtJoint.mjJNT_BALL)
+        for jnt_id in range(self.model.njnt):
+            jnt_type = self.model.jnt_type[jnt_id]
+            if jnt_type == mj.mjtJoint.mjJNT_FREE or jnt_type == mj.mjtJoint.mjJNT_BALL:
+                # Calculating qpos mask
+                jnt_qbegin = self.model.jnt_qposadr[jnt_id]
+                jnt_qpos_size = 4 if jnt_type == mj.mjtJoint.mjJNT_BALL else 7
+                jnt_qend = jnt_qbegin + jnt_qpos_size
+                self._qmask = self._qmask.at[jnt_qbegin:jnt_qend].set(0)
 
-        begin_idx = 0 if not self.floating_base else 1
+                # Calculating qvel mask
+                jnt_vbegin = self.model.jnt_dofadr[jnt_id]
+                jnt_dof = 3 if jnt_type == mj.mjtJoint.mjJNT_BALL else 6
+                jnt_vend = jnt_vbegin + jnt_dof
+                self._mask = self._mask.at[jnt_vbegin:jnt_vend].set(0)
+
+        # Apply the mask on top of scalar joints
+        if self._final_mask is not None:
+            if self._mask.sum() != len(self._final_mask):
+                raise ValueError(
+                    "length of provided mask should be equal to"
+                    f" the number of scalar joints ({self._mask.sum()}), got length {len(self._final_mask)}"
+                )
+            self._mask = self._mask.at[self._mask.astype(jnp.bool)].set(self._final_mask)
+            self._qmask = self._qmask.at[self._qmask.astype(jnp.bool)].set(self._final_mask)
+
+        self._qmask_idxs = jnp.argwhere(self._qmask).ravel()
+        self._mask_idxs = jnp.argwhere(self._mask).ravel()
+
+        self._dim = 2 * len(self._mask_idxs)
+
         if self._q_min is None:
-            self.q_min = self.model.jnt_range[begin_idx:, 0][self.mask_idxs,]
+            self.q_min = self.model.jnt_range[:, 0][jnt_mask]
         if self._q_max is None:
-            self.q_max = self.model.jnt_range[begin_idx:, 1][self.mask_idxs,]
+            self.q_max = self.model.jnt_range[:, 1][jnt_mask]
 
     @property
-    def full_q_min(self) -> jnp.ndarray:
+    def qmask_idxs(self) -> jnp.ndarray:
         """
-        Get the full minimum joint limits vector.
+        Get the indices of the masked joints.
 
-        :return: The full minimum joint limits vector.
-        :raises ValueError: If the model is not defined.
+        :return: The indices of the masked joints.
         """
-        if self._model is None:
-            raise ValueError("model is not defined yet.")
-        return get_joint_zero(self.model).at[self.mask_idxs_jnt_space,].set(jnp.array(self._q_min))
-
-    @property
-    def full_q_max(self) -> jnp.ndarray:
-        """
-        Get the full maximum joint limits vector.
-
-        :return: The full maximum joint limits vector.
-        :raises ValueError: If the model is not defined.
-        """
-        if self._model is None:
-            raise ValueError("model is not defined yet.")
-        return get_joint_zero(self.model).at[self.mask_idxs_jnt_space,].set(jnp.array(self._q_max))
-
-    @property
-    def floating_base(self) -> bool:
-        """
-        Check if the robot has a floating base.
-
-        :return: True if the robot has a floating base, False otherwise.
-        """
-        return self.__floating_base
+        if self._qmask_idxs is None:
+            raise ValueError("qmask_idxs is not yet defined. Update the model first.")
+        return self._qmask_idxs

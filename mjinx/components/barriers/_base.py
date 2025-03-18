@@ -1,5 +1,4 @@
-from collections.abc import Callable  # noqa: F401
-from typing import Generic, TypeVar
+from typing import Generic, TypeVar, Callable
 
 import jax.numpy as jnp
 import jax_dataclasses as jdc

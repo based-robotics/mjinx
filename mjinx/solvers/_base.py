@@ -73,6 +73,7 @@ class Solver(Generic[SolverDataType, SolverSolutionType], abc.ABC):
         """
         self.model = model
 
+    @abc.abstractmethod
     def solve_from_data(
         self, solver_data: SolverDataType, problem_data: JaxProblemData, model_data: mjx.Data
     ) -> tuple[SolverSolutionType, SolverDataType]:

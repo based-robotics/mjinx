@@ -4,10 +4,10 @@ from collections.abc import Callable, Sequence
 
 import jax.numpy as jnp
 import jax_dataclasses as jdc
+import mujoco as mj
 import mujoco.mjx as mjx
 
 from mjinx.components.tasks._base import JaxTask, Task
-from mjinx.configuration import get_joint_zero, joint_difference
 from mjinx.typing import ArrayOrFloat
 
 
@@ -34,12 +34,11 @@ class JaxJointTask(JaxTask):
     For robots with quaternion joints or a floating base, a more sophisticated
     difference function is used to properly handle the joint topology.
 
-    :param full_target_q: The full target joint positions vector for all joints in the system.
-    :param floating_base: A static boolean indicating whether the robot has a floating base.
+    :param target_q: The full target joint positions vector for all joints in the system.
     """
 
-    full_target_q: jnp.ndarray
-    floating_base: jdc.Static[bool]
+    target_q: jnp.ndarray
+    qmask_idxs: jnp.ndarray
 
     def __call__(self, data: mjx.Data) -> jnp.ndarray:
         """
@@ -57,8 +56,7 @@ class JaxJointTask(JaxTask):
         :param data: The MuJoCo simulation data.
         :return: The error vector representing the difference between the current and target joint positions.
         """
-        mask_idxs = tuple(idx + 6 for idx in self.mask_idxs) if self.floating_base else self.mask_idxs
-        return joint_difference(self.model, data.qpos, self.full_target_q)[mask_idxs,]
+        return data.qpos[self.qmask_idxs,] - self.target_q
 
     def compute_jacobian(self, data: mjx.Data) -> jnp.ndarray:
         r"""
@@ -75,11 +73,9 @@ class JaxJointTask(JaxTask):
         :param data: The MuJoCo simulation data.
         :return: The Jacobian matrix of the barrier function.
         """
-        return (
-            jnp.eye(self.dim, self.model.nv, 6)[self.mask_idxs,]
-            if self.floating_base
-            else jnp.eye(self.model.nv)[self.mask_idxs,]
-        )
+        constraint_matrix = jnp.zeros((self.dim, self.model.nv))
+        constraint_matrix = constraint_matrix.at[jnp.arange(self.dim), self.mask_idxs].set(1)
+        return constraint_matrix
 
 
 class JointTask(Task[JaxJointTask]):
@@ -100,7 +96,7 @@ class JointTask(Task[JaxJointTask]):
 
     JaxComponentType: type = JaxJointTask
     _target_q: jnp.ndarray | None
-    _floating_base: bool
+    _qmask_idxs: jnp.ndarray
 
     def __init__(
         self,
@@ -110,22 +106,10 @@ class JointTask(Task[JaxJointTask]):
         gain_fn: Callable[[float], float] | None = None,
         lm_damping: float = 0,
         mask: Sequence[int] | None = None,
-        floating_base: bool = False,
     ):
-        super().__init__(name, cost, gain, gain_fn, lm_damping, mask)
+        super().__init__(name, cost, gain, gain_fn, lm_damping, mask=None)
+        self._final_mask = mask
         self._target_q = None
-        self._floating_base = floating_base
-
-    @property
-    def mask_idxs_jnt_space(self) -> tuple[int, ...]:
-        """
-        Get the masked joint indices in joint space.
-
-        :return: A tuple of masked joint indices, adjusted for floating base if applicable.
-        """
-        if self.floating_base:
-            return tuple(mask_idx + 7 for mask_idx in self.mask_idxs)
-        return self.mask_idxs
 
     def update_model(self, model: mjx.Model):
         """
@@ -140,12 +124,37 @@ class JointTask(Task[JaxJointTask]):
         """
         super().update_model(model)
 
-        self._dim = model.nv if not self.floating_base else model.nv - 6
-        # if self.floating_base:
-        if len(self.mask) != self.dim:
-            raise ValueError("provided mask in invalid for the model")
-        if len(self.mask_idxs) != self.dim:
-            self._dim = len(self.mask_idxs)
+        self._mask = jnp.ones(self.model.nv, dtype=jnp.uint32)
+        self._qmask = jnp.ones(self.model.nq, dtype=jnp.uint32)
+        for jnt_id in range(self.model.njnt):
+            jnt_type = self.model.jnt_type[jnt_id]
+            if jnt_type == mj.mjtJoint.mjJNT_FREE or jnt_type == mj.mjtJoint.mjJNT_BALL:
+                # Calculating qpos mask
+                jnt_qbegin = self.model.jnt_qposadr[jnt_id]
+                jnt_qpos_size = 4 if jnt_type == mj.mjtJoint.mjJNT_BALL else 7
+                jnt_qend = jnt_qbegin + jnt_qpos_size
+                self._qmask = self._qmask.at[jnt_qbegin:jnt_qend].set(0)
+
+                # Calculating qvel mask
+                jnt_vbegin = self.model.jnt_dofadr[jnt_id]
+                jnt_dof = 3 if jnt_type == mj.mjtJoint.mjJNT_BALL else 6
+                jnt_vend = jnt_vbegin + jnt_dof
+                self._mask = self._mask.at[jnt_vbegin:jnt_vend].set(0)
+
+        # Apply the mask on top of scalar joints
+        if self._final_mask is not None:
+            if self._mask.sum() != len(self._final_mask):
+                raise ValueError(
+                    "length of provided mask should be equal to"
+                    f" the number of scalar joints ({self._mask.sum()}), got length {len(self._final_mask)}"
+                )
+            self._mask = self._mask.at[self._mask.astype(jnp.bool)].set(self._final_mask)
+            self._qmask = self._qmask.at[self._qmask.astype(jnp.bool)].set(self._final_mask)
+
+        self._qmask_idxs = jnp.argwhere(self._qmask).ravel()
+        self._mask_idxs = jnp.argwhere(self._mask).ravel()
+
+        self._dim = len(self._mask_idxs)
 
         # Validate current target_q, if empty -- set via default value
         if self._target_q is None:
@@ -193,22 +202,12 @@ class JointTask(Task[JaxJointTask]):
         self._target_q = target_q_jnp
 
     @property
-    def full_target_q(self) -> jnp.ndarray:
+    def qmask_idxs(self) -> jnp.ndarray:
         """
-        Get the full target joint positions vector for all joints in the system.
+        Get the indices of the masked joint positions.
 
-        :return: The full target joint positions vector.
-        :raises ValueError: If the model is not defined yet.
+        :return: The indices of the masked joint positions.
         """
-        if self._model is None:
-            raise ValueError("Model has not been defined yet.")
-        return get_joint_zero(self.model).at[self.mask_idxs_jnt_space,].set(self._target_q)
-
-    @property
-    def floating_base(self) -> bool:
-        """
-        Check if the robot has a floating base.
-
-        :return: True if the robot has a floating base, False otherwise.
-        """
-        return self._floating_base
+        if self._qmask_idxs is None:
+            raise ValueError("qmask_idxs is not yet defined. Provide an instance of a model first")
+        return self._qmask_idxs
