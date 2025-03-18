@@ -126,7 +126,7 @@ class GlobalIKSolver(Solver[GlobalIKData, GlobalIKSolution]):
         """
         return jnp.sum(gain * jax.lax.map(jnp.log, x))
 
-    def loss_fn(self, q: jnp.ndarray, problem_data: JaxProblemData) -> float:
+    def loss_fn(self, q: jnp.ndarray, model_data: mjx.Data, problem_data: JaxProblemData) -> float:
         r"""Compute the loss function for the given joint configuration.
 
         This function evaluates the total loss for the optimization problem:
@@ -144,7 +144,8 @@ class GlobalIKSolver(Solver[GlobalIKData, GlobalIKSolution]):
         :param problem_data: The problem-specific data.
         :return: The computed loss value.
         """
-        model_data = configuration.update(problem_data.model, q)
+        model_data = model_data.replace(qpos=q)
+        model_data = configuration.update(problem_data.model, model_data)
         loss = 0
 
         for component in problem_data.components.values():
@@ -171,10 +172,10 @@ class GlobalIKSolver(Solver[GlobalIKData, GlobalIKSolution]):
         :param problem_data: The problem-specific data.
         :return: A tuple containing the solver solution and updated solver data.
         """
-        return self.solve(model_data.qpos, solver_data=solver_data, problem_data=problem_data)
+        return self.solve(model_data.qpos, model_data=model_data, solver_data=solver_data, problem_data=problem_data)
 
     def solve(
-        self, q: jnp.ndarray, solver_data: GlobalIKData, problem_data: JaxProblemData
+        self, q: jnp.ndarray, model_data: mjx.Data, solver_data: GlobalIKData, problem_data: JaxProblemData
     ) -> tuple[GlobalIKSolution, GlobalIKData]:
         """Solve the Global IK problem for a given configuration.
 
@@ -190,7 +191,8 @@ class GlobalIKSolver(Solver[GlobalIKData, GlobalIKSolution]):
         """
         if q.shape != (self.model.nq,):
             raise ValueError(f"wrong dimension of the state: expected ({self.model.nq}, ), got {q.shape}")
-        grad = self.grad_fn(q, problem_data)
+
+        grad = self.grad_fn(q, model_data, problem_data)
 
         delta_q, opt_state = self._optimizer.update(grad, solver_data.optax_state)
 

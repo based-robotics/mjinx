@@ -112,6 +112,7 @@ class PositionTask(ObjTask[JaxPositionTask]):
         :param value: The new target position as a sequence of values.
         """
         self.update_target_pos(value)
+        self._jax_component = jdc.replace(self._jax_component, target_pos=self._target_pos)
 
     def update_target_pos(self, target_pos: Sequence):
         """

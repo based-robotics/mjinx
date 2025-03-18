@@ -144,6 +144,7 @@ class ComTask(Task[JaxComTask]):
         :param value: The new target center of mass as a sequence of values.
         """
         self.update_target_com(value)
+        self._jax_component = jdc.replace(self._jax_component, target_com=self._target_com)
 
     def update_target_com(self, target_com: Sequence):
         """

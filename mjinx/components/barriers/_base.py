@@ -108,3 +108,4 @@ class Barrier(Generic[AtomicBarrierType], Component[AtomicBarrierType]):
         """
         super().__init__(name, gain, gain_fn, mask)
         self.safe_displacement_gain = safe_displacement_gain
+        self._jax_component = jdc.replace(self._jax_component, safe_displacement_gain=safe_displacement_gain)

@@ -104,6 +104,7 @@ class Task(Generic[AtomicTaskType], Component[AtomicTaskType]):
         if lm_damping < 0:
             raise ValueError("lm_damping must be non-negative")
         self.lm_damping = lm_damping
+        self._jax_component = jdc.replace(self._jax_component, lm_damping=lm_damping)
 
         self.update_cost(cost)
 
@@ -138,6 +139,10 @@ class Task(Generic[AtomicTaskType], Component[AtomicTaskType]):
         if cost_jnp.ndim > 2:
             raise ValueError(f"the cost.ndim is too high: expected <= 2, got {cost_jnp.ndim}")
         self._cost = cost_jnp
+
+    def update_model(self, model):
+        super().update_model(model)
+        self._jax_component = jdc.replace(self._jax_component, matrix_cost=self.matrix_cost)
 
     @property
     def matrix_cost(self) -> jnp.ndarray:

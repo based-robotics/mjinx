@@ -257,7 +257,6 @@ try:
         problem_data = problem.compile()
         t2 = perf_counter()
         compile_times.append(t2 - t1)
-        print(f"t: {(t2 - t1) * 1e3:.2f}")
 
         # Solving the instance of the problem
         t1 = perf_counter()

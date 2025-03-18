@@ -155,6 +155,11 @@ class Component(Generic[AtomicComponentType]):
             self._mask = None
             self._mask_idxs = ()
 
+        self._jax_component = self.JaxComponentType(
+            **{attr: None for attr in self.JaxComponentType.__dataclass_fields__.keys()}
+        )  # type: ignore
+        self._jax_component = jdc.replace(self._jax_component, gain_fn=self._gain_fn, mask_idxs=self._mask_idxs)
+
     def _get_default_mask(self) -> tuple[jnp.ndarray, tuple[int, ...]]:
         """
         Get the default mask for the component.
@@ -201,6 +206,12 @@ class Component(Generic[AtomicComponentType]):
         :param value: The MuJoCo model to set.
         """
         self.update_model(value)
+        self._jax_component = jdc.replace(
+            self._jax_component,
+            model=self._model,
+            vector_gain=self.vector_gain,
+            mask_idxs=self.mask_idxs,
+        )
 
     def update_model(self, model: mjx.Model):
         """
@@ -226,7 +237,6 @@ class Component(Generic[AtomicComponentType]):
 
         :param value: The new gain value.
         """
-
         self.update_gain(value)
 
     def update_gain(self, gain: ArrayOrFloat):
@@ -312,7 +322,7 @@ class Component(Generic[AtomicComponentType]):
         if self._mask is None and self._dim == -1:
             raise ValueError("either mask should be provided explicitly, or dimension should be set")
         elif self._mask is None:
-            self._mask, self._mask_idxs = self._get_default_mask()
+            self._mask, _ = self._get_default_mask()
 
         return self._mask
 
@@ -324,10 +334,10 @@ class Component(Generic[AtomicComponentType]):
         :return: A tuple of mask indices.
         :raises ValueError: If the mask is not set and the dimension is not defined.
         """
-        if self._mask is None and self._dim == -1:
+        if self._mask_idxs is None and self._dim == -1:
             raise ValueError("either mask should be provided explicitly, or dimension should be set")
-        elif self._mask is None:
-            self._mask, self._mask_idxs = self._get_default_mask()
+        elif self._mask_idxs is None:
+            _, self._mask_idxs = self._get_default_mask()
         return tuple(self._mask_idxs)
 
     def _build_component(self) -> AtomicComponentType:
@@ -352,7 +362,7 @@ class Component(Generic[AtomicComponentType]):
         if self._dim == -1:
             raise ValueError("dimension is not specified")
 
-        if self.__modified:
-            self._jax_component: AtomicComponentType = self._build_component()
-            self.__modified = False
+        # if self.__modified:
+        #     self._jax_component: AtomicComponentType = self._build_component()
+        #     self.__modified = False
         return self._jax_component

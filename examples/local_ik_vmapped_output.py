@@ -30,6 +30,7 @@ mj_model = mj.MjModel.from_xml_path(MJCF_PATH)
 mj_data = mj.MjData(mj_model)
 
 mjx_model = mjx.put_model(mj_model)
+mjx_data = mjx.make_data(mjx_model)
 
 q_min = mj_model.jnt_range[:, 0].copy()
 q_max = mj_model.jnt_range[:, 1].copy()
@@ -137,7 +138,7 @@ with problem.set_vmap_dimension() as empty_problem_data:
     empty_problem_data.components["ee_task"].target_frame = 0
 
 # Vmapping solve and integrate functions.
-solve_jit = jax.jit(jax.vmap(solver.solve, in_axes=(0, 0, empty_problem_data)))
+solve_jit = jax.jit(jax.vmap(solver.solve, in_axes=(0, None, None, empty_problem_data)))
 integrate_jit = jax.jit(jax.vmap(integrate, in_axes=(None, 0, 0, None)), static_argnames=["dt"])
 
 
@@ -161,7 +162,7 @@ print("Performing warmup calls...")
 # Warmup iterations for JIT compilation
 frame_task.target_frame = np.array([[0.4, 0.2, 0.7, 1, 0, 0, 0] for _ in range(N_batch)])
 problem_data = problem.compile()
-opt_solution, _ = solve_jit(q, solver_data, problem_data)
+opt_solution, _ = solve_jit(q, mjx_data, solver_data, problem_data)
 q_warmup = integrate_jit(mjx_model, q, opt_solution.v_opt, 0)
 compute_target_frame_vmapped(jnp.arange(N_batch), 0)
 
@@ -191,7 +192,7 @@ try:
 
         # Solving the instance of the problem
         t1 = perf_counter()
-        opt_solution, solver_data = solve_jit(q, solver_data, problem_data)
+        opt_solution, solver_data = solve_jit(q, mjx_data, solver_data, problem_data)
         t2 = perf_counter()
         solve_times.append(t2 - t1)
 

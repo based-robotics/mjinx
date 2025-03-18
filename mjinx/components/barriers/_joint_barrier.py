@@ -117,8 +117,16 @@ class JointBarrier(Barrier[JaxJointBarrier]):
         mask: Sequence[int] | None = None,
     ):
         super().__init__(name, gain, gain_fn, safe_displacement_gain, mask=None)
-        self._q_min = jnp.array(q_min) if q_min is not None else None
-        self._q_max = jnp.array(q_max) if q_max is not None else None
+        if q_min is not None:
+            self.q_min = jnp.array(q_min)
+        else:
+            self._q_min = None
+
+        if q_max is not None:
+            self.q_max = jnp.array(q_max)
+        else:
+            self._q_max = None
+
         self._final_mask = mask
 
     @property
@@ -143,6 +151,7 @@ class JointBarrier(Barrier[JaxJointBarrier]):
         :param value: The new minimum joint limits.
         """
         self.update_q_min(value)
+        self._jax_component = jdc.replace(self._jax_component, q_min=self.q_min)
 
     def update_q_min(self, q_min: ndarray):
         """
@@ -181,6 +190,7 @@ class JointBarrier(Barrier[JaxJointBarrier]):
         :param value: The new maximum joint limits.
         """
         self.update_q_max(value)
+        self._jax_component = jdc.replace(self._jax_component, q_max=self.q_max)
 
     def update_q_max(self, q_max: ndarray):
         """
@@ -244,6 +254,14 @@ class JointBarrier(Barrier[JaxJointBarrier]):
             self.q_min = self.model.jnt_range[:, 0][jnt_mask]
         if self._q_max is None:
             self.q_max = self.model.jnt_range[:, 1][jnt_mask]
+
+        self._jax_component = jdc.replace(
+            self._jax_component,
+            dim=self.dim,
+            qmask_idxs=self.qmask_idxs,
+            q_min=self.q_min,
+            q_max=self.q_max,
+        )
 
     @property
     def qmask_idxs(self) -> jnp.ndarray:

@@ -34,6 +34,7 @@ MJCF_PATH = join(PACKAGE_PATH, "go2_mjx.xml")
 print("Loading MuJoCo model...")
 mj_model = mj.MjModel.from_xml_path(MJCF_PATH)
 mjx_model = mjx.put_model(mj_model)
+mjx_data = mjx.make_data(mjx_model)
 
 q_min = mj_model.jnt_range[:, 0].copy()
 q_max = mj_model.jnt_range[:, 1].copy()

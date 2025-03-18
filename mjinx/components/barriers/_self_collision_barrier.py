@@ -288,6 +288,14 @@ class SelfCollisionBarrier(Barrier[JaxSelfCollisionBarrier]):
             self.n_closest_pairs = len(self.collision_pairs)
         self._dim = self.n_closest_pairs
 
+        self._jax_component = jdc.replace(
+            self._jax_component,
+            d_min_vec=self.d_min_vec,
+            dim=self.dim,
+            collision_pairs=self.collision_pairs,
+            n_closest_pairs=self.n_closest_pairs,
+        )
+
     @property
     def d_min_vec(self) -> jnp.ndarray:
         """

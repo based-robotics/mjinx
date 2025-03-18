@@ -32,6 +32,7 @@ mj_model = mj.MjModel.from_xml_path(MJCF_PATH)
 mj_data = mj.MjData(mj_model)
 
 mjx_model = mjx.put_model(mj_model)
+mjx_data = mjx.make_data(mjx_model)
 
 q_min = mj_model.jnt_range[:, 0].copy()
 q_max = mj_model.jnt_range[:, 1].copy()
@@ -120,7 +121,7 @@ print("Performing warmup calls...")
 # Warmup iterations for JIT compilation
 frame_task.target_frame = np.array([0.2, 0.2, 0.2, 1, 0, 0, 0])
 problem_data = problem.compile()
-opt_solution, solver_data = solve_jit(q, solver_data, problem_data)
+opt_solution, solver_data = solve_jit(q, mjx_data, solver_data, problem_data)
 q_warmup = opt_solution.q_opt
 
 t_warmup_duration = perf_counter() - t_warmup
@@ -132,6 +133,7 @@ dt = 1e-2
 ts = np.arange(0, 20, dt)
 
 # Performance tracking
+compile_times = []
 solve_times = []
 n_steps = 0
 
@@ -141,12 +143,15 @@ try:
         frame_task.target_frame = np.array([0.2 + 0.2 * jnp.sin(t) ** 2, 0.2, 0.2, 1, 0, 0, 0])
 
         # After changes, recompiling the model
+        t1 = perf_counter()
         problem_data = problem.compile()
+        t2 = perf_counter()
+        compile_times.append(t2 - t1)
 
         # Solving the instance of the problem
         t1 = perf_counter()
         for _ in range(1):
-            opt_solution, solver_data = solve_jit(q, solver_data, problem_data)
+            opt_solution, solver_data = solve_jit(q, mjx_data, solver_data, problem_data)
         t2 = perf_counter()
         solve_times.append(t2 - t1)
 
@@ -185,11 +190,16 @@ finally:
     print("\n=== Performance Report ===")
     print(f"Total steps completed: {n_steps}")
     print("\nComputation times per step:")
+    if compile_times:
+        avg_compile = sum(compile_times) / len(compile_times)
+        std_compile = np.std(compile_times)
+        print(f"compile        : {avg_compile * 1000:8.3f} ± {std_compile * 1000:8.3f} ms")
     if solve_times:
         avg_solve = sum(solve_times) / len(solve_times)
         std_solve = np.std(solve_times)
         print(f"solve          : {avg_solve * 1000:8.3f} ± {std_solve * 1000:8.3f} ms")
 
     if solve_times:
-        print(f"\nAverage computation time per step: {avg_solve * 1000:.3f} ms")
+        avg_total = sum(t1 + t2 for t1, t2 in zip(compile_times, solve_times)) / len(solve_times)
+        print(f"\nAverage computation time per step: {avg_total * 1000:.3f} ms")
         print(f"Effective computation rate: {1 / avg_solve:.1f} Hz")

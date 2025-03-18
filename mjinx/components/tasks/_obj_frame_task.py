@@ -151,6 +151,7 @@ class FrameTask(ObjTask[JaxFrameTask]):
         :param value: The new target frame, either as an SE3 object or a sequence of values.
         """
         self.update_target_frame(value)
+        self._jax_component = jdc.replace(self._jax_component, target_frame=self._target_frame)
 
     def update_target_frame(self, target_frame: SE3 | Sequence | ndarray):
         """

@@ -10,7 +10,7 @@ import mujoco as mj
 import mujoco.mjx as mjx
 
 from mjinx.components.barriers._obj_barrier import JaxObjBarrier, ObjBarrier
-from mjinx.configuration._model import get_frame_jacobian_world_aligned
+from mjinx.configuration._model import get_frame_jacobian_local
 from mjinx.typing import ArrayOrFloat, PositionLimitType
 
 
@@ -66,8 +66,8 @@ class JaxPositionBarrier(JaxObjBarrier):
         )[self.limit_type_mask_idxs,]
 
     def compute_jacobian(self, data: mjx.Data):
-        jac = get_frame_jacobian_world_aligned(self.model, data, self.obj_id, self.obj_type).T
-        return jnp.vstack([jac[:3], -jac[:3]])[self.limit_type_mask_idxs,]
+        jac = get_frame_jacobian_local(self.model, data, self.obj_id, self.obj_type)[:, self.mask_idxs].T
+        return jnp.vstack([jac, -jac])[self.limit_type_mask_idxs,]
 
 
 class PositionBarrier(ObjBarrier[JaxPositionBarrier]):
@@ -102,6 +102,7 @@ class PositionBarrier(ObjBarrier[JaxPositionBarrier]):
     _p_min: jnp.ndarray
     _p_max: jnp.ndarray
 
+    _limit_type_mask_idxs: tuple[int, ...]
     _limit_type: PositionLimitType
 
     def __init__(
@@ -139,7 +140,6 @@ class PositionBarrier(ObjBarrier[JaxPositionBarrier]):
         self._limit_type = PositionLimitType.from_str(limit_type)
         n_axes = len(self.mask_idxs)
 
-        self._limit_type_mask_idxs: tuple[int, ...]
         match self.limit_type:
             case PositionLimitType.MIN:
                 self._limit_type_mask_idxs = tuple(i for i in range(n_axes))
@@ -158,6 +158,14 @@ class PositionBarrier(ObjBarrier[JaxPositionBarrier]):
 
         if p_max is not None:
             self.update_p_max(p_max)
+
+        self._jax_component = jdc.replace(
+            self._jax_component,
+            dim=self._dim,
+            limit_type_mask_idxs=self._limit_type_mask_idxs,
+            p_min=self.p_min,
+            p_max=self.p_max,
+        )
 
     @property
     def limit_type(self) -> PositionLimitType:
@@ -188,8 +196,8 @@ class PositionBarrier(ObjBarrier[JaxPositionBarrier]):
 
         :param value: The new minimum position.
         """
-
         self.update_p_min(value)
+        self._jax_component = jdc.replace(self._jax_component, p_min=self.p_min)
 
     def update_p_min(self, p_min: ArrayOrFloat):
         """
@@ -228,6 +236,7 @@ class PositionBarrier(ObjBarrier[JaxPositionBarrier]):
     @p_max.setter
     def p_max(self, value: ArrayOrFloat):
         self.update_p_max(value)
+        self._jax_component = jdc.replace(self._jax_component, p_max=self.p_max)
 
     def update_p_max(self, p_max: ArrayOrFloat):
         """

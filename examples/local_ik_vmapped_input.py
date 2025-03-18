@@ -23,11 +23,11 @@ from mjinx.visualize import BatchVisualizer
 
 print("=== Initializing ===")
 
-
 # === Mujoco ===
 print("Loading MuJoCo model...")
 mj_model = mj.MjModel.from_xml_path(MJCF_PATH)
 mjx_model = mjx.put_model(mj_model)
+mjx_data = mjx.make_data(mjx_model)
 
 q_min = mj_model.jnt_range[:, 0].copy()
 q_max = mj_model.jnt_range[:, 1].copy()
@@ -126,7 +126,7 @@ print("Setting up batched computations...")
 solver_data = jax.vmap(solver.init, in_axes=0)(v_init=jnp.zeros((N_batch, mjx_model.nv)))
 
 # Vmapping solve and integrate functions.
-solve_jit = jax.jit(jax.vmap(solver.solve, in_axes=(0, 0, None)))
+solve_jit = jax.jit(jax.vmap(solver.solve, in_axes=(0, None, None, None)))
 integrate_jit = jax.jit(jax.vmap(integrate, in_axes=(None, 0, 0, None)), static_argnames=["dt"])
 
 t_warmup = perf_counter()
@@ -134,7 +134,7 @@ print("Performing warmup calls...")
 # Warmup iterations for JIT compilation
 frame_task.target_frame = np.array([0.4, 0.2, 0.7, 1, 0, 0, 0])
 problem_data = problem.compile()
-opt_solution, solver_data = solve_jit(q, solver_data, problem_data)
+opt_solution, solver_data = solve_jit(q, mjx_data, solver_data, problem_data)
 q_warmup = integrate_jit(mjx_model, q, opt_solution.v_opt, 1e-2)
 
 t_warmup_duration = perf_counter() - t_warmup
@@ -162,7 +162,7 @@ try:
 
         # Solving the instance of the problem
         t1 = perf_counter()
-        opt_solution, solver_data = solve_jit(q, solver_data, problem_data)
+        opt_solution, solver_data = solve_jit(q, mjx_data, solver_data, problem_data)
         t2 = perf_counter()
         solve_times.append(t2 - t1)
 

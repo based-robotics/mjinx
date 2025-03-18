@@ -164,6 +164,13 @@ class JointTask(Task[JaxJointTask]):
                 f"provided model is incompatible with target q: {len(self.target_q)} is set, model expects {self.dim}."
             )
 
+        self._jax_component = jdc.replace(
+            self._jax_component,
+            qmask_idxs=self._qmask_idxs,
+            mask_idxs=self._mask_idxs,
+            dim=self._dim,
+        )
+
     @property
     def target_q(self) -> jnp.ndarray:
         """
@@ -184,6 +191,7 @@ class JointTask(Task[JaxJointTask]):
         :param value: The new target joint positions as a sequence of values.
         """
         self.update_target_q(value)
+        self._jax_component = jdc.replace(self._jax_component, target_q=self._target_q)
 
     def update_target_q(self, target_q: Sequence):
         """

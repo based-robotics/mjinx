@@ -161,7 +161,9 @@ def make_dead_beat_alip(
             # == Stance foot trajectory
             stance_foot_traj_world = jnp.tile(p_stance_world, (ticks_per_step, 1))
 
-            left_foot_traj = jax.lax.cond(step_sign == 1, lambda: swing_foot_traj_world, lambda: stance_foot_traj_world)
+            left_foot_traj = jax.lax.cond(
+                step_sign == 1, lambda: swing_foot_traj_world, lambda: stance_foot_traj_world
+            )
             right_foot_traj = jax.lax.cond(
                 step_sign == 1, lambda: stance_foot_traj_world, lambda: swing_foot_traj_world
             )
@@ -258,7 +260,8 @@ solver = LocalIKSolver(mjx_model, maxiter=10)
 # Initializing initial condition
 N_batch = 128
 q0 = mj_model.keyframe("home").qpos
-mjx_data = update(mjx_model, jnp.array(q0))
+mjx_data = mjx.make_data(mjx_model).replace(qpos=jnp.array(q0))
+mjx_data = update(mjx_model, mjx_data)
 q = jnp.tile(q0, (N_batch, 1))
 dt = 1e-2
 ts = np.arange(0, 20, dt)
@@ -332,7 +335,7 @@ with problem.set_vmap_dimension() as empty_problem_data:
 solve_jit = jax.jit(
     jax.vmap(
         solver.solve,
-        in_axes=(0, 0, empty_problem_data),
+        in_axes=(0, None, 0, empty_problem_data),
     )
 )
 integrate_jit = jax.jit(jax.vmap(integrate, in_axes=(None, 0, 0, None)), static_argnames=["dt"])
@@ -402,7 +405,7 @@ try:
         right_foot_task.target_frame = right_target_se3
 
         problem_data = problem.compile()
-        opt_solution, solver_data = solve_jit(q, solver_data, problem_data)
+        opt_solution, solver_data = solve_jit(q, mjx_data, solver_data, problem_data)
         # Integrating
         q = integrate_jit(
             mjx_model,

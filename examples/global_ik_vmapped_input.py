@@ -28,6 +28,7 @@ print("=== Initializing ===")
 print("Loading MuJoCo model...")
 mj_model = mj.MjModel.from_xml_path(MJCF_PATH)
 mjx_model = mjx.put_model(mj_model)
+mjx_data = mjx.make_data(mjx_model)
 
 q_min = mj_model.jnt_range[:, 0].copy()
 q_max = mj_model.jnt_range[:, 1].copy()
@@ -127,7 +128,12 @@ print("Setting up batched computations...")
 solver_data = jax.vmap(solver.init, in_axes=0)(q)
 
 # Vmapping solve and integrate functions.
-solve_jit = jax.jit(jax.vmap(solver.solve, in_axes=(0, 0, None)))
+solve_jit = jax.jit(
+    jax.vmap(
+        solver.solve,
+        in_axes=(0, None, 0, None),
+    )
+)
 integrate_jit = jax.jit(jax.vmap(integrate, in_axes=(None, 0, 0, None)), static_argnames=["dt"])
 
 t_warmup = perf_counter()
@@ -135,7 +141,7 @@ print("Performing warmup calls...")
 # Warmup iterations for JIT compilation
 frame_task.target_frame = np.array([0.4, 0.2, 0.7, 1, 0, 0, 0])
 problem_data = problem.compile()
-opt_solution, solver_data = solve_jit(q, solver_data, problem_data)
+opt_solution, solver_data = solve_jit(q, mjx_data, solver_data, problem_data)
 q_warmup = opt_solution.q_opt
 
 t_warmup_duration = perf_counter() - t_warmup
@@ -147,6 +153,7 @@ dt = 1e-2
 ts = np.arange(0, 20, dt)
 
 # Performance tracking
+compile_times = []
 solve_times = []
 n_steps = 0
 
@@ -156,12 +163,15 @@ try:
         frame_task.target_frame = np.array([0.4 + 0.3 * np.sin(t), 0.2, 0.4 + 0.3 * np.cos(t), 1, 0, 0, 0])
 
         # After changes, recompiling the model
+        t1 = perf_counter()
         problem_data = problem.compile()
+        t2 = perf_counter()
+        compile_times.append(t2 - t1)
 
         # Solving the instance of the problem
         t1 = perf_counter()
         for _ in range(3):
-            opt_solution, solver_data = solve_jit(q, solver_data, problem_data)
+            opt_solution, solver_data = solve_jit(q, mjx_data, solver_data, problem_data)
         t2 = perf_counter()
         solve_times.append(t2 - t1)
 
@@ -189,11 +199,16 @@ finally:
     print("\n=== Performance Report ===")
     print(f"Total steps completed: {n_steps}")
     print("\nComputation times per step:")
+    if compile_times:
+        avg_compile = sum(compile_times) / len(compile_times)
+        std_compile = np.std(compile_times)
+        print(f"compile        : {avg_compile * 1000:8.3f} ± {std_compile * 1000:8.3f} ms")
     if solve_times:
         avg_solve = sum(solve_times) / len(solve_times)
         std_solve = np.std(solve_times)
         print(f"solve          : {avg_solve * 1000:8.3f} ± {std_solve * 1000:8.3f} ms")
 
     if solve_times:
-        print(f"\nAverage computation time per step: {avg_solve * 1000:.3f} ms")
+        avg_total = sum(t1 + t2 for t1, t2 in zip(compile_times, solve_times)) / len(solve_times)
+        print(f"\nAverage computation time per step: {avg_total * 1000:.3f} ms")
         print(f"Effective computation rate: {1 / avg_solve:.1f} Hz")

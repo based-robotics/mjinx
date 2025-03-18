@@ -21,14 +21,14 @@ from mjinx.visualize import BatchVisualizer
 
 mj_model = mj.MjModel.from_xml_path(MJCF_PATH)
 mjx_model = mjx.put_model(mj_model)
-print(mjx_model.nq, mjx_model.nv)
+mjx_data = mjx.make_data(mjx_model)
 
 q_min = mj_model.jnt_range[:, 0].copy()
 q_max = mj_model.jnt_range[:, 1].copy()
 
 # --- Mujoco visualization ---
 # Initialize render window and launch it at the background
-vis = BatchVisualizer(MJCF_PATH, n_models=5, alpha=0.2, record=True)
+vis = BatchVisualizer(MJCF_PATH, n_models=5, alpha=0.2)
 
 # === Mjinx ===
 # --- Constructing the problem ---
@@ -76,7 +76,8 @@ N_batch = 100
 q0 = mj_model.keyframe("home").qpos
 q = jnp.tile(q0, (N_batch, 1))
 
-mjx_data = update(mjx_model, jnp.array(q0))
+mjx_data = mjx_data.replace(qpos=jnp.array(q0))
+mjx_data = update(mjx_model, mjx_data)
 
 com0 = np.array(mjx_data.subtree_com[mjx_model.body_rootid[0]])
 com_task.target_com = com0
@@ -108,7 +109,7 @@ with problem.set_vmap_dimension() as empty_problem_data:
 solve_jit = jax.jit(
     jax.vmap(
         solver.solve,
-        in_axes=(0, 0, empty_problem_data),
+        in_axes=(0, None, 0, empty_problem_data),
     )
 )
 integrate_jit = jax.jit(jax.vmap(integrate, in_axes=(None, 0, 0, None)), static_argnames=["dt"])
@@ -125,7 +126,7 @@ try:
             [[0.0, 0.0, com0[2] - 0.3 * np.sin(t + 2 * np.pi * i / N_batch + np.pi / 2) ** 2] for i in range(N_batch)]
         )
         problem_data = problem.compile()
-        opt_solution, solver_data = solve_jit(q, solver_data, problem_data)
+        opt_solution, solver_data = solve_jit(q, mjx_data, solver_data, problem_data)
         # Integrating
         q = integrate_jit(
             mjx_model,

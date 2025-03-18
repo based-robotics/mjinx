@@ -189,4 +189,5 @@ class ObjBarrier(Generic[AtomicObjBarrierType], Barrier[AtomicObjBarrierType]):
         if self._obj_id == -1:
             raise ValueError(f"object with type {self._obj_type} and name {self._obj_name} is not found.")
 
+        self._jax_component = jdc.replace(self._jax_component, obj_id=self._obj_id, obj_type=self._obj_type)
         return super().update_model(model)
