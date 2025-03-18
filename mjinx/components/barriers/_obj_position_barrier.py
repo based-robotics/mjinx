@@ -10,6 +10,7 @@ import mujoco as mj
 import mujoco.mjx as mjx
 
 from mjinx.components.barriers._obj_barrier import JaxObjBarrier, ObjBarrier
+from mjinx.configuration._model import get_frame_jacobian_world_aligned
 from mjinx.typing import ArrayOrFloat, PositionLimitType
 
 
@@ -63,6 +64,10 @@ class JaxPositionBarrier(JaxObjBarrier):
                 self.p_max - obj_pos,
             ]
         )[self.limit_type_mask_idxs,]
+
+    def compute_jacobian(self, data: mjx.Data):
+        jac = get_frame_jacobian_world_aligned(self.model, data, self.obj_id, self.obj_type).T
+        return jnp.vstack([jac[:3], -jac[:3]])[self.limit_type_mask_idxs,]
 
 
 class PositionBarrier(ObjBarrier[JaxPositionBarrier]):

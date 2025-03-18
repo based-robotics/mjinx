@@ -8,6 +8,7 @@ import mujoco as mj
 import mujoco.mjx as mjx
 
 from mjinx.components.tasks._obj_task import JaxObjTask, ObjTask
+from mjinx.configuration._model import get_frame_jacobian_world_aligned
 from mjinx.typing import ArrayOrFloat
 
 
@@ -55,6 +56,9 @@ class JaxPositionTask(JaxObjTask):
         :return: The error vector representing the difference between the current and target positions.
         """
         return self.get_pos(data)[self.mask_idxs,] - self.target_pos
+
+    def compute_jacobian(self, data):
+        return get_frame_jacobian_world_aligned(self.model, data, self.obj_id, self.obj_type).T[self.mask_idxs,]
 
 
 class PositionTask(ObjTask[JaxPositionTask]):

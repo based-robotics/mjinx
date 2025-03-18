@@ -95,16 +95,19 @@ class JaxSelfCollisionBarrier(JaxBarrier):
             dist: jnp.ndarray,  # Scalar distance between collision pair
             point: jnp.ndarray,  # (3,) array of contact point
             normal: jnp.ndarray,  # (3,) array of contact normal
-            body_id1: jnp.ndarray,  # Scalar body index for first body
-            body_id2: jnp.ndarray,  # Scalar body index for second body
+            body_ids: jnp.ndarray,  # Scalar body indices for bodies
         ) -> jnp.ndarray:
             """
             Compute a single row of the Jacobian matrix for one collision pair.
             """
+
+            def jacobian_func(p, bid):
+                return geom_point_jacobian(self.model, data, p, bid)[:, :3]
+
             p1 = point - jnp.repeat(dist / 2, 3) * normal
             p2 = point + jnp.repeat(dist / 2, 3) * normal
-            p_jac1 = geom_point_jacobian(self.model, data, p1, body_id1)[:, :3]
-            p_jac2 = geom_point_jacobian(self.model, data, p2, body_id2)[:, :3]
+            p_jacs = jax.vmap(jacobian_func)(jnp.stack([p1, p2]), body_ids)
+            p_jac1, p_jac2 = p_jacs[0], p_jacs[1]
             return normal @ (p_jac2 - p_jac1).T
 
         collisions = compute_collision_pairs(self.model, data, self.collision_pairs)
@@ -115,8 +118,7 @@ class JaxSelfCollisionBarrier(JaxBarrier):
             collisions.dist[topk_idxs,],
             collisions.pos[topk_idxs,],
             collisions.frame[topk_idxs, 0],
-            col_bodies[topk_idxs, 0],
-            col_bodies[topk_idxs, 1],
+            col_bodies[topk_idxs],
         )
         return jac
 

@@ -5,7 +5,7 @@ from jaxlie import SE3, SO3
 from mujoco import mjx
 
 
-def update(model: mjx.Model, q: jnp.ndarray) -> mjx.Data:
+def update(model: mjx.Model, q: jnp.ndarray, make_constraint: bool = True) -> mjx.Data:
     """
     Update the MuJoCo data with new joint positions.
 
@@ -17,7 +17,8 @@ def update(model: mjx.Model, q: jnp.ndarray) -> mjx.Data:
     data = data.replace(qpos=q)
     data = mjx.kinematics(model, data)
     data = mjx.com_pos(model, data)
-    data = mjx.make_constraint(model, data)
+    if make_constraint:
+        data = mjx.make_constraint(model, data)
 
     return data
 
@@ -235,4 +236,4 @@ def get_configuration_limit(model: mjx.Model, limit: jnp.ndarray | float) -> tup
 
 def geom_point_jacobian(model: mjx.Model, data: mjx.Data, point: jnp.ndarray, body_id: jnp.ndarray) -> jnp.ndarray:
     jacp, jacr = mjx._src.support.jac(model, data, point, body_id)
-    return jnp.vstack((jacp.T, jacr.T)).T
+    return jnp.hstack((jacp, jacr))

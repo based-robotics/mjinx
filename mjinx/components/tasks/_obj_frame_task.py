@@ -46,6 +46,15 @@ class JaxFrameTask(JaxObjTask):
 
     target_frame: SE3
 
+    def __post_init__(self):
+        jdc._copy_and_mutate._mark_mutable(self, jdc._copy_and_mutate._Mutability.MUTABLE_NO_VALIDATION, visited=set())
+
+        def transform_log(tau, T_bt):
+            return (T_bt.multiply(SE3.exp(tau))).log()
+
+        self._frame_jac_fn = jax.jacobian(transform_log, argnums=0)
+        jdc._copy_and_mutate._mark_mutable(self, jdc._copy_and_mutate._Mutability.FROZEN, visited=set())
+
     @final
     def __call__(self, data: mjx.Data) -> jnp.ndarray:
         r"""
@@ -86,11 +95,8 @@ class JaxFrameTask(JaxObjTask):
         """
         T_bt = self.target_frame.inverse() @ self.get_frame(data).inverse()
 
-        def transform_log(tau):
-            return (T_bt.multiply(SE3.exp(tau))).log()
-
         frame_jac = get_frame_jacobian_local(self.model, data, self.obj_id, self.obj_type)
-        jlog = jax.jacobian(transform_log)(jnp.zeros(SE3.tangent_dim))
+        jlog = self._frame_jac_fn(jnp.zeros(SE3.tangent_dim), T_bt)
         return (-jlog @ frame_jac.T)[self.mask_idxs,]
 
 

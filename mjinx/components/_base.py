@@ -32,6 +32,16 @@ class JaxComponent(abc.ABC):
     gain_fn: jdc.Static[Callable[[float], float]]
     mask_idxs: jdc.Static[tuple[int, ...]]
 
+    def __post_init__(self):
+        jdc._copy_and_mutate._mark_mutable(self, jdc._copy_and_mutate._Mutability.MUTABLE_NO_VALIDATION, visited=set())
+        self._jac_fn = jax.jacrev(
+            lambda q, model=self.model: self.__call__(
+                mjx.kinematics(model, mjx.make_data(model).replace(qpos=q)),
+            ),
+            argnums=0,
+        )
+        jdc._copy_and_mutate._mark_mutable(self, jdc._copy_and_mutate._Mutability.FROZEN, visited=set())
+
     @abc.abstractmethod
     def __call__(self, data: mjx.Data) -> jnp.ndarray:  # pragma: no cover
         """
@@ -79,12 +89,7 @@ class JaxComponent(abc.ABC):
         :param data: The MuJoCo simulation data.
         :return: The computed Jacobian matrix.
         """
-        jac = jax.jacrev(
-            lambda q, model=self.model: self.__call__(
-                mjx.kinematics(model, mjx.make_data(model).replace(qpos=q)),
-            ),
-            argnums=0,
-        )(data.qpos)
+        jac = self._jac_fn(data.qpos)
         if self.model.nq != self.model.nv:
             jac = jac @ jac_dq2v(self.model, data.qpos)
         return jac
