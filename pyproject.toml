@@ -31,7 +31,8 @@ docs = [
 ]
 visual = ["dm_control", "mediapy"]
 examples = ["mjinx[visual]", "robot_descriptions>=1.12"]
-all = ["mjinx[dev, visual, docs]"]
+benchmarks = ["robot_descriptions>=1.12", "mink"]
+all = ["mjinx[dev, visual, docs, benchmarks]"]
 
 [build-system]
 requires = ["setuptools>=43.0.0", "wheel"]
