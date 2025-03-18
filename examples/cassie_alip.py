@@ -1,5 +1,6 @@
 import traceback
 from collections.abc import Callable
+from time import perf_counter
 
 import jax
 import jax.numpy as jnp
@@ -281,18 +282,9 @@ v_des = jnp.concatenate(
 floor_height = mjx_data.xpos[left_foot_id][2]
 
 com0 = mjx_data.subtree_com[mjx_model.body_rootid[0]]
-left_foot_quat = np.tile(
-    np.array(mjx_data.xquat[left_foot_id]),
-    (N_batch, 1),
-)
-right_foot_quat = np.tile(
-    np.array(mjx_data.xquat[right_foot_id]),
-    (N_batch, 1),
-)
-torso_quat = np.tile(
-    np.array(mjx_data.xquat[mjx.name2id(mjx_model, mj.mjtObj.mjOBJ_BODY, "cassie-pelvis")]),
-    (N_batch, 1),
-)
+left_foot_quat = mjx_data.xquat[left_foot_id]
+right_foot_quat = mjx_data.xquat[right_foot_id]
+torso_quat = mjx_data.xquat[mjx.name2id(mjx_model, mj.mjtObj.mjOBJ_BODY, "cassie-pelvis")]
 
 foot_height = 0.03
 
@@ -312,6 +304,7 @@ com_traj, left_foot_traj, right_foot_traj = dead_beat_fn(
     foot_height=foot_height,
     floor_height=floor_height,
 )
+
 com_traj = np.array(com_traj)
 left_feet_traj = np.array(left_foot_traj)
 right_feet_traj = np.array(right_foot_traj)
@@ -321,6 +314,62 @@ offsets = np.floor(np.linspace(0, n_steps, num=N_batch, endpoint=False)).astype(
 
 # Compiling the problem upon any parameters update
 problem_data = problem.compile()
+
+
+def yaw_to_quat_jax(yaw: jnp.ndarray, init_quat: jnp.ndarray) -> jnp.ndarray:
+    """
+    Convert a yaw angle to a quaternion (scalar-first) and compose with an initial orientation.
+    """
+
+    def quat_mult_jax(q: jnp.ndarray, r: jnp.ndarray) -> jnp.ndarray:
+        """
+        Multiply two quaternions q and r (scalar-first convention).
+        Both q and r can be arrays of shape (..., 4).
+        """
+        w = q[..., 0] * r[..., 0] - q[..., 1] * r[..., 1] - q[..., 2] * r[..., 2] - q[..., 3] * r[..., 3]
+        x = q[..., 0] * r[..., 1] + q[..., 1] * r[..., 0] + q[..., 2] * r[..., 3] - q[..., 3] * r[..., 2]
+        y = q[..., 0] * r[..., 2] - q[..., 1] * r[..., 3] + q[..., 2] * r[..., 0] + q[..., 3] * r[..., 1]
+        z = q[..., 0] * r[..., 3] + q[..., 1] * r[..., 2] - q[..., 2] * r[..., 1] + q[..., 3] * r[..., 0]
+        return jnp.stack([w, x, y, z], axis=-1)
+
+    q_yaw = jnp.stack([jnp.cos(yaw / 2), jnp.zeros_like(yaw), jnp.zeros_like(yaw), jnp.sin(yaw / 2)], axis=-1)
+    return quat_mult_jax(q_yaw, init_quat)
+
+
+# Define the JAX functions that generate the SE3 target (xyz + quaternion) for each body part.
+def torso_trajectory(com_val: jnp.ndarray, init_torso_quat: jnp.ndarray) -> jnp.ndarray:
+    """
+    Generate torso target SE3 from CoM value.
+    com_val: (4,) vector containing (x, y, z, yaw)
+    """
+    q = yaw_to_quat_jax(com_val[..., 3], init_torso_quat)
+    return jnp.concatenate([com_val[:3], q])
+
+
+def left_foot_trajectory(left_val: jnp.ndarray, init_left_quat: jnp.ndarray) -> jnp.ndarray:
+    """
+    Generate left foot target SE3 from left foot value.
+    left_val: (4,) vector containing (x, y, z, yaw)
+    """
+    q = yaw_to_quat_jax(left_val[..., 3], init_left_quat)
+    return jnp.concatenate([left_val[:3], q])
+
+
+def right_foot_trajectory(right_val: jnp.ndarray, init_right_quat: jnp.ndarray) -> jnp.ndarray:
+    """
+    Generate right foot target SE3 from right foot value.
+    right_val: (4,) vector containing (x, y, z, yaw)
+    """
+    q = yaw_to_quat_jax(right_val[..., 3], init_right_quat)
+    return jnp.concatenate([right_val[:3], q])
+
+
+# Vectorize and JIT the trajectory functions over the batch dimension.
+torso_traj_vmap = jax.jit(jax.vmap(torso_trajectory, in_axes=(0, None)))
+left_foot_traj_vmap = jax.jit(jax.vmap(left_foot_trajectory, in_axes=(0, None)))
+right_foot_traj_vmap = jax.jit(jax.vmap(right_foot_trajectory, in_axes=(0, None)))
+
+
 # --- Batching ---
 print("Setting up batched computations...")
 solver_data = jax.vmap(solver.init, in_axes=0)(v_init=jnp.zeros((N_batch, mjx_model.nv)))
@@ -340,83 +389,89 @@ solve_jit = jax.jit(
 )
 integrate_jit = jax.jit(jax.vmap(integrate, in_axes=(None, 0, 0, None)), static_argnames=["dt"])
 
+t_warmup = perf_counter()
+print("Performing warmup calls...")
+# === Warm Start ===
+# Extract the (x, y, z, yaw) values for each task.
+
+# Assign the positions and orientations to the tasks.
+# Note: com_task uses only the (x,y,z) component.
+com_task.target_com = jnp.zeros((N_batch, 3))
+torso_task.target_frame = torso_traj_vmap(jnp.zeros((N_batch, 4)), torso_quat)
+left_foot_task.target_frame = left_foot_traj_vmap(jnp.zeros((N_batch, 4)), left_foot_quat)
+right_foot_task.target_frame = right_foot_traj_vmap(jnp.zeros((N_batch, 4)), right_foot_quat)
+
+problem_data = problem.compile()
+opt_solution, solver_data = solve_jit(q, mjx_data, solver_data, problem_data)
+
+# Integrate the state.
+q = integrate_jit(
+    mjx_model,
+    q,
+    opt_solution.v_opt,
+    dt,
+)
+t_warmup_duration = perf_counter() - t_warmup
+print(f"Warmup completed in {t_warmup_duration:.3f} seconds")
+
 # === Control loop ===
+print("\n=== Starting main loop ===")
 
-
-def quat_mult(q: np.ndarray, r: np.ndarray) -> np.ndarray:
-    """
-    Multiply two quaternions q and r.
-    Both q and r are assumed to have shape (..., 4) with scalar-first convention.
-    """
-    w = q[..., 0] * r[..., 0] - q[..., 1] * r[..., 1] - q[..., 2] * r[..., 2] - q[..., 3] * r[..., 3]
-    x = q[..., 0] * r[..., 1] + q[..., 1] * r[..., 0] + q[..., 2] * r[..., 3] - q[..., 3] * r[..., 2]
-    y = q[..., 0] * r[..., 2] - q[..., 1] * r[..., 3] + q[..., 2] * r[..., 0] + q[..., 3] * r[..., 1]
-    z = q[..., 0] * r[..., 3] + q[..., 1] * r[..., 2] - q[..., 2] * r[..., 1] + q[..., 3] * r[..., 0]
-    return np.stack([w, x, y, z], axis=-1)
-
-
-# Convert a yaw angle to a quaternion (scalar-first) and compose with an initial orientation.
-def yaw_to_quat(yaw: np.ndarray, init_quat: np.ndarray) -> np.ndarray:
-    # Compute the additional yaw rotation quaternion: rotation about z-axis.
-    q_yaw = np.stack(
-        [
-            np.cos(yaw / 2),
-            np.zeros_like(yaw),
-            np.zeros_like(yaw),
-            np.sin(yaw / 2),
-        ],
-        axis=-1,
-    )
-    # Compose the initial orientation with the yaw rotation.
-    return quat_mult(
-        q_yaw,
-        init_quat,
-    )
-
-
+# Performance tracking lists
+compile_times = []
+solve_times = []
+integrate_times = []
+n_steps_log = 0
 try:
     for i in range(len(ts)):
         t = ts[i]
-        # Compute the current tick based on time
+        # Compute the current tick and step indices.
         current_tick = int(i % n_ticks)
-        # Compute the current step based on the time
         current_step = i // n_ticks
-        # Each robot gets a different tick index by adding its offset
         step_indices = (current_step + offsets) % n_steps
 
-        # Extract the (xyz, yaw) values for each task.
-        com_vals = com_traj[step_indices, current_tick, :]  # shape: (N_batch, 4)
-        left_vals = left_feet_traj[step_indices, current_tick, :]  # shape: (N_batch, 4)
-        right_vals = right_feet_traj[step_indices, current_tick, :]  # shape: (N_batch, 4)
+        # Extract the (x, y, z, yaw) values for each task.
+        com_vals = jnp.array(com_traj)[step_indices, current_tick, :]  # (N_batch, 4)
+        left_vals = jnp.array(left_feet_traj)[step_indices, current_tick, :]  # (N_batch, 4)
+        right_vals = jnp.array(right_feet_traj)[step_indices, current_tick, :]  # (N_batch, 4)
 
-        # Convert yaw to quaternion for each task
-        torso_quat = yaw_to_quat(com_vals[:, 3], torso_quat)
-        left_quat = yaw_to_quat(left_vals[:, 3], left_foot_quat)
-        right_quat = yaw_to_quat(right_vals[:, 3], right_foot_quat)
+        # Generate SE3 targets using the vectorized JAX functions.
+        torso_target_se3 = torso_traj_vmap(com_vals, torso_quat)
+        left_target_se3 = left_foot_traj_vmap(left_vals, left_foot_quat)
+        right_target_se3 = right_foot_traj_vmap(right_vals, right_foot_quat)
 
-        # Form the SE3 target vectors for the tasks (concatenate xyz with quaternion)
-        left_target_se3 = np.concatenate([left_vals[:, :3], left_quat], axis=1)
-        right_target_se3 = np.concatenate([right_vals[:, :3], right_quat], axis=1)
-
-        # Assign these SE3 targets to the tasks.
+        # Assign the positions and orientations to the tasks.
+        # Note: com_task uses only the (x,y,z) component.
         com_task.target_com = com_vals[:, :3]
-        torso_task.target_frame = np.concatenate([np.zeros((N_batch, 3)), torso_quat], axis=1)
+        torso_task.target_frame = torso_target_se3
         left_foot_task.target_frame = left_target_se3
         right_foot_task.target_frame = right_target_se3
 
+        t1 = perf_counter()
         problem_data = problem.compile()
+        t2 = perf_counter()
+        compile_times.append(t2 - t1)
+
+        t1 = perf_counter()
         opt_solution, solver_data = solve_jit(q, mjx_data, solver_data, problem_data)
-        # Integrating
+        t2 = perf_counter()
+        solve_times.append(t2 - t1)
+
+        t1 = perf_counter()
+        # Integrate the state.
         q = integrate_jit(
             mjx_model,
             q,
             opt_solution.v_opt,
             dt,
         )
+        t2 = perf_counter()
+        integrate_times.append(t2 - t1)
         # --- MuJoCo visualization ---
         indices = np.arange(0, N_batch, N_batch // vis.n_models)
-
         vis.update(q[:: N_batch // vis.n_models])
+
+        n_steps_log += 1
 
 except KeyboardInterrupt:
     print("Finalizing the simulation as requested...")
@@ -426,3 +481,25 @@ finally:
     if vis.record:
         vis.save_video(round(1 / dt))
     vis.close()
+
+    # Performance report
+    print("\n=== Performance Report ===")
+    print(f"Total steps completed: {n_steps_log}")
+    if compile_times:
+        avg_compile = sum(compile_times) / len(compile_times)
+        std_compile = np.std(compile_times)
+        print(f"Compile:  {avg_compile * 1000:8.3f} ± {std_compile * 1000:8.3f} ms")
+    if solve_times:
+        avg_solve = sum(solve_times) / len(solve_times)
+        std_solve = np.std(solve_times)
+        print(f"Solve:    {avg_solve * 1000:8.3f} ± {std_solve * 1000:8.3f} ms")
+    if integrate_times:
+        avg_integrate = sum(integrate_times) / len(integrate_times)
+        std_integrate = np.std(integrate_times)
+        print(f"Integrate:{avg_integrate * 1000:8.3f} ± {std_integrate * 1000:8.3f} ms")
+    if compile_times and solve_times and integrate_times:
+        avg_total = sum(t1 + t2 + t3 for t1, t2, t3 in zip(compile_times, solve_times, integrate_times)) / len(
+            solve_times
+        )
+        print(f"\nAverage computation time per step: {avg_total * 1000:.3f} ms")
+        print(f"Effective computation rate: {1 / avg_total:.1f} Hz")
