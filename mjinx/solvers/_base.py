@@ -75,19 +75,19 @@ class Solver(Generic[SolverDataType, SolverSolutionType], abc.ABC):
 
     @abc.abstractmethod
     def solve_from_data(
-        self, solver_data: SolverDataType, problem_data: JaxProblemData, model_data: mjx.Data
+        self, model_data: mjx.Data, solver_data: SolverDataType, problem_data: JaxProblemData
     ) -> tuple[SolverSolutionType, SolverDataType]:
         """Solve the inverse kinematics problem using pre-computed model data.
 
+        :param model_data: MuJoCo model data.
         :param solver_data: Solver-specific data.
         :param problem_data: Problem-specific data.
-        :param model_data: MuJoCo model data.
         :return: A tuple containing the solver solution and updated solver data.
         """
         pass
 
     def solve(
-        self, q: jnp.ndarray, solver_data: SolverDataType, problem_data: JaxProblemData
+        self, q: jnp.ndarray, model_data: mjx.Data, solver_data: SolverDataType, problem_data: JaxProblemData
     ) -> tuple[SolverSolutionType, SolverDataType]:
         """Solve the inverse kinematics problem for a given configuration.
 
@@ -102,8 +102,8 @@ class Solver(Generic[SolverDataType, SolverSolutionType], abc.ABC):
         """
         if q.shape != (self.model.nq,):
             raise ValueError(f"wrong dimension of the state: expected ({self.model.nq}, ), got {q.shape}")
-        model_data = configuration.update(self.model, q)
-        return self.solve_from_data(solver_data, problem_data, model_data)
+        model_data = configuration.update(self.model, model_data.replace(qpos=q))
+        return self.solve_from_data(model_data, solver_data, problem_data)
 
     @abc.abstractmethod
     def init(self, q: mjt.ndarray) -> SolverDataType:

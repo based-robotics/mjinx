@@ -339,15 +339,15 @@ class LocalIKSolver(Solver[LocalIKData, LocalIKSolution]):
 
     def solve_from_data(
         self,
+        model_data: mjx.Data,
         solver_data: LocalIKData,
         problem_data: JaxProblemData,
-        model_data: mjx.Data,
     ) -> tuple[LocalIKSolution, LocalIKData]:
         """Solve the Local IK problem using pre-computed data.
 
+        :param model_data: The MuJoCo model data.
         :param solver_data: The solver-specific data.
         :param problem_data: The problem-specific data.
-        :param model_data: The MuJoCo model data.
         :return: A tuple containing the solver solution and updated solver data.
         """
         P, c, A, b, G, h = self.__compute_qp_matrices(problem_data, model_data)
@@ -381,6 +381,8 @@ class LocalIKSolver(Solver[LocalIKData, LocalIKSolution]):
         v_init_jnp = jnp.array(v_init) if v_init is not None else jnp.zeros(self.model.nv)
 
         if v_init_jnp.shape != (self.model.nv,):
-            raise ValueError(f"Invalid dimension of the velocity: expected ({self.model.nv}, ), got {v_init_jnp.shape}")
+            raise ValueError(
+                f"Invalid dimension of the velocity: expected ({self.model.nv}, ), got {v_init_jnp.shape}"
+            )
 
         return LocalIKData(v_prev=v_init_jnp)

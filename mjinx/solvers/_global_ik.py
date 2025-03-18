@@ -160,15 +160,15 @@ class GlobalIKSolver(Solver[GlobalIKData, GlobalIKSolution]):
 
     def solve_from_data(
         self,
+        model_data: mjx.Data,
         solver_data: GlobalIKData,
         problem_data: JaxProblemData,
-        model_data: mjx.Data,
     ) -> tuple[GlobalIKSolution, GlobalIKData]:
         """Solve the Global IK problem using pre-computed data.
 
+        :param model_data: The MuJoCo model data.
         :param solver_data: The solver-specific data.
         :param problem_data: The problem-specific data.
-        :param model_data: The MuJoCo model data.
         :return: A tuple containing the solver solution and updated solver data.
         """
         return self.solve(model_data.qpos, solver_data=solver_data, problem_data=problem_data)
