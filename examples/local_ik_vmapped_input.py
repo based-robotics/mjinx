@@ -146,6 +146,7 @@ dt = 1e-2
 ts = np.arange(0, 10.0, dt)
 
 # Performance tracking
+compile_times = []
 solve_times = []
 integrate_times = []
 n_steps = 0
@@ -154,7 +155,10 @@ try:
     for t in ts:
         # Changing desired values
         frame_task.target_frame = np.array([0.4 + 0.3 * np.sin(t), 0.2, 0.4 + 0.3 * np.cos(t), 1, 0, 0, 0])
+        t1 = perf_counter()
         problem_data = problem.compile()
+        t2 = perf_counter()
+        compile_times.append(t2 - t1)
 
         # Solving the instance of the problem
         t1 = perf_counter()
@@ -191,6 +195,10 @@ finally:
     print("\n=== Performance Report ===")
     print(f"Total steps completed: {n_steps}")
     print("\nComputation times per step:")
+    if compile_times:
+        avg_compile = sum(compile_times) / len(compile_times)
+        std_compile = np.std(compile_times)
+        print(f"compile        : {avg_compile * 1000:8.3f} ± {std_compile * 1000:8.3f} ms")
     if solve_times:
         avg_solve = sum(solve_times) / len(solve_times)
         std_solve = np.std(solve_times)
@@ -201,6 +209,8 @@ finally:
         print(f"integrate      : {avg_integrate * 1000:8.3f} ± {std_integrate * 1000:8.3f} ms")
 
     if solve_times and integrate_times:
-        avg_total = sum(t1 + t2 for t1, t2 in zip(solve_times, integrate_times)) / len(solve_times)
+        avg_total = sum(t1 + t2 + t3 for t1, t2, t3 in zip(compile_times, solve_times, integrate_times)) / len(
+            solve_times
+        )
         print(f"\nAverage computation time per step: {avg_total * 1000:.3f} ms")
         print(f"Effective computation rate: {1 / avg_total:.1f} Hz")

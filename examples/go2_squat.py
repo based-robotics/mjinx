@@ -131,6 +131,29 @@ solve_jit = jax.jit(
 )
 integrate_jit = jax.jit(jax.vmap(integrate, in_axes=(None, 0, 0, None)), static_argnames=["dt"])
 
+
+def get_frame_traj(i: int, t: float) -> np.ndarray:
+    angle = np.pi / 8 * np.sin(t + 2 * np.pi * i / N_batch)
+    R = jnp.array(
+        [
+            [jnp.cos(angle), 0, jnp.sin(angle)],
+            [0, 1, 0],
+            [-jnp.sin(angle), 0, jnp.cos(angle)],
+        ]
+    )
+    return SE3.from_rotation_and_translation(
+        SO3.from_matrix(R),
+        np.zeros(3),
+    )
+
+
+def get_com_traj(i: int, t: float) -> np.ndarray:
+    return jnp.array([0.0, 0.0, 0.2 + 0.1 * jnp.sin(t + 2 * jnp.pi * i / N_batch + jnp.pi / 2)])
+
+
+get_frame_traj_vmapped = jax.jit(jax.vmap(get_frame_traj, in_axes=(0, None)))
+get_com_traj_vmapped = jax.jit(jax.vmap(get_com_traj, in_axes=(0, None)))
+
 t_warmup = perf_counter()
 print("Performing warmup calls...")
 # Warmup iterations for JIT compilation
@@ -143,6 +166,9 @@ problem_data = problem.compile()
 opt_solution, solver_data = solve_jit(q, solver_data, problem_data)
 q_warmup = integrate_jit(mjx_model, q, opt_solution.v_opt, 1e-2)
 
+get_frame_traj_vmapped(jnp.arange(N_batch), 0.0)
+get_com_traj_vmapped(jnp.arange(N_batch), 0.0)
+
 t_warmup_duration = perf_counter() - t_warmup
 print(f"Warmup completed in {t_warmup_duration:.3f} seconds")
 
@@ -151,19 +177,8 @@ print("\n=== Starting main loop ===")
 dt = 1e-2
 ts = np.arange(0, 20, dt)
 
-
-def get_rotation(t: float, idx: int) -> np.ndarray:
-    angle = np.pi / 8 * np.sin(t + 2 * np.pi * idx / N_batch)
-    return np.array(
-        [
-            [np.cos(angle), 0, np.sin(angle)],
-            [0, 1, 0],
-            [-np.sin(angle), 0, np.cos(angle)],
-        ]
-    )
-
-
 # Performance tracking
+compile_times = []
 solve_times = []
 integrate_times = []
 n_steps = 0
@@ -171,20 +186,14 @@ n_steps = 0
 try:
     for t in ts:
         # Changing desired values
-        frame_task.target_frame = SE3.from_rotation_and_translation(
-            SO3.from_matrix(
-                np.stack(
-                    [get_rotation(t, i) for i in range(N_batch)],
-                    axis=0,
-                ),
-            ),
-            np.zeros((N_batch, 3)),
-        )
-        com_task.target_com = np.array(
-            [[0.0, 0.0, 0.2 + 0.1 * np.sin(t + 2 * np.pi * i / N_batch + np.pi / 2)] for i in range(N_batch)]
-        )
+        frame_task.target_frame = get_frame_traj_vmapped(jnp.arange(N_batch), t)
+        com_task.target_com = get_com_traj_vmapped(jnp.arange(N_batch), t)
+
         # After changes, recompiling the model
+        t1 = perf_counter()
         problem_data = problem.compile()
+        t2 = perf_counter()
+        compile_times.append(t2 - t1)
 
         # Solving the instance of the problem
         t1 = perf_counter()
@@ -220,6 +229,10 @@ finally:
     print("\n=== Performance Report ===")
     print(f"Total steps completed: {n_steps}")
     print("\nComputation times per step:")
+    if compile_times:
+        avg_compile = sum(compile_times) / len(compile_times)
+        std_compile = np.std(compile_times)
+        print(f"compile        : {avg_compile * 1000:8.3f} ± {std_compile * 1000:8.3f} ms")
     if solve_times:
         avg_solve = sum(solve_times) / len(solve_times)
         std_solve = np.std(solve_times)
@@ -230,6 +243,8 @@ finally:
         print(f"integrate      : {avg_integrate * 1000:8.3f} ± {std_integrate * 1000:8.3f} ms")
 
     if solve_times and integrate_times:
-        avg_total = sum(t1 + t2 for t1, t2 in zip(solve_times, integrate_times)) / len(solve_times)
+        avg_total = sum(t1 + t2 + t3 for t1, t2, t3 in zip(compile_times, solve_times, integrate_times)) / len(
+            solve_times
+        )
         print(f"\nAverage computation time per step: {avg_total * 1000:.3f} ms")
         print(f"Effective computation rate: {1 / avg_total:.1f} Hz")

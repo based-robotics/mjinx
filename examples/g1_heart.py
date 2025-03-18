@@ -41,7 +41,7 @@ q_max = mj_model.jnt_range[:, 1].copy()
 # --- Mujoco visualization ---
 print("Setting up visualization...")
 # Initialize render window and launch it at the background
-vis = BatchVisualizer(MODEL_PATH, n_models=10, alpha=0.1, record=False)
+vis = BatchVisualizer(MODEL_PATH, n_models=8, alpha=0.1, record=False)
 vis.add_markers(
     name=[f"left_arm_{i}" for i in range(vis.n_models)],
     size=0.035,
@@ -141,13 +141,11 @@ print("Initializing solver...")
 solver = LocalIKSolver(mjx_model, maxiter=10)
 
 # Initializing initial condition
-N_batch = 500
-q0 = mj_model.keyframe("stand").qpos
+N_batch = 1024
+q0 = jnp.array(mj_model.keyframe("stand").qpos)
 q = jnp.tile(q0, (N_batch, 1))
 
-# TODO: implement update_from_model_data
-mjx_data = update(mjx_model, jnp.array(q0))
-
+mjx_data = update(mjx_model, mjx.make_data(mjx_model).replace(qpos=q0))
 com_pos = mjx_data.subtree_com[mjx_model.body_rootid[0]]
 com_task.target_com = com_pos[:2]
 
@@ -170,68 +168,63 @@ with problem.set_vmap_dimension() as empty_problem_data:
 solve_jit = jax.jit(
     jax.vmap(
         solver.solve,
-        in_axes=(0, 0, empty_problem_data),
+        in_axes=(0, None, None, empty_problem_data),
     )
 )
 integrate_jit = jax.jit(jax.vmap(integrate, in_axes=(None, 0, 0, None)), static_argnames=["dt"])
+
+
+def heart_curve(t: jnp.ndarray, p0: jnp.ndarray) -> jnp.ndarray:
+    """Heart-like function using JAX.
+
+    The function is shifted so that heart_curve(0) = p0.
+
+    :param t: time, a.k.a phase as a JAX ndarray
+    :param p0: initial heart shift, defaults to zeros
+    :return: point on the heart contour as a JAX ndarray
+    :ref: https://pavpanchekha.com/blog/heart-polar-coordinates.html
+    """
+    # Shift the phase
+    t = t + jnp.pi / 2
+
+    # Polar coordinates formula using JAX
+    r = 0.1 * (jnp.sin(t) * jnp.sqrt(jnp.abs(jnp.cos(t))) / (jnp.sin(t) + 7 / 5) - 2 * jnp.sin(t) + 2)
+    # Cartesian coordinates formula
+    pts = jnp.array([0, r * jnp.cos(t), r * jnp.sin(t)])
+
+    # Use provided initial point or default to zero vector
+    p0 = p0 if p0 is not None else jnp.zeros(3)
+
+    return jnp.concatenate([p0 + pts, jnp.array([1, 0, 0, 0])])
+
+
+def triangle_wave(t: jnp.ndarray) -> jnp.ndarray:
+    """Triangle wave using JAX.
+
+    The output amplitude ranges from 0 to pi, with a period of 2*pi.
+
+    :param t: input variable as a JAX ndarray
+    :return: triangle wave output as a JAX ndarray
+    """
+    mod_t = t % (2 * jnp.pi)
+    return jnp.where(mod_t < jnp.pi, mod_t % jnp.pi, jnp.pi - (mod_t % jnp.pi))
+
+
+heart_curve_vmapped = jax.jit(jax.vmap(heart_curve, in_axes=(0, None)))
+triangle_wave_vmapped = jax.jit(jax.vmap(triangle_wave, in_axes=0))
 
 t_warmup = perf_counter()
 print("Performing warmup calls...")
 # Warmup iterations for JIT compilation
 p0 = np.array([0.25, 0.0, 0.9])
-right_series = np.linspace(0, np.pi, N_batch)
+
+right_series = triangle_wave_vmapped(np.linspace(0, np.pi, N_batch))
 left_series = 2 * np.pi - right_series
+left_arm_task.target_frame = heart_curve_vmapped(left_series, p0)
+right_arm_task.target_frame = heart_curve_vmapped(right_series, p0)
 
-
-def heart_curve(t: np.ndarray, p0: np.ndarray | None = None) -> np.ndarray:
-    """Heart-like function.
-
-    Function is shifted so that heart_curve(0) = p0.
-
-    :param t: time, a.k.a phase
-    :param p0: initial heart shift, defaults to zero
-    :return: point on the heart contour
-    :ref: https://pavpanchekha.com/blog/heart-polar-coordinates.html
-    """
-    # Shift the phase
-    t += np.pi / 2
-
-    # Polar coordinates formula
-    r = 0.1 * (np.sin(t) * np.sqrt(abs(np.cos(t))) / (np.sin(t) + 7 / 5) - 2 * np.sin(t) + 2)
-    # Cartesian coordinates formula
-    pts = np.array([np.zeros_like(t), r * np.cos(t), r * np.sin(t)])
-
-    # Shift the cartesian point w.r.t. initial point
-    p0 = p0 if p0 is not None else np.zeros(3)
-
-    return np.tile(p0, (len(t), 1)) + pts.T
-
-
-def triangle_wave(t: np.ndarray) -> np.ndarray:
-    """Triangle wave, amplitude is from 0 to pi, and frequency pi
-
-    :param t: input variable
-    :return: output variable
-    """
-    return np.where(t % (2 * np.pi) < np.pi, t % np.pi, np.pi - (t % np.pi))
-
-
-left_arm_task.target_frame = np.concatenate(
-    (
-        heart_curve(left_series, p0),
-        np.tile(np.array((1, 0, 0, 0)), (N_batch, 1)),
-    ),
-    axis=1,
-)
-right_arm_task.target_frame = np.concatenate(
-    (
-        heart_curve(right_series, p0),
-        np.tile(np.array((1, 0, 0, 0)), (N_batch, 1)),
-    ),
-    axis=1,
-)
 problem_data = problem.compile()
-opt_solution, solver_data = solve_jit(q, solver_data, problem_data)
+opt_solution, solver_data = solve_jit(q, mjx_data, solver_data, problem_data)
 q_warmup = integrate_jit(mjx_model, q, opt_solution.v_opt, 1e-2)
 
 t_warmup_duration = perf_counter() - t_warmup
@@ -246,6 +239,7 @@ ts = np.arange(0, 10, dt)
 p0 = np.array([0.25, 0.0, 0.9])
 
 # Performance tracking
+compile_times = []
 solve_times = []
 integrate_times = []
 n_steps = 0
@@ -253,29 +247,21 @@ n_steps = 0
 try:
     for t in ts:
         # Changing desired values
-        right_series = triangle_wave(np.linspace(t, np.pi + t, N_batch))
+        right_series = triangle_wave_vmapped(np.linspace(t, np.pi + t, N_batch))
         left_series = 2 * np.pi - right_series
-        left_arm_task.target_frame = np.concatenate(
-            (
-                heart_curve(left_series, p0),
-                np.tile(np.array((1, 0, 0, 0)), (N_batch, 1)),
-            ),
-            axis=1,
-        )
-        right_arm_task.target_frame = np.concatenate(
-            (
-                heart_curve(right_series, p0),
-                np.tile(np.array((1, 0, 0, 0)), (N_batch, 1)),
-            ),
-            axis=1,
-        )
 
+        left_arm_task.target_frame = heart_curve_vmapped(left_series, p0)
+        right_arm_task.target_frame = heart_curve_vmapped(right_series, p0)
         # After changes, recompiling the model
+        t1 = perf_counter()
         problem_data = problem.compile()
+        t2 = perf_counter()
+        compile_times.append(t2 - t1)
+        print(f"t: {(t2 - t1) * 1e3:.2f}")
 
         # Solving the instance of the problem
         t1 = perf_counter()
-        opt_solution, solver_data = solve_jit(q, solver_data, problem_data)
+        opt_solution, solver_data = solve_jit(q, mjx_data, solver_data, problem_data)
         t2 = perf_counter()
         solve_times.append(t2 - t1)
 
@@ -314,6 +300,10 @@ finally:
     print("\n=== Performance Report ===")
     print(f"Total steps completed: {n_steps}")
     print("\nComputation times per step:")
+    if compile_times:
+        avg_compile = sum(compile_times) / len(compile_times)
+        std_compile = np.std(compile_times)
+        print(f"compile        : {avg_compile * 1000:8.3f} ± {std_compile * 1000:8.3f} ms")
     if solve_times:
         avg_solve = sum(solve_times) / len(solve_times)
         std_solve = np.std(solve_times)
@@ -324,6 +314,8 @@ finally:
         print(f"integrate      : {avg_integrate * 1000:8.3f} ± {std_integrate * 1000:8.3f} ms")
 
     if solve_times and integrate_times:
-        avg_total = sum(t1 + t2 for t1, t2 in zip(solve_times, integrate_times)) / len(solve_times)
+        avg_total = sum(t1 + t2 + t3 for t1, t2, t3 in zip(compile_times, solve_times, integrate_times)) / len(
+            solve_times
+        )
         print(f"\nAverage computation time per step: {avg_total * 1000:.3f} ms")
         print(f"Effective computation rate: {1 / avg_total:.1f} Hz")

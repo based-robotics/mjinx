@@ -36,7 +36,7 @@ q_max = mj_model.jnt_range[:, 1].copy()
 
 # --- Mujoco visualization ---
 print("Setting up visualization...")
-vis = BatchVisualizer(MJCF_PATH, n_models=5, alpha=0.5, record=False)
+vis = BatchVisualizer(MJCF_PATH, n_models=4, alpha=0.5, record=False)
 
 # Initialize a sphere marker for end-effector task
 vis.add_markers(
@@ -96,7 +96,7 @@ print("Initializing solver...")
 solver = LocalIKSolver(mjx_model, maxiter=10)
 
 # Initializing initial condition
-N_batch = 1000
+N_batch = 65536
 np.random.seed(42)
 q0 = jnp.array(
     [
@@ -140,6 +140,22 @@ with problem.set_vmap_dimension() as empty_problem_data:
 solve_jit = jax.jit(jax.vmap(solver.solve, in_axes=(0, 0, empty_problem_data)))
 integrate_jit = jax.jit(jax.vmap(integrate, in_axes=(None, 0, 0, None)), static_argnames=["dt"])
 
+
+def compute_target_frame(i, t):
+    return jnp.array(
+        [
+            0.4 + 0.3 * jnp.sin(t + 2 * jnp.pi * i / N_batch),
+            0.2,
+            0.4 + 0.3 * jnp.cos(t + 2 * jnp.pi * i / N_batch),
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+        ]
+    )
+
+
+compute_target_frame_vmapped = jax.jit(jax.vmap(compute_target_frame, in_axes=(0, None)))
 t_warmup = perf_counter()
 print("Performing warmup calls...")
 # Warmup iterations for JIT compilation
@@ -147,6 +163,7 @@ frame_task.target_frame = np.array([[0.4, 0.2, 0.7, 1, 0, 0, 0] for _ in range(N
 problem_data = problem.compile()
 opt_solution, _ = solve_jit(q, solver_data, problem_data)
 q_warmup = integrate_jit(mjx_model, q, opt_solution.v_opt, 0)
+compute_target_frame_vmapped(jnp.arange(N_batch), 0)
 
 t_warmup_duration = perf_counter() - t_warmup
 print(f"Warmup completed in {t_warmup_duration:.3f} seconds")
@@ -157,6 +174,7 @@ dt = 2e-2
 ts = np.arange(0, 20, dt)
 
 # Performance tracking
+compile_times = []
 solve_times = []
 integrate_times = []
 n_steps = 0
@@ -164,21 +182,12 @@ n_steps = 0
 try:
     for t in ts:
         # Changing desired values
-        frame_task.target_frame = np.array(
-            [
-                [
-                    0.4 + 0.3 * np.sin(t + 2 * np.pi * i / N_batch),
-                    0.2,
-                    0.4 + 0.3 * np.cos(t + 2 * np.pi * i / N_batch),
-                    1,
-                    0,
-                    0,
-                    0,
-                ]
-                for i in range(N_batch)
-            ]
-        )
+        i = jnp.arange(N_batch)
+        frame_task.target_frame = compute_target_frame_vmapped(i, t)
+        t1 = perf_counter()
         problem_data = problem.compile()
+        t2 = perf_counter()
+        compile_times.append(t2 - t1)
 
         # Solving the instance of the problem
         t1 = perf_counter()
@@ -216,6 +225,10 @@ finally:
     print("\n=== Performance Report ===")
     print(f"Total steps completed: {n_steps}")
     print("\nComputation times per step:")
+    if compile_times:
+        avg_compile = sum(compile_times) / len(compile_times)
+        std_compile = np.std(compile_times)
+        print(f"compile        : {avg_compile * 1000:8.3f} ± {std_compile * 1000:8.3f} ms")
     if solve_times:
         avg_solve = sum(solve_times) / len(solve_times)
         std_solve = np.std(solve_times)
@@ -226,6 +239,8 @@ finally:
         print(f"integrate      : {avg_integrate * 1000:8.3f} ± {std_integrate * 1000:8.3f} ms")
 
     if solve_times and integrate_times:
-        avg_total = sum(t1 + t2 for t1, t2 in zip(solve_times, integrate_times)) / len(solve_times)
+        avg_total = sum(t1 + t2 + t3 for t1, t2, t3 in zip(compile_times, solve_times, integrate_times)) / len(
+            solve_times
+        )
         print(f"\nAverage computation time per step: {avg_total * 1000:.3f} ms")
         print(f"Effective computation rate: {1 / avg_total:.1f} Hz")
