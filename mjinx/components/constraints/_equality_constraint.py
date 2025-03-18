@@ -1,6 +1,7 @@
 from collections.abc import Sequence
 from typing import TypeVar
 
+import jax
 import jax.numpy as jnp  # noqa: F401
 import jax_dataclasses as jdc
 import mujoco as mj
@@ -35,7 +36,9 @@ class JaxModelEqualityConstraint(JaxConstraint):
         :param data: The MuJoCo simulation data.
         :return: A jax.numpy.ndarray containing the equality constraint values.
         """
-        return data.efc_pos[data.efc_type == mj.mjtConstraint.mjCNSTR_EQUALITY][self.mask_idxs,]
+        # FIXME: this works under (valid according to implementation) assumption that the first
+        # equalities are the equality ones
+        return data.efc_pos[: self.dim][self.mask_idxs,]
 
     def compute_jacobian(self, data: mjx.Data) -> jnp.ndarray:
         """
@@ -47,7 +50,9 @@ class JaxModelEqualityConstraint(JaxConstraint):
         :param data: The MuJoCo simulation data.
         :return: A jax.numpy.ndarray representing the Jacobian matrix of the equality constraints.
         """
-        return data.efc_J[data.efc_type == mj.mjtConstraint.mjCNSTR_EQUALITY, :][self.mask_idxs, :]
+        # FIXME: this works under (valid according to implementation) assumption that the first
+        # equalities are the equality ones
+        return data.efc_J[: self.dim][self.mask_idxs,]
 
 
 AtomicModelEqualityConstraintType = TypeVar("AtomicModelEqualityConstraintType", bound=JaxModelEqualityConstraint)
@@ -127,3 +132,10 @@ class ModelEqualityConstraint(Constraint[AtomicModelEqualityConstraintType]):
 
         self._mask_idxs = jnp.arange(nefc)
         self._dim = nefc
+
+        self._jax_component = jdc.replace(
+            self._jax_component,
+            dim=nefc,
+            mask_idxs=self.mask_idxs,
+            soft_constraint_cost=self.soft_constraint_cost,
+        )

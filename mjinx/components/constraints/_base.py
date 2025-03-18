@@ -15,12 +15,10 @@ class JaxConstraint(JaxComponent):
 
     This class defines an equality constraint function f(x) = 0 for optimization tasks.
 
-    :param active: Indicates whether the constraint is active.
     :param hard_constraint: A flag that specifies if the constraint is hard (True) or soft (False).
     :param soft_constraint_cost: The cost matrix used for soft constraint relaxation.
     """
 
-    active: bool
     hard_constraint: jdc.Static[bool]
     soft_constraint_cost: jnp.ndarray
 
@@ -65,11 +63,9 @@ class Constraint(Generic[AtomicConstraintType], Component[AtomicConstraintType])
 
     :param matrix_cost: The cost matrix associated with the task.
     :param lm_damping: The Levenberg-Marquardt damping factor.
-    :param active: Determines if the constraint is active.
     :param hard_constraint: Indicates whether the constraint is hard (True) or soft (False).
     """
 
-    active: bool
     _soft_constraint_cost: jnp.ndarray | None
     hard_constraint: bool
 
@@ -95,9 +91,12 @@ class Constraint(Generic[AtomicConstraintType], Component[AtomicConstraintType])
         :param soft_constraint_cost: The cost used to relax a soft constraint. If not provided, a default high gain cost matrix (scaled identity matrix) based on the component dimension will be used.
         """
         super().__init__(name, gain, gain_fn=None, mask=mask)
-        self.active = True
         self.hard_constraint = hard_constraint
         self._soft_constraint_cost = jnp.array(soft_constraint_cost) if soft_constraint_cost is not None else None
+        self._jax_component = jdc.replace(
+            self._jax_component,
+            hard_constraint=hard_constraint,
+        )
 
     @property
     def soft_constraint_cost(self) -> jnp.ndarray:

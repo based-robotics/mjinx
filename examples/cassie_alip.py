@@ -211,7 +211,7 @@ q_max = mj_model.jnt_range[:, 1].copy()
 
 # --- Mujoco visualization ---
 # Initialize render window and launch it at the background
-vis = BatchVisualizer(MJCF_PATH, n_models=8, alpha=0.2, record=True)
+vis = BatchVisualizer(MJCF_PATH, n_models=8, alpha=0.2)
 com_marker_names = [f"com_marker_{i}" for i in range(vis.n_models)]
 left_foot_marker_names = [f"left_foot_marker_{i}" for i in range(vis.n_models)]
 right_foot_marker_names = [f"right_foot_marker_{i}" for i in range(vis.n_models)]
