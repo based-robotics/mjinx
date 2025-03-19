@@ -192,12 +192,14 @@ try:
         # Changing desired values
         t1 = perf_counter()
         problem_data = problem.compile()
+        jax.block_until_ready(problem_data)
         t2 = perf_counter()
         compile_times.append(t2 - t1)
 
         # Solving the instance of the problem
         t1 = perf_counter()
         opt_solution, solver_data = solve_jit(q, mjx_data, solver_data, problem_data)
+        jax.block_until_ready(opt_solution)
         t2 = perf_counter()
         solve_times.append(t2 - t1)
 
@@ -209,6 +211,7 @@ try:
             opt_solution.v_opt,
             dt,
         )
+        jax.block_until_ready(q)
         t2 = perf_counter()
         integrate_times.append(t2 - t1)
 
@@ -222,7 +225,7 @@ except Exception:
 finally:
     # Print performance report
     print("\n=== Performance Report ===")
-    print(f"Total steps completed: {n_steps}")
+    print(f"Total steps completed: {n_steps}; N_batch: {N_batch}")
     print("\nComputation times per step:")
     if compile_times:
         avg_compile = sum(compile_times) / len(compile_times)

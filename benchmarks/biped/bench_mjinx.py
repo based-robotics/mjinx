@@ -155,7 +155,7 @@ except Exception:
 finally:
     # Performance report
     print("\n=== Performance Report ===")
-    print(f"Total steps completed: {n_steps}")
+    print(f"Total steps completed: {n_steps}; N_batch: {N_batch}")
     if compile_times:
         avg_compile = sum(compile_times) / len(compile_times)
         std_compile = np.std(compile_times)

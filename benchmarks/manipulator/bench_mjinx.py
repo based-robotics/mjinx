@@ -37,7 +37,7 @@ print("Initializing solver...")
 solver = LocalIKSolver(mjx_model, maxiter=10)
 
 # Initializing initial condition
-N_batch = 1024
+N_batch = 16384
 q0 = mj_model.keyframe("home").qpos
 q_min = mj_model.jnt_range[:, 0].copy()
 q_max = mj_model.jnt_range[:, 1].copy()
@@ -117,7 +117,7 @@ except Exception as e:
 finally:
     # Print performance report
     print("\n=== Performance Report ===")
-    print(f"Total steps completed: {n_steps}")
+    print(f"Total steps completed: {n_steps}; N_batch: {N_batch}")
     print("\nComputation times per step:")
     if compile_times:
         avg_compile = sum(compile_times) / len(compile_times)
