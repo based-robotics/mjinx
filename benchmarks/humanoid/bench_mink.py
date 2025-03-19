@@ -94,6 +94,8 @@ if __name__ == "__main__":
     pelvis_orientation_task.set_target_from_configuration(configuration)
     torso_orientation_task.set_target_from_configuration(configuration)
     posture_task.set_target_from_configuration(configuration)
+    feet_tasks[0].set_target_from_configuration(configuration)
+    feet_tasks[1].set_target_from_configuration(configuration)
 
     # For defined trajectories we use initial COM and fixed offsets.
     # Get initial center-of-mass.
