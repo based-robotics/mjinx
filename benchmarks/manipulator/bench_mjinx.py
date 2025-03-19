@@ -37,7 +37,7 @@ print("Initializing solver...")
 solver = LocalIKSolver(mjx_model, maxiter=10)
 
 # Initializing initial condition
-N_batch = 8192
+N_batch = 1024
 q0 = mj_model.keyframe("home").qpos
 q_min = mj_model.jnt_range[:, 0].copy()
 q_max = mj_model.jnt_range[:, 1].copy()
