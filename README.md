@@ -6,9 +6,12 @@
 [![PyPI downloads](https://img.shields.io/pypi/dm/mjinx?color=blue)](https://pypistats.org/packages/mjinx)
 [![Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/based-robotics/mjinx/blob/main/examples/notebooks/turoial.ipynb)
 
+<p align="center">
+  <img src="img/logo.svg" style="width: 400px" />
+</p>
 
 
-**Mjinx** is a library for auto-differentiable numerical inverse kinematics, powered by **JAX** and **Mujoco MJX**. The library was heavily inspired by the similar Pinocchio-based tool [pink](https://github.com/stephane-caron/pink/tree/main) and Mujoco-based analogue [mink](https://github.com/kevinzakka/mink/tree/main).
+**Mjinx** is a library for auto-differentiable numerical inverse kinematics built on **JAX** and **Mujoco MJX**. It draws inspiration from similar tools like the Pinocchio-based [pink](https://github.com/stephane-caron/pink/tree/main) and Mujoco-based [mink](https://github.com/kevinzakka/mink/tree/main).
 
 <p align="center">
   <img src="img/local_ik_output.gif" style="width: 200px" />
@@ -16,15 +19,15 @@
   <img src="img/g1_heart.gif" style="width: 200px"/>
 </p>
 
-## Key features
-1. *Flexibility*. Each control problem is assembled via `Components`, which enforce desired behaviour or keeps system in a safety set. 
-2. *Different solution approaches*. `JAX` (i.e. it's efficient sampling and autodifferentiation) allows to implement variety of solvers, which might be more beneficial in different scenarios.
-3. *Fully Jax-compatible*. Both optimal control problem and its solver are jax-compatible: jit-compilation and automatic vectorization are available for the whole problem.
-4. *Convinience*. The functionality is nicely wrapped to make the interaction with it easier.
+## Key Features
+1. **Flexibility**. Problems are constructed using modular `Components` that enforce desired behaviors or maintain system safety constraints.
+2. **Multiple Solution Strategies**. Leveraging JAX's efficient sampling and automatic differentiation capabilities, MJINX implements various solvers optimized for different robotics scenarios.
+3. **Full JAX Compatibility**. Both the optimal control formulation and solvers are fully JAX-compatible, enabling JIT compilation and automatic vectorization across the entire pipeline.
+4. **User-Friendly Interface**. The API is designed with a clean, intuitive interface that simplifies complex inverse kinematics tasks while maintaining advanced functionality.
 
 ## Installation
 The package is available in PyPI registry, and could be installed via `pip`:
-```python
+```bash
 pip install mjinx
 ```
 
