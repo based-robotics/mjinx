@@ -7,7 +7,7 @@
 [![Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/based-robotics/mjinx/blob/main/examples/notebooks/turoial.ipynb)
 
 <p align="center">
-  <img src="img/logo.svg" style="width: 400px" />
+  <img src="img/logo.svg" style="width: 500px" />
 </p>
 
 
