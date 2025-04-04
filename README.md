@@ -1,4 +1,4 @@
-# MJINX
+<!-- # MJINX -->
 [![mypy](https://img.shields.io/github/actions/workflow/status/based-robotics/mjinx/mypy.yml?branch=main&label=mypy)](https://github.com/based-robotics/mjinx/actions)
 [![ruff](https://img.shields.io/github/actions/workflow/status/based-robotics/mjinx/ruff.yml?branch=main&label=ruff)](https://github.com/based-robotics/mjinx/actions)
 [![docs](https://img.shields.io/github/actions/workflow/status/based-robotics/mjinx/docs.yml?branch=main&label=docs)](https://based-robotics.github.io/mjinx/)
@@ -7,25 +7,29 @@
 [![Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/based-robotics/mjinx/blob/main/examples/notebooks/turoial.ipynb)
 
 
-
-**Mjinx** is a library for auto-differentiable numerical inverse kinematics, powered by **JAX** and **Mujoco MJX**. The library was heavily inspired by the similar Pinocchio-based tool [pink](https://github.com/stephane-caron/pink/tree/main) and Mujoco-based analogue [mink](https://github.com/kevinzakka/mink/tree/main).
-
 <p align="center">
-  <img src="img/local_ik_output.gif" style="width: 400px" />
-  <img src="img/go2_stance.gif" style="width: 400px" /> 
-  <img src="img/g1_heart.gif" style="width: 400px"/>
-  <img src="img/cassie_caravan.gif" style="width: 400px"/>
+  <img src="img/logo.svg" style="width: 500px" />
 </p>
 
-## Key features
-1. *Flexibility*. Each control problem is assembled via `Components`, which enforce desired behaviour or keeps system in a safety set. 
-2. *Different solution approaches*. `JAX` (i.e. it's efficient sampling and autodifferentiation) allows to implement variety of solvers, which might be more beneficial in different scenarios.
-3. *Fully Jax-compatible*. Both optimal control problem and its solver are jax-compatible: jit-compilation and automatic vectorization are available for the whole problem.
-4. *Convinience*. The functionality is nicely wrapped to make the interaction with it easier.
+
+**MJINX** is a python library for auto-differentiable numerical inverse kinematics built on **JAX** and **Mujoco MJX**. It draws inspiration from similar tools like the Pinocchio-based [PINK](https://github.com/stephane-caron/pink/tree/main) and Mujoco-based [MINK](https://github.com/kevinzakka/mink/tree/main).
+
+<p align="center">
+  <img src="img/local_ik_output.gif" style="width: 300px" />
+  <img src="img/go2_stance.gif" style="width: 300px" /> 
+  <img src="img/g1_heart.gif" style="width: 300px"/>
+  <img src="img/cassie_caravan.gif" style="width: 300px"/>
+</p>
+
+## Key Features
+1. **Flexibility**. Problems are constructed using modular `Components` that enforce desired behaviors or maintain system safety constraints.
+2. **Multiple Solution Strategies**. Leveraging JAX's efficient sampling and automatic differentiation capabilities, MJINX implements various solvers optimized for different robotics scenarios.
+3. **Full JAX Compatibility**. Both the optimal control formulation and solvers are fully JAX-compatible, enabling JIT compilation and automatic vectorization across the entire pipeline.
+4. **User-Friendly Interface**. The API is designed with a clean, intuitive interface that simplifies complex inverse kinematics tasks while maintaining advanced functionality.
 
 ## Installation
 The package is available in PyPI registry, and could be installed via `pip`:
-```python
+```bash
 pip install mjinx
 ```
 
