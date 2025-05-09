@@ -1,0 +1,801 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Solvers &mdash; mjinx 0.1.1 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="_static/custom.css?v=3cbe8de9" />
+
+  
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=a58bc63e"></script>
+      <script src="_static/doctools.js?v=9bcbadda"></script>
+      <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Visualization" href="visualization.html" />
+    <link rel="prev" title="Base Constraint" href="constraints.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            mjinx
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="quick_start.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="problem.html">Problem</a></li>
+<li class="toctree-l1"><a class="reference internal" href="configuration.html">Configuration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="components.html">Components</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Solvers</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#base-solver">Base Solver</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#mjinx.solvers._base.SolverData"><code class="docutils literal notranslate"><span class="pre">SolverData</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#mjinx.solvers._base.SolverSolution"><code class="docutils literal notranslate"><span class="pre">SolverSolution</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#mjinx.solvers._base.SolverSolution.v_opt"><code class="docutils literal notranslate"><span class="pre">SolverSolution.v_opt</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#mjinx.solvers._base.Solver"><code class="docutils literal notranslate"><span class="pre">Solver</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#mjinx.solvers._base.Solver.model"><code class="docutils literal notranslate"><span class="pre">Solver.model</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#mjinx.solvers._base.Solver.solve_from_data"><code class="docutils literal notranslate"><span class="pre">Solver.solve_from_data()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#mjinx.solvers._base.Solver.solve"><code class="docutils literal notranslate"><span class="pre">Solver.solve()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#mjinx.solvers._base.Solver.init"><code class="docutils literal notranslate"><span class="pre">Solver.init()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#local-ik-solver">Local IK Solver</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#mjinx.solvers._local_ik.OSQPParameters"><code class="docutils literal notranslate"><span class="pre">OSQPParameters</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#mjinx.solvers._local_ik.OSQPParameters.check_primal_dual_infeasability"><code class="docutils literal notranslate"><span class="pre">OSQPParameters.check_primal_dual_infeasability</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#mjinx.solvers._local_ik.OSQPParameters.sigma"><code class="docutils literal notranslate"><span class="pre">OSQPParameters.sigma</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#mjinx.solvers._local_ik.OSQPParameters.momentum"><code class="docutils literal notranslate"><span class="pre">OSQPParameters.momentum</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#mjinx.solvers._local_ik.OSQPParameters.eq_qp_solve"><code class="docutils literal notranslate"><span class="pre">OSQPParameters.eq_qp_solve</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#mjinx.solvers._local_ik.OSQPParameters.rho_start"><code class="docutils literal notranslate"><span class="pre">OSQPParameters.rho_start</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#mjinx.solvers._local_ik.OSQPParameters.rho_min"><code class="docutils literal notranslate"><span class="pre">OSQPParameters.rho_min</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#mjinx.solvers._local_ik.OSQPParameters.rho_max"><code class="docutils literal notranslate"><span class="pre">OSQPParameters.rho_max</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#mjinx.solvers._local_ik.OSQPParameters.stepsize_updates_frequency"><code class="docutils literal notranslate"><span class="pre">OSQPParameters.stepsize_updates_frequency</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#mjinx.solvers._local_ik.OSQPParameters.primal_infeasible_tol"><code class="docutils literal notranslate"><span class="pre">OSQPParameters.primal_infeasible_tol</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#mjinx.solvers._local_ik.OSQPParameters.dual_infeasible_tol"><code class="docutils literal notranslate"><span class="pre">OSQPParameters.dual_infeasible_tol</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#mjinx.solvers._local_ik.OSQPParameters.maxiter"><code class="docutils literal notranslate"><span class="pre">OSQPParameters.maxiter</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#mjinx.solvers._local_ik.OSQPParameters.tol"><code class="docutils literal notranslate"><span class="pre">OSQPParameters.tol</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#mjinx.solvers._local_ik.OSQPParameters.termination_check_frequency"><code class="docutils literal notranslate"><span class="pre">OSQPParameters.termination_check_frequency</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#mjinx.solvers._local_ik.OSQPParameters.implicit_diff_solve"><code class="docutils literal notranslate"><span class="pre">OSQPParameters.implicit_diff_solve</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#mjinx.solvers._local_ik.LocalIKData"><code class="docutils literal notranslate"><span class="pre">LocalIKData</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#mjinx.solvers._local_ik.LocalIKData.v_prev"><code class="docutils literal notranslate"><span class="pre">LocalIKData.v_prev</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#mjinx.solvers._local_ik.LocalIKSolution"><code class="docutils literal notranslate"><span class="pre">LocalIKSolution</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#mjinx.solvers._local_ik.LocalIKSolution.dual_var_eq"><code class="docutils literal notranslate"><span class="pre">LocalIKSolution.dual_var_eq</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#mjinx.solvers._local_ik.LocalIKSolution.dual_var_ineq"><code class="docutils literal notranslate"><span class="pre">LocalIKSolution.dual_var_ineq</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#mjinx.solvers._local_ik.LocalIKSolution.iterations"><code class="docutils literal notranslate"><span class="pre">LocalIKSolution.iterations</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#mjinx.solvers._local_ik.LocalIKSolution.error"><code class="docutils literal notranslate"><span class="pre">LocalIKSolution.error</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#mjinx.solvers._local_ik.LocalIKSolution.status"><code class="docutils literal notranslate"><span class="pre">LocalIKSolution.status</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#mjinx.solvers._local_ik.LocalIKSolver"><code class="docutils literal notranslate"><span class="pre">LocalIKSolver</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#mjinx.solvers._local_ik.LocalIKSolver.solve_from_data"><code class="docutils literal notranslate"><span class="pre">LocalIKSolver.solve_from_data()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#mjinx.solvers._local_ik.LocalIKSolver.init"><code class="docutils literal notranslate"><span class="pre">LocalIKSolver.init()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#global-ik-solver">Global IK Solver</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#mjinx.solvers._global_ik.GlobalIKData"><code class="docutils literal notranslate"><span class="pre">GlobalIKData</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#mjinx.solvers._global_ik.GlobalIKData.optax_state"><code class="docutils literal notranslate"><span class="pre">GlobalIKData.optax_state</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#mjinx.solvers._global_ik.GlobalIKSolution"><code class="docutils literal notranslate"><span class="pre">GlobalIKSolution</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#mjinx.solvers._global_ik.GlobalIKSolution.q_opt"><code class="docutils literal notranslate"><span class="pre">GlobalIKSolution.q_opt</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#mjinx.solvers._global_ik.GlobalIKSolver"><code class="docutils literal notranslate"><span class="pre">GlobalIKSolver</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#mjinx.solvers._global_ik.GlobalIKSolver.loss_fn"><code class="docutils literal notranslate"><span class="pre">GlobalIKSolver.loss_fn()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#mjinx.solvers._global_ik.GlobalIKSolver.solve_from_data"><code class="docutils literal notranslate"><span class="pre">GlobalIKSolver.solve_from_data()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#mjinx.solvers._global_ik.GlobalIKSolver.solve"><code class="docutils literal notranslate"><span class="pre">GlobalIKSolver.solve()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#mjinx.solvers._global_ik.GlobalIKSolver.init"><code class="docutils literal notranslate"><span class="pre">GlobalIKSolver.init()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="visualization.html">Visualization</a></li>
+<li class="toctree-l1"><a class="reference internal" href="references.html">References</a></li>
+<li class="toctree-l1"><a class="reference internal" href="developer-notes.html">Developer Notes</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">mjinx</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Solvers</li>
+      <li class="wy-breadcrumbs-aside">
+              <!-- User defined GitHub URL -->
+              <a href="https://github.com/based-robotics/mjinx/tree/docs/github_pages/docs/solvers.rst" class="fa fa-github"> Edit on GitHub</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="solvers">
+<span id="id1"></span><h1>Solvers<a class="headerlink" href="#solvers" title="Link to this heading"></a></h1>
+<p>MJINX provides multiple solver implementations for inverse kinematics problems, each with different characteristics suitable for various applications.</p>
+<section id="base-solver">
+<h2>Base Solver<a class="headerlink" href="#base-solver" title="Link to this heading"></a></h2>
+<p>The abstract base class defining the interface for all solvers.</p>
+<dl class="py class" id="module-mjinx.solvers._base">
+<dt class="sig sig-object py" id="mjinx.solvers._base.SolverData">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">SolverData</span></span><a class="headerlink" href="#mjinx.solvers._base.SolverData" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Base class for solver-specific data.</p>
+<p>This class serves as a placeholder for any data that a specific solver needs to maintain
+between iterations or function calls. It enables solver implementations to preserve
+state information and warm-start subsequent optimization steps.</p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="mjinx.solvers._base.SolverSolution">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">SolverSolution</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">v_opt</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mjinx.solvers._base.SolverSolution" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Base class for solver solutions.</p>
+<p>This class provides the structure for returning optimization results. It contains
+the optimal velocity solution and can be extended by specific solvers to include
+additional solution information.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>v_opt</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.jax.dev/en/latest/_autosummary/jax.Array.html#jax.Array" title="(in JAX)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Array</span></code></a></span>) – Optimal velocity solution.</p>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="mjinx.solvers._base.SolverSolution.v_opt">
+<span class="sig-name descname"><span class="pre">v_opt</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.jax.dev/en/latest/_autosummary/jax.Array.html#jax.Array" title="(in JAX)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Array</span></code></a></em><a class="headerlink" href="#mjinx.solvers._base.SolverSolution.v_opt" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="mjinx.solvers._base.Solver">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">Solver</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mjinx.solvers._base.Solver" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Generic</span></code>[<code class="xref py py-obj docutils literal notranslate"><span class="pre">SolverDataType</span></code>, <code class="xref py py-obj docutils literal notranslate"><span class="pre">SolverSolutionType</span></code>], <code class="xref py py-class docutils literal notranslate"><span class="pre">ABC</span></code></p>
+<p>Abstract base class for solvers.</p>
+<p>This class defines the interface for solvers used in inverse kinematics problems.
+Solvers transform task and barrier constraints into optimization problems, which
+can be solved to find joint configurations or velocities that satisfy the constraints.</p>
+<p>In general, the optimization problem can be formulated as:</p>
+<div class="math notranslate nohighlight">
+\[\min_{q} \sum_{i} \|e_i(q)\|^2_{W_i} \quad \text{subject to} \quad h_j(q) \geq 0\]</div>
+<dl class="simple">
+<dt>where:</dt><dd><ul class="simple">
+<li><p><span class="math notranslate nohighlight">\(e_i(q)\)</span> are the task errors</p></li>
+<li><p><span class="math notranslate nohighlight">\(W_i\)</span> are the task weight matrices</p></li>
+<li><p><span class="math notranslate nohighlight">\(h_j(q)\)</span> are the barrier constraints</p></li>
+</ul>
+</dd>
+</dl>
+<p>Different solver implementations use different approaches to solve this problem,
+such as local linearization (QP) or global nonlinear optimization.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>model</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">Model</span></code></span>) – The MuJoCo model used by the solver.</p>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="mjinx.solvers._base.Solver.model">
+<span class="sig-name descname"><span class="pre">model</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><code class="xref py py-class docutils literal notranslate"><span class="pre">Model</span></code></em><a class="headerlink" href="#mjinx.solvers._base.Solver.model" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="mjinx.solvers._base.Solver.solve_from_data">
+<em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">solve_from_data</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">solver_data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">problem_data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model_data</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mjinx.solvers._base.Solver.solve_from_data" title="Link to this definition"></a></dt>
+<dd><p>Solve the inverse kinematics problem using pre-computed model data.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>solver_data</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">TypeVar</span></code>(<code class="docutils literal notranslate"><span class="pre">SolverDataType</span></code>, bound= <a class="reference internal" href="#mjinx.solvers._base.SolverData" title="mjinx.solvers._base.SolverData"><code class="xref py py-class docutils literal notranslate"><span class="pre">SolverData</span></code></a>)</span>) – Solver-specific data.</p></li>
+<li><p><strong>problem_data</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="problem.html#mjinx.problem.JaxProblemData" title="mjinx.problem.JaxProblemData"><code class="xref py py-class docutils literal notranslate"><span class="pre">JaxProblemData</span></code></a></span>) – Problem-specific data.</p></li>
+<li><p><strong>model_data</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">Data</span></code></span>) – MuJoCo model data.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">TypeVar</span></code>(<code class="docutils literal notranslate"><span class="pre">SolverSolutionType</span></code>, bound= <a class="reference internal" href="#mjinx.solvers._base.SolverSolution" title="mjinx.solvers._base.SolverSolution"><code class="xref py py-class docutils literal notranslate"><span class="pre">SolverSolution</span></code></a>), <code class="xref py py-class docutils literal notranslate"><span class="pre">TypeVar</span></code>(<code class="docutils literal notranslate"><span class="pre">SolverDataType</span></code>, bound= <a class="reference internal" href="#mjinx.solvers._base.SolverData" title="mjinx.solvers._base.SolverData"><code class="xref py py-class docutils literal notranslate"><span class="pre">SolverData</span></code></a>)]</span></p>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>A tuple containing the solver solution and updated solver data.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="mjinx.solvers._base.Solver.solve">
+<span class="sig-name descname"><span class="pre">solve</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">q</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">solver_data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">problem_data</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mjinx.solvers._base.Solver.solve" title="Link to this definition"></a></dt>
+<dd><p>Solve the inverse kinematics problem for a given configuration.</p>
+<p>This method creates mjx.Data instance and updates it under the hood. To avoid doing an extra
+update, consider solve_from_data method.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>q</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.jax.dev/en/latest/_autosummary/jax.Array.html#jax.Array" title="(in JAX)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Array</span></code></a></span>) – The current joint configuration.</p></li>
+<li><p><strong>solver_data</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">TypeVar</span></code>(<code class="docutils literal notranslate"><span class="pre">SolverDataType</span></code>, bound= <a class="reference internal" href="#mjinx.solvers._base.SolverData" title="mjinx.solvers._base.SolverData"><code class="xref py py-class docutils literal notranslate"><span class="pre">SolverData</span></code></a>)</span>) – Solver-specific data.</p></li>
+<li><p><strong>problem_data</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="problem.html#mjinx.problem.JaxProblemData" title="mjinx.problem.JaxProblemData"><code class="xref py py-class docutils literal notranslate"><span class="pre">JaxProblemData</span></code></a></span>) – Problem-specific data.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">TypeVar</span></code>(<code class="docutils literal notranslate"><span class="pre">SolverSolutionType</span></code>, bound= <a class="reference internal" href="#mjinx.solvers._base.SolverSolution" title="mjinx.solvers._base.SolverSolution"><code class="xref py py-class docutils literal notranslate"><span class="pre">SolverSolution</span></code></a>), <code class="xref py py-class docutils literal notranslate"><span class="pre">TypeVar</span></code>(<code class="docutils literal notranslate"><span class="pre">SolverDataType</span></code>, bound= <a class="reference internal" href="#mjinx.solvers._base.SolverData" title="mjinx.solvers._base.SolverData"><code class="xref py py-class docutils literal notranslate"><span class="pre">SolverData</span></code></a>)]</span></p>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>A tuple containing the solver solution and updated solver data.</p>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>ValueError</strong> – If the input configuration has incorrect dimensions.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="mjinx.solvers._base.Solver.init">
+<em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">init</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">q</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mjinx.solvers._base.Solver.init" title="Link to this definition"></a></dt>
+<dd><p>Initialize solver-specific data.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>q</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.2)"><code class="xref py py-class docutils literal notranslate"><span class="pre">ndarray</span></code></a> | <a class="reference external" href="https://docs.jax.dev/en/latest/_autosummary/jax.Array.html#jax.Array" title="(in JAX)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Array</span></code></a></span>) – The initial joint configuration.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">TypeVar</span></code>(<code class="docutils literal notranslate"><span class="pre">SolverDataType</span></code>, bound= <a class="reference internal" href="#mjinx.solvers._base.SolverData" title="mjinx.solvers._base.SolverData"><code class="xref py py-class docutils literal notranslate"><span class="pre">SolverData</span></code></a>)</span></p>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Initialized solver-specific data.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="local-ik-solver">
+<h2>Local IK Solver<a class="headerlink" href="#local-ik-solver" title="Link to this heading"></a></h2>
+<p>A Quadratic Programming (QP) based solver that linearizes the problem at each step. This solver is efficient for real-time control and tracking applications.</p>
+<p id="module-mjinx.solvers._local_ik">Build and solve the inverse kinematics problem.</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="mjinx.solvers._local_ik.OSQPParameters">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">OSQPParameters</span></span><a class="headerlink" href="#mjinx.solvers._local_ik.OSQPParameters" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">TypedDict</span></code></p>
+<p>Parameters for configuring the OSQP solver.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>check_primal_dual_infeasability</strong> – If True, populates the <code class="docutils literal notranslate"><span class="pre">status</span></code> field of <code class="docutils literal notranslate"><span class="pre">state</span></code>
+with one of <code class="docutils literal notranslate"><span class="pre">BoxOSQP.PRIMAL_INFEASIBLE</span></code>, <code class="docutils literal notranslate"><span class="pre">BoxOSQP.DUAL_INFEASIBLE</span></code> (default: True).
+If False, improves speed but does not check feasibility.
+When jit=False and the problem is primal or dual infeasible, a ValueError is raised.</p></li>
+<li><p><strong>sigma</strong> – Ridge regularization parameter for stabilizing the linear system solution (default: 1e-6).</p></li>
+<li><p><strong>momentum</strong> – Relaxation parameter (default: 1.6). Must be in the open interval (0, 2).
+A value of 1 means no relaxation, less than 1 means under-relaxation, and greater than 1
+means over-relaxation. For best results, choose momentum in the range [1.5, 1.8].</p></li>
+<li><p><strong>eq_qp_solve</strong> – Method for solving equality-constrained QP subproblems.
+Options are ‘cg’ (conjugate gradient), ‘cg+jacobi’ (with Jacobi preconditioning),
+and ‘lu’ (direct solving via LU factorization). Default is ‘cg’.</p></li>
+<li><p><strong>rho_start</strong> – Initial step size for the primal-dual algorithm (default: 1e-1).</p></li>
+<li><p><strong>rho_min</strong> – Minimum allowed step size to prevent excessively small steps (default: 1e-6).</p></li>
+<li><p><strong>rho_max</strong> – Maximum allowed step size to prevent overly large steps (default: 1e6).</p></li>
+<li><p><strong>stepsize_updates_frequency</strong> – Number of iterations between step size adjustments (default: 10).</p></li>
+<li><p><strong>primal_infeasible_tol</strong> – Tolerance for detecting primal infeasibility (default: 1e-4).</p></li>
+<li><p><strong>dual_infeasible_tol</strong> – Tolerance for detecting dual infeasibility (default: 1e-4).</p></li>
+<li><p><strong>maxiter</strong> – Maximum number of iterations allowed before termination (default: 4000).</p></li>
+<li><p><strong>tol</strong> – Absolute tolerance for the stopping criterion (default: 1e-3).</p></li>
+<li><p><strong>termination_check_frequency</strong> – Number of iterations between convergence checks (default: 5).</p></li>
+<li><p><strong>implicit_diff_solve</strong> – Solver for linear systems in implicit differentiation.
+Must be a callable that solves Ax = b for x.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="mjinx.solvers._local_ik.OSQPParameters.check_primal_dual_infeasability">
+<span class="sig-name descname"><span class="pre">check_primal_dual_infeasability</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code> <span class="pre">|</span> <code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></em><a class="headerlink" href="#mjinx.solvers._local_ik.OSQPParameters.check_primal_dual_infeasability" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="mjinx.solvers._local_ik.OSQPParameters.sigma">
+<span class="sig-name descname"><span class="pre">sigma</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></em><a class="headerlink" href="#mjinx.solvers._local_ik.OSQPParameters.sigma" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="mjinx.solvers._local_ik.OSQPParameters.momentum">
+<span class="sig-name descname"><span class="pre">momentum</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></em><a class="headerlink" href="#mjinx.solvers._local_ik.OSQPParameters.momentum" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="mjinx.solvers._local_ik.OSQPParameters.eq_qp_solve">
+<span class="sig-name descname"><span class="pre">eq_qp_solve</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></em><a class="headerlink" href="#mjinx.solvers._local_ik.OSQPParameters.eq_qp_solve" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="mjinx.solvers._local_ik.OSQPParameters.rho_start">
+<span class="sig-name descname"><span class="pre">rho_start</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></em><a class="headerlink" href="#mjinx.solvers._local_ik.OSQPParameters.rho_start" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="mjinx.solvers._local_ik.OSQPParameters.rho_min">
+<span class="sig-name descname"><span class="pre">rho_min</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></em><a class="headerlink" href="#mjinx.solvers._local_ik.OSQPParameters.rho_min" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="mjinx.solvers._local_ik.OSQPParameters.rho_max">
+<span class="sig-name descname"><span class="pre">rho_max</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></em><a class="headerlink" href="#mjinx.solvers._local_ik.OSQPParameters.rho_max" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="mjinx.solvers._local_ik.OSQPParameters.stepsize_updates_frequency">
+<span class="sig-name descname"><span class="pre">stepsize_updates_frequency</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></em><a class="headerlink" href="#mjinx.solvers._local_ik.OSQPParameters.stepsize_updates_frequency" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="mjinx.solvers._local_ik.OSQPParameters.primal_infeasible_tol">
+<span class="sig-name descname"><span class="pre">primal_infeasible_tol</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></em><a class="headerlink" href="#mjinx.solvers._local_ik.OSQPParameters.primal_infeasible_tol" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="mjinx.solvers._local_ik.OSQPParameters.dual_infeasible_tol">
+<span class="sig-name descname"><span class="pre">dual_infeasible_tol</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></em><a class="headerlink" href="#mjinx.solvers._local_ik.OSQPParameters.dual_infeasible_tol" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="mjinx.solvers._local_ik.OSQPParameters.maxiter">
+<span class="sig-name descname"><span class="pre">maxiter</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></em><a class="headerlink" href="#mjinx.solvers._local_ik.OSQPParameters.maxiter" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="mjinx.solvers._local_ik.OSQPParameters.tol">
+<span class="sig-name descname"><span class="pre">tol</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></em><a class="headerlink" href="#mjinx.solvers._local_ik.OSQPParameters.tol" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="mjinx.solvers._local_ik.OSQPParameters.termination_check_frequency">
+<span class="sig-name descname"><span class="pre">termination_check_frequency</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></em><a class="headerlink" href="#mjinx.solvers._local_ik.OSQPParameters.termination_check_frequency" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="mjinx.solvers._local_ik.OSQPParameters.implicit_diff_solve">
+<span class="sig-name descname"><span class="pre">implicit_diff_solve</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><code class="xref py py-class docutils literal notranslate"><span class="pre">Callable</span></code></em><a class="headerlink" href="#mjinx.solvers._local_ik.OSQPParameters.implicit_diff_solve" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="mjinx.solvers._local_ik.LocalIKData">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">LocalIKData</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">v_prev</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mjinx.solvers._local_ik.LocalIKData" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#mjinx.solvers._base.SolverData" title="mjinx.solvers._base.SolverData"><code class="xref py py-class docutils literal notranslate"><span class="pre">SolverData</span></code></a></p>
+<p>Data class for the Local Inverse Kinematics solver.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>v_prev</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.jax.dev/en/latest/_autosummary/jax.Array.html#jax.Array" title="(in JAX)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Array</span></code></a></span>) – The previous velocity solution.</p>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="mjinx.solvers._local_ik.LocalIKData.v_prev">
+<span class="sig-name descname"><span class="pre">v_prev</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.jax.dev/en/latest/_autosummary/jax.Array.html#jax.Array" title="(in JAX)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Array</span></code></a></em><a class="headerlink" href="#mjinx.solvers._local_ik.LocalIKData.v_prev" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="mjinx.solvers._local_ik.LocalIKSolution">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">LocalIKSolution</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">v_opt</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dual_var_eq</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dual_var_ineq</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">iterations</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">error</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">status</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mjinx.solvers._local_ik.LocalIKSolution" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#mjinx.solvers._base.SolverSolution" title="mjinx.solvers._base.SolverSolution"><code class="xref py py-class docutils literal notranslate"><span class="pre">SolverSolution</span></code></a></p>
+<p>Solution class for the Local Inverse Kinematics solver.</p>
+<p>This class extends the base SolverSolution to include additional information
+specific to the Local IK solver’s quadratic programming solution.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>v_opt</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.jax.dev/en/latest/_autosummary/jax.Array.html#jax.Array" title="(in JAX)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Array</span></code></a></span>) – The optimal velocity solution.</p></li>
+<li><p><strong>dual_var_eq</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.jax.dev/en/latest/_autosummary/jax.Array.html#jax.Array" title="(in JAX)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Array</span></code></a></span>) – Dual variables for equality constraints.</p></li>
+<li><p><strong>dual_var_ineq</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.jax.dev/en/latest/_autosummary/jax.Array.html#jax.Array" title="(in JAX)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Array</span></code></a></span>) – Dual variables for inequality constraints.</p></li>
+<li><p><strong>iterations</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></span>) – Number of iterations performed by the solver.</p></li>
+<li><p><strong>error</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></span>) – Final error value at convergence.</p></li>
+<li><p><strong>status</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></span>) – Solver status code indicating outcome (success, infeasible, etc.).</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="mjinx.solvers._local_ik.LocalIKSolution.dual_var_eq">
+<span class="sig-name descname"><span class="pre">dual_var_eq</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.jax.dev/en/latest/_autosummary/jax.Array.html#jax.Array" title="(in JAX)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Array</span></code></a></em><a class="headerlink" href="#mjinx.solvers._local_ik.LocalIKSolution.dual_var_eq" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="mjinx.solvers._local_ik.LocalIKSolution.dual_var_ineq">
+<span class="sig-name descname"><span class="pre">dual_var_ineq</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.jax.dev/en/latest/_autosummary/jax.Array.html#jax.Array" title="(in JAX)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Array</span></code></a></em><a class="headerlink" href="#mjinx.solvers._local_ik.LocalIKSolution.dual_var_ineq" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="mjinx.solvers._local_ik.LocalIKSolution.iterations">
+<span class="sig-name descname"><span class="pre">iterations</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></em><a class="headerlink" href="#mjinx.solvers._local_ik.LocalIKSolution.iterations" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="mjinx.solvers._local_ik.LocalIKSolution.error">
+<span class="sig-name descname"><span class="pre">error</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></em><a class="headerlink" href="#mjinx.solvers._local_ik.LocalIKSolution.error" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="mjinx.solvers._local_ik.LocalIKSolution.status">
+<span class="sig-name descname"><span class="pre">status</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></em><a class="headerlink" href="#mjinx.solvers._local_ik.LocalIKSolution.status" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="mjinx.solvers._local_ik.LocalIKSolver">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">LocalIKSolver</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mjinx.solvers._local_ik.LocalIKSolver" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#mjinx.solvers._base.Solver" title="mjinx.solvers._base.Solver"><code class="xref py py-class docutils literal notranslate"><span class="pre">Solver</span></code></a>[<a class="reference internal" href="#mjinx.solvers._local_ik.LocalIKData" title="mjinx.solvers._local_ik.LocalIKData"><code class="xref py py-class docutils literal notranslate"><span class="pre">LocalIKData</span></code></a>, <a class="reference internal" href="#mjinx.solvers._local_ik.LocalIKSolution" title="mjinx.solvers._local_ik.LocalIKSolution"><code class="xref py py-class docutils literal notranslate"><span class="pre">LocalIKSolution</span></code></a>]</p>
+<p>Local Inverse Kinematics solver using Quadratic Programming (QP).</p>
+<p>This solver uses a local linearization approach to solve the inverse kinematics problem.
+At each step, it formulates a Quadratic Program (QP) that approximates the nonlinear optimization
+problem and solves for joint velocities that minimize task errors while respecting constraints.</p>
+<p>The QP is formulated as:</p>
+<div class="math notranslate nohighlight">
+\[\min_{v} \frac{1}{2} v^T P v + c^T v \quad \text{subject to} \quad G v \leq h\]</div>
+<dl class="simple">
+<dt>where:</dt><dd><ul class="simple">
+<li><p><span class="math notranslate nohighlight">\(v\)</span> is the vector of joint velocities</p></li>
+<li><p><span class="math notranslate nohighlight">\(P\)</span> is a positive-definite matrix constructed from task Jacobians</p></li>
+<li><p><span class="math notranslate nohighlight">\(c\)</span> is a vector constructed from task errors</p></li>
+<li><p><span class="math notranslate nohighlight">\(G\)</span> and <span class="math notranslate nohighlight">\(h\)</span> encode barrier constraints and velocity limits</p></li>
+</ul>
+</dd>
+</dl>
+<p>For tasks, the contribution to the objective is:</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}P_{task} &amp;= J^T W J \\
+c_{task} &amp;= -J^T W e\end{split}\]</div>
+<dl class="simple">
+<dt>where:</dt><dd><ul class="simple">
+<li><p><span class="math notranslate nohighlight">\(J\)</span> is the task Jacobian matrix (∂f/∂q)</p></li>
+<li><p><span class="math notranslate nohighlight">\(W\)</span> is the task weight matrix (cost)</p></li>
+<li><p><span class="math notranslate nohighlight">\(e\)</span> is the task error (f(q) - f_desired)</p></li>
+</ul>
+</dd>
+</dl>
+<p>For barriers, the constraints are linearized as:</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}G_{barrier} &amp;= -J_b \\
+h_{barrier} &amp;= \alpha h(q)\end{split}\]</div>
+<dl class="simple">
+<dt>where:</dt><dd><ul class="simple">
+<li><p><span class="math notranslate nohighlight">\(J_b\)</span> is the barrier Jacobian (∂h/∂q)</p></li>
+<li><p><span class="math notranslate nohighlight">\(h(q)\)</span> is the barrier function value</p></li>
+<li><p><span class="math notranslate nohighlight">\(\alpha\)</span> is a gain parameter that controls constraint relaxation</p></li>
+</ul>
+</dd>
+</dl>
+<p>Additionally, velocity limits are incorporated as:</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}G_{limits} &amp;= \begin{bmatrix} I \\ -I \end{bmatrix} \\
+h_{limits} &amp;= \begin{bmatrix} v_{max} \\ -v_{min} \end{bmatrix}\end{split}\]</div>
+<p>The solver also includes a safe displacement term to push away from constraint boundaries:</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}P_{safe} &amp;= \beta I \\
+c_{safe} &amp;= -\beta v_{safe}\end{split}\]</div>
+<p>where <span class="math notranslate nohighlight">\(v_{safe}\)</span> is a velocity that pushes away from constraint boundaries.</p>
+<p>The complete QP matrices are assembled by combining these components:</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}P &amp;= \sum_i P_{task,i} + P_{safe} \\
+c &amp;= \sum_i c_{task,i} + c_{safe} \\
+G &amp;= \begin{bmatrix} G_{barrier} \\ G_{limits} \end{bmatrix} \\
+h &amp;= \begin{bmatrix} h_{barrier} \\ h_{limits} \end{bmatrix}\end{split}\]</div>
+<p>The QP is solved using the OSQP solver, which implements an efficient primal-dual
+interior point method specifically designed for convex quadratic programs.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>model</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">Model</span></code></span>) – The MuJoCo model.</p></li>
+<li><p><strong>dt</strong> – The time step for integration.</p></li>
+<li><p><strong>osqp_params</strong> – Parameters for the OSQP solver.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="mjinx.solvers._local_ik.LocalIKSolver.solve_from_data">
+<span class="sig-name descname"><span class="pre">solve_from_data</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">solver_data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">problem_data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model_data</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mjinx.solvers._local_ik.LocalIKSolver.solve_from_data" title="Link to this definition"></a></dt>
+<dd><p>Solve the Local IK problem using pre-computed data.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>solver_data</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="#mjinx.solvers._local_ik.LocalIKData" title="mjinx.solvers._local_ik.LocalIKData"><code class="xref py py-class docutils literal notranslate"><span class="pre">LocalIKData</span></code></a></span>) – The solver-specific data.</p></li>
+<li><p><strong>problem_data</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="problem.html#mjinx.problem.JaxProblemData" title="mjinx.problem.JaxProblemData"><code class="xref py py-class docutils literal notranslate"><span class="pre">JaxProblemData</span></code></a></span>) – The problem-specific data.</p></li>
+<li><p><strong>model_data</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">Data</span></code></span>) – The MuJoCo model data.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code>[<a class="reference internal" href="#mjinx.solvers._local_ik.LocalIKSolution" title="mjinx.solvers._local_ik.LocalIKSolution"><code class="xref py py-class docutils literal notranslate"><span class="pre">LocalIKSolution</span></code></a>, <a class="reference internal" href="#mjinx.solvers._local_ik.LocalIKData" title="mjinx.solvers._local_ik.LocalIKData"><code class="xref py py-class docutils literal notranslate"><span class="pre">LocalIKData</span></code></a>]</span></p>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>A tuple containing the solver solution and updated solver data.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="mjinx.solvers._local_ik.LocalIKSolver.init">
+<span class="sig-name descname"><span class="pre">init</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">v_init</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mjinx.solvers._local_ik.LocalIKSolver.init" title="Link to this definition"></a></dt>
+<dd><p>Initialize the Local IK solver data.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>v_init</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.2)"><code class="xref py py-class docutils literal notranslate"><span class="pre">ndarray</span></code></a> | <a class="reference external" href="https://docs.jax.dev/en/latest/_autosummary/jax.Array.html#jax.Array" title="(in JAX)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Array</span></code></a> | <code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span>) – The initial velocity. If None, zero velocity is used.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="#mjinx.solvers._local_ik.LocalIKData" title="mjinx.solvers._local_ik.LocalIKData"><code class="xref py py-class docutils literal notranslate"><span class="pre">LocalIKData</span></code></a></span></p>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Initialized solver-specific data.</p>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>ValueError</strong> – If the input velocity has incorrect dimensions.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="global-ik-solver">
+<h2>Global IK Solver<a class="headerlink" href="#global-ik-solver" title="Link to this heading"></a></h2>
+<p>A nonlinear optimization solver that directly optimizes joint positions. This solver can find solutions that avoid local minima and is suitable for complex positioning tasks.</p>
+<dl class="py class" id="module-mjinx.solvers._global_ik">
+<dt class="sig sig-object py" id="mjinx.solvers._global_ik.GlobalIKData">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">GlobalIKData</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">optax_state</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mjinx.solvers._global_ik.GlobalIKData" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#mjinx.solvers._base.SolverData" title="mjinx.solvers._base.SolverData"><code class="xref py py-class docutils literal notranslate"><span class="pre">SolverData</span></code></a></p>
+<p>Data class for the Global Inverse Kinematics solver.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>optax_state</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.jax.dev/en/latest/_autosummary/jax.Array.html#jax.Array" title="(in JAX)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Array</span></code></a> | <a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.2)"><code class="xref py py-class docutils literal notranslate"><span class="pre">ndarray</span></code></a> | <a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.bool" title="(in NumPy v2.2)"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></a> | <a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.number" title="(in NumPy v2.2)"><code class="xref py py-class docutils literal notranslate"><span class="pre">number</span></code></a> | <code class="xref py py-class docutils literal notranslate"><span class="pre">Iterable</span></code>[ArrayTree] | <code class="xref py py-class docutils literal notranslate"><span class="pre">Mapping</span></code>[<code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code>, ArrayTree]</span>) – The state of the Optax optimizer.</p>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="mjinx.solvers._global_ik.GlobalIKData.optax_state">
+<span class="sig-name descname"><span class="pre">optax_state</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.jax.dev/en/latest/_autosummary/jax.Array.html#jax.Array" title="(in JAX)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Array</span></code></a> <span class="pre">|</span> <a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.2)"><code class="xref py py-class docutils literal notranslate"><span class="pre">ndarray</span></code></a> <span class="pre">|</span> <a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.bool" title="(in NumPy v2.2)"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></a> <span class="pre">|</span> <a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.number" title="(in NumPy v2.2)"><code class="xref py py-class docutils literal notranslate"><span class="pre">number</span></code></a> <span class="pre">|</span> <code class="xref py py-class docutils literal notranslate"><span class="pre">Iterable</span></code><span class="pre">[ArrayTree]</span> <span class="pre">|</span> <code class="xref py py-class docutils literal notranslate"><span class="pre">Mapping</span></code><span class="pre">[</span><code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code><span class="pre">,</span> <span class="pre">ArrayTree]</span></em><a class="headerlink" href="#mjinx.solvers._global_ik.GlobalIKData.optax_state" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="mjinx.solvers._global_ik.GlobalIKSolution">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">GlobalIKSolution</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">v_opt</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">q_opt</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mjinx.solvers._global_ik.GlobalIKSolution" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#mjinx.solvers._base.SolverSolution" title="mjinx.solvers._base.SolverSolution"><code class="xref py py-class docutils literal notranslate"><span class="pre">SolverSolution</span></code></a></p>
+<p>Solution class for the Global Inverse Kinematics solver.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>q_opt</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.jax.dev/en/latest/_autosummary/jax.Array.html#jax.Array" title="(in JAX)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Array</span></code></a></span>) – The optimal joint configuration.</p></li>
+<li><p><strong>v_opt</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.jax.dev/en/latest/_autosummary/jax.Array.html#jax.Array" title="(in JAX)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Array</span></code></a></span>) – The optimal joint velocities.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="mjinx.solvers._global_ik.GlobalIKSolution.q_opt">
+<span class="sig-name descname"><span class="pre">q_opt</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.jax.dev/en/latest/_autosummary/jax.Array.html#jax.Array" title="(in JAX)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Array</span></code></a></em><a class="headerlink" href="#mjinx.solvers._global_ik.GlobalIKSolution.q_opt" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="mjinx.solvers._global_ik.GlobalIKSolver">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">GlobalIKSolver</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">optimizer</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dt</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.01</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mjinx.solvers._global_ik.GlobalIKSolver" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#mjinx.solvers._base.Solver" title="mjinx.solvers._base.Solver"><code class="xref py py-class docutils literal notranslate"><span class="pre">Solver</span></code></a>[<a class="reference internal" href="#mjinx.solvers._global_ik.GlobalIKData" title="mjinx.solvers._global_ik.GlobalIKData"><code class="xref py py-class docutils literal notranslate"><span class="pre">GlobalIKData</span></code></a>, <a class="reference internal" href="#mjinx.solvers._global_ik.GlobalIKSolution" title="mjinx.solvers._global_ik.GlobalIKSolution"><code class="xref py py-class docutils literal notranslate"><span class="pre">GlobalIKSolution</span></code></a>]</p>
+<p>Global Inverse Kinematics solver using gradient-based optimization.</p>
+<p>This solver uses Optax for gradient-based optimization to solve the inverse kinematics
+problem globally. Unlike the local solver, it optimizes over joint positions directly
+rather than velocities, and can potentially find solutions that avoid local minima.</p>
+<p>The optimization problem is formulated as:</p>
+<div class="math notranslate nohighlight">
+\[\min_{q} \mathcal{L}(q) = \sum_{i} \|e_i(q)\|^2_{W_i} - \sum_{j} \lambda_j \log(h_j(q))\]</div>
+<dl class="simple">
+<dt>where:</dt><dd><ul class="simple">
+<li><p><span class="math notranslate nohighlight">\(e_i(q)\)</span> are the task errors (f_i(q) - f_i_desired)</p></li>
+<li><p><span class="math notranslate nohighlight">\(W_i\)</span> are the task weight matrices</p></li>
+<li><p><span class="math notranslate nohighlight">\(h_j(q)\)</span> are the barrier constraints</p></li>
+<li><p><span class="math notranslate nohighlight">\(\lambda_j\)</span> are barrier gains</p></li>
+<li><p><span class="math notranslate nohighlight">\(\log(h_j(q))\)</span> is a logarithmic barrier that approaches infinity as <span class="math notranslate nohighlight">\(h_j(q)\)</span> approaches zero</p></li>
+</ul>
+</dd>
+</dl>
+<p>The gradient of this loss function is:</p>
+<div class="math notranslate nohighlight">
+\[\nabla_q \mathcal{L}(q) = \sum_{i} J_i^T W_i e_i(q) - \sum_{j} \lambda_j \frac{\nabla_q h_j(q)}{h_j(q)}\]</div>
+<dl class="simple">
+<dt>where:</dt><dd><ul class="simple">
+<li><p><span class="math notranslate nohighlight">\(J_i\)</span> is the Jacobian of task i (∂e_i/∂q)</p></li>
+<li><p><span class="math notranslate nohighlight">\(\nabla_q h_j(q)\)</span> is the gradient of barrier j</p></li>
+</ul>
+</dd>
+</dl>
+<p>The optimization is performed using Optax’s gradient-based optimizers, which update
+the joint positions iteratively:</p>
+<div class="math notranslate nohighlight">
+\[q_{t+1} = q_t - \alpha_t \nabla_q \mathcal{L}(q_t)\]</div>
+<p>where <span class="math notranslate nohighlight">\(\alpha_t\)</span> is the step size determined by the optimizer.</p>
+<p>The logarithmic barrier function ensures that constraints are satisfied by creating
+an infinite penalty as the system approaches constraint boundaries. This allows the
+optimization to explore the full feasible space without explicit inequality constraints.</p>
+<p>Compared to the local IK solver:
+1. Global IK optimizes joint positions directly rather than velocities
+2. It can potentially escape local minima through gradient-based exploration
+3. It uses soft constraints via logarithmic barriers rather than hard inequality constraints
+4. It typically requires more iterations but may find better solutions for complex problems</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>model</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">Model</span></code></span>) – The MuJoCo model.</p></li>
+<li><p><strong>optimizer</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://optax.readthedocs.io/en/latest/api/transformations.html#optax.GradientTransformation" title="(in Optax)"><code class="xref py py-class docutils literal notranslate"><span class="pre">GradientTransformation</span></code></a></span>) – The Optax optimizer to use.</p></li>
+<li><p><strong>dt</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></span>) – The time step for velocity computation.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="mjinx.solvers._global_ik.GlobalIKSolver.loss_fn">
+<span class="sig-name descname"><span class="pre">loss_fn</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">q</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">problem_data</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mjinx.solvers._global_ik.GlobalIKSolver.loss_fn" title="Link to this definition"></a></dt>
+<dd><p>Compute the loss function for the given joint configuration.</p>
+<p>This function evaluates the total loss for the optimization problem:</p>
+<div class="math notranslate nohighlight">
+\[\mathcal{L}(q) = \sum_{i} \|e_i(q)\|^2_{W_i} - \sum_{j} \lambda_j \log(h_j(q))\]</div>
+<p>The first term represents the weighted sum of squared task errors, while the second
+term represents the logarithmic barrier penalties for constraint satisfaction.
+The logarithmic barrier approach transforms inequality constraints into penalty terms,
+creating a barrier that prevents the optimizer from violating the constraints.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>q</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.jax.dev/en/latest/_autosummary/jax.Array.html#jax.Array" title="(in JAX)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Array</span></code></a></span>) – The joint configuration.</p></li>
+<li><p><strong>problem_data</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="problem.html#mjinx.problem.JaxProblemData" title="mjinx.problem.JaxProblemData"><code class="xref py py-class docutils literal notranslate"><span class="pre">JaxProblemData</span></code></a></span>) – The problem-specific data.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></span></p>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The computed loss value.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="mjinx.solvers._global_ik.GlobalIKSolver.solve_from_data">
+<span class="sig-name descname"><span class="pre">solve_from_data</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">solver_data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">problem_data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model_data</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mjinx.solvers._global_ik.GlobalIKSolver.solve_from_data" title="Link to this definition"></a></dt>
+<dd><p>Solve the Global IK problem using pre-computed data.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>solver_data</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="#mjinx.solvers._global_ik.GlobalIKData" title="mjinx.solvers._global_ik.GlobalIKData"><code class="xref py py-class docutils literal notranslate"><span class="pre">GlobalIKData</span></code></a></span>) – The solver-specific data.</p></li>
+<li><p><strong>problem_data</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="problem.html#mjinx.problem.JaxProblemData" title="mjinx.problem.JaxProblemData"><code class="xref py py-class docutils literal notranslate"><span class="pre">JaxProblemData</span></code></a></span>) – The problem-specific data.</p></li>
+<li><p><strong>model_data</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">Data</span></code></span>) – The MuJoCo model data.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code>[<a class="reference internal" href="#mjinx.solvers._global_ik.GlobalIKSolution" title="mjinx.solvers._global_ik.GlobalIKSolution"><code class="xref py py-class docutils literal notranslate"><span class="pre">GlobalIKSolution</span></code></a>, <a class="reference internal" href="#mjinx.solvers._global_ik.GlobalIKData" title="mjinx.solvers._global_ik.GlobalIKData"><code class="xref py py-class docutils literal notranslate"><span class="pre">GlobalIKData</span></code></a>]</span></p>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>A tuple containing the solver solution and updated solver data.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="mjinx.solvers._global_ik.GlobalIKSolver.solve">
+<span class="sig-name descname"><span class="pre">solve</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">q</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">solver_data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">problem_data</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mjinx.solvers._global_ik.GlobalIKSolver.solve" title="Link to this definition"></a></dt>
+<dd><p>Solve the Global IK problem for a given configuration.</p>
+<p>This method performs gradient-based optimization to find a configuration that
+minimizes the task errors while satisfying barrier constraints. Unlike the local
+solver, it operates directly on joint positions rather than velocities.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>q</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.jax.dev/en/latest/_autosummary/jax.Array.html#jax.Array" title="(in JAX)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Array</span></code></a></span>) – The current joint configuration.</p></li>
+<li><p><strong>solver_data</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="#mjinx.solvers._global_ik.GlobalIKData" title="mjinx.solvers._global_ik.GlobalIKData"><code class="xref py py-class docutils literal notranslate"><span class="pre">GlobalIKData</span></code></a></span>) – The solver-specific data containing optimization state.</p></li>
+<li><p><strong>problem_data</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="problem.html#mjinx.problem.JaxProblemData" title="mjinx.problem.JaxProblemData"><code class="xref py py-class docutils literal notranslate"><span class="pre">JaxProblemData</span></code></a></span>) – The problem-specific data containing tasks and barriers.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code>[<a class="reference internal" href="#mjinx.solvers._global_ik.GlobalIKSolution" title="mjinx.solvers._global_ik.GlobalIKSolution"><code class="xref py py-class docutils literal notranslate"><span class="pre">GlobalIKSolution</span></code></a>, <a class="reference internal" href="#mjinx.solvers._global_ik.GlobalIKData" title="mjinx.solvers._global_ik.GlobalIKData"><code class="xref py py-class docutils literal notranslate"><span class="pre">GlobalIKData</span></code></a>]</span></p>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>A tuple containing the solver solution and updated solver data.</p>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>ValueError</strong> – If the input configuration has incorrect dimensions.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="mjinx.solvers._global_ik.GlobalIKSolver.init">
+<span class="sig-name descname"><span class="pre">init</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">q</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mjinx.solvers._global_ik.GlobalIKSolver.init" title="Link to this definition"></a></dt>
+<dd><p>Initialize the Global IK solver data.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>q</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.2)"><code class="xref py py-class docutils literal notranslate"><span class="pre">ndarray</span></code></a> | <a class="reference external" href="https://docs.jax.dev/en/latest/_autosummary/jax.Array.html#jax.Array" title="(in JAX)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Array</span></code></a></span>) – The initial joint configuration.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="#mjinx.solvers._global_ik.GlobalIKData" title="mjinx.solvers._global_ik.GlobalIKData"><code class="xref py py-class docutils literal notranslate"><span class="pre">GlobalIKData</span></code></a></span></p>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Initialized solver-specific data.</p>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>ValueError</strong> – If the input configuration has incorrect dimensions.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="constraints.html" class="btn btn-neutral float-left" title="Base Constraint" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="visualization.html" class="btn btn-neutral float-right" title="Visualization" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2022 Ivan Domrachev, Simeon Nedelchev..</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

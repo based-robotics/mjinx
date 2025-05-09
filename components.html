@@ -1,0 +1,480 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Components &mdash; mjinx 0.1.1 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="_static/custom.css?v=3cbe8de9" />
+
+  
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=a58bc63e"></script>
+      <script src="_static/doctools.js?v=9bcbadda"></script>
+      <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Base Task" href="tasks.html" />
+    <link rel="prev" title="Configuration" href="configuration.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            mjinx
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="quick_start.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="problem.html">Problem</a></li>
+<li class="toctree-l1"><a class="reference internal" href="configuration.html">Configuration</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Components</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#base-component">Base Component</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#mjinx.components._base.JaxComponent"><code class="docutils literal notranslate"><span class="pre">JaxComponent</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#mjinx.components._base.JaxComponent.__call__"><code class="docutils literal notranslate"><span class="pre">JaxComponent.__call__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#mjinx.components._base.JaxComponent.copy_and_set"><code class="docutils literal notranslate"><span class="pre">JaxComponent.copy_and_set()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#mjinx.components._base.JaxComponent.compute_jacobian"><code class="docutils literal notranslate"><span class="pre">JaxComponent.compute_jacobian()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#mjinx.components._base.Component"><code class="docutils literal notranslate"><span class="pre">Component</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#mjinx.components._base.Component.modified"><code class="docutils literal notranslate"><span class="pre">Component.modified</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#mjinx.components._base.Component.model"><code class="docutils literal notranslate"><span class="pre">Component.model</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#mjinx.components._base.Component.update_model"><code class="docutils literal notranslate"><span class="pre">Component.update_model()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#mjinx.components._base.Component.gain"><code class="docutils literal notranslate"><span class="pre">Component.gain</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#mjinx.components._base.Component.update_gain"><code class="docutils literal notranslate"><span class="pre">Component.update_gain()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#mjinx.components._base.Component.vector_gain"><code class="docutils literal notranslate"><span class="pre">Component.vector_gain</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#mjinx.components._base.Component.gain_fn"><code class="docutils literal notranslate"><span class="pre">Component.gain_fn</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#mjinx.components._base.Component.name"><code class="docutils literal notranslate"><span class="pre">Component.name</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#mjinx.components._base.Component.dim"><code class="docutils literal notranslate"><span class="pre">Component.dim</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#mjinx.components._base.Component.mask"><code class="docutils literal notranslate"><span class="pre">Component.mask</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#mjinx.components._base.Component.mask_idxs"><code class="docutils literal notranslate"><span class="pre">Component.mask_idxs</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#mjinx.components._base.Component.jax_component"><code class="docutils literal notranslate"><span class="pre">Component.jax_component</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#tasks">Tasks</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="tasks.html">Base Task</a></li>
+<li class="toctree-l3"><a class="reference internal" href="tasks.html#center-of-mass-task">Center of Mass Task</a></li>
+<li class="toctree-l3"><a class="reference internal" href="tasks.html#joint-task">Joint Task</a></li>
+<li class="toctree-l3"><a class="reference internal" href="tasks.html#base-body-task">Base Body Task</a></li>
+<li class="toctree-l3"><a class="reference internal" href="tasks.html#body-frame-task">Body Frame Task</a></li>
+<li class="toctree-l3"><a class="reference internal" href="tasks.html#body-position-task">Body Position Task</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#barriers">Barriers</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="barriers.html">Base Barrier</a></li>
+<li class="toctree-l3"><a class="reference internal" href="barriers.html#joint-barrier">Joint Barrier</a></li>
+<li class="toctree-l3"><a class="reference internal" href="barriers.html#base-body-barrier">Base Body Barrier</a></li>
+<li class="toctree-l3"><a class="reference internal" href="barriers.html#body-position-barrier">Body Position Barrier</a></li>
+<li class="toctree-l3"><a class="reference internal" href="barriers.html#self-collision-barrier">Self Collision Barrier</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#constraints">Constraints</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="constraints.html">Base Constraint</a></li>
+<li class="toctree-l3"><a class="reference internal" href="constraints.html#model-equality-constraint">Model Equality Constraint</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="solvers.html">Solvers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="visualization.html">Visualization</a></li>
+<li class="toctree-l1"><a class="reference internal" href="references.html">References</a></li>
+<li class="toctree-l1"><a class="reference internal" href="developer-notes.html">Developer Notes</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">mjinx</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Components</li>
+      <li class="wy-breadcrumbs-aside">
+              <!-- User defined GitHub URL -->
+              <a href="https://github.com/based-robotics/mjinx/tree/main/docs/components.rst" class="fa fa-github"> Edit on GitHub</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="components">
+<h1>Components<a class="headerlink" href="#components" title="Link to this heading"></a></h1>
+<p>MJINX employs a component-based architecture to formulate inverse kinematics problems through functional decomposition. Each component encapsulates a mathematical mapping from the configuration space to a task or constraint space, functioning either as an objective function (task) or an inequality constraint (barrier).</p>
+<p>This modular structure facilitates the systematic construction of complex kinematic problems through composition of elementary components. The approach aligns with established practices in robotics control theory, where complex behaviors emerge from the coordination of simpler control objectives.</p>
+<p>Components are characterized by several key attributes:</p>
+<ul class="simple">
+<li><p>A unique identifier for reference within the problem formulation</p></li>
+<li><p>A gain parameter that determines its relative weight in the optimization</p></li>
+<li><p>An optional dimensional mask for selective application</p></li>
+<li><p>A differentiable function mapping robot state to output values</p></li>
+</ul>
+<p>This formulation follows the task-priority framework established in robotics literature, where multiple objectives are managed through appropriate weighting and prioritization. The separation of concerns between tasks and constraints provides a natural expression of both the desired behavior and the feasible region of operation.</p>
+<p>When integrated into a Problem instance, components form a well-posed optimization problem. Tasks define the objective function to be minimized, while barriers establish the constraint manifold. The solver then computes solutions that optimize the weighted task objectives while maintaining feasibility with respect to all constraints.</p>
+<section id="base-component">
+<h2>Base Component<a class="headerlink" href="#base-component" title="Link to this heading"></a></h2>
+<p>The Component class serves as the abstract base class from which all specific component implementations derive. This inheritance hierarchy ensures a consistent interface while enabling specialized behavior for different component types.</p>
+<dl class="py class" id="module-mjinx.components._base">
+<dt class="sig sig-object py" id="mjinx.components._base.JaxComponent">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">JaxComponent</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dim</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vector_gain</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gain_fn</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mask_idxs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mjinx.components._base.JaxComponent" title="Link to this definition"></a></dt>
+<dd><p>Base class for all JAX-based components in the inverse kinematics framework.</p>
+<p>This class provides the fundamental structure for components that can be
+evaluated and differentiated within the JAX ecosystem. Components represent
+either tasks (objectives) or barriers (constraints) in the optimization problem.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>gain</strong> – The gain factor applied to the component.</p></li>
+<li><p><strong>gain_fn</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">Callable</span></code>[[<code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>], <code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>]</span>) – A function to compute the gain dynamically.</p></li>
+<li><p><strong>mask</strong> – A sequence of integers to mask certain dimensions.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="mjinx.components._base.JaxComponent.__call__">
+<em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">__call__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mjinx.components._base.JaxComponent.__call__" title="Link to this definition"></a></dt>
+<dd><p>Compute the component’s value <span class="math notranslate nohighlight">\(f(q, t)\)</span>.</p>
+<p>This method should be implemented by subclasses to provide specific
+component calculations.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>data</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">Data</span></code></span>) – The MuJoCo simulation data.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.jax.dev/en/latest/_autosummary/jax.Array.html#jax.Array" title="(in JAX)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Array</span></code></a></span></p>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The computed component value.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="mjinx.components._base.JaxComponent.copy_and_set">
+<span class="sig-name descname"><span class="pre">copy_and_set</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mjinx.components._base.JaxComponent.copy_and_set" title="Link to this definition"></a></dt>
+<dd><p>Create a copy of the component with updated attributes.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>kwargs</strong> – Keyword arguments specifying the attributes to update.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="#mjinx.components._base.JaxComponent" title="mjinx.components._base.JaxComponent"><code class="xref py py-class docutils literal notranslate"><span class="pre">JaxComponent</span></code></a></span></p>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>A new instance of the component with updated attributes.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="mjinx.components._base.JaxComponent.compute_jacobian">
+<span class="sig-name descname"><span class="pre">compute_jacobian</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mjinx.components._base.JaxComponent.compute_jacobian" title="Link to this definition"></a></dt>
+<dd><p>Compute the Jacobian of the component with respect to the joint positions.
+The jacobian is a matrix <span class="math notranslate nohighlight">\(J \in R^{dim \times nv}\)</span> that is defined as:</p>
+<div class="math notranslate nohighlight">
+\[J(q, t) = \frac{\partial f}{\partial q}\]</div>
+<p>The main property that is desirable for us is that given this matrix, we obtain
+component derivative as a linear matrix w.r.t. velocities:</p>
+<div class="math notranslate nohighlight">
+\[\dot{f}(q, t) = \frac{\partial f}{\partial q} v = J(q, t)\]</div>
+<p>The jacobian is calculated via automatic differentiation, if it is not overwritten.
+If <span class="math notranslate nohighlight">\(nq \\neq nv\)</span>, a special mapping is computed to transform <span class="math notranslate nohighlight">\(J_{dq}\)</span> into <span class="math notranslate nohighlight">\(J_v\)</span>.
+For details, see <code class="xref py py-meth docutils literal notranslate"><span class="pre">mjinx.configuration.jac_dq2v()</span></code>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>data</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">Data</span></code></span>) – The MuJoCo simulation data.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.jax.dev/en/latest/_autosummary/jax.Array.html#jax.Array" title="(in JAX)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Array</span></code></a></span></p>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The computed Jacobian matrix.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="mjinx.components._base.Component">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">Component</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gain</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gain_fn</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mask</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mjinx.components._base.Component" title="Link to this definition"></a></dt>
+<dd><p>High-level interface for components in the inverse kinematics framework.</p>
+<p>This class provides a Python-friendly interface for creating and manipulating
+components, which are then compiled into JAX-compatible representations for
+efficient computation.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>name</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span>) – The name of the component.</p></li>
+<li><p><strong>gain</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="typing.html#mjinx.typing.ArrayOrFloat" title="mjinx.typing.ArrayOrFloat"><code class="xref py py-data docutils literal notranslate"><span class="pre">mjinx.typing.ArrayOrFloat</span></code></a></span>) – The gain factor applied to the component.</p></li>
+<li><p><strong>gain_fn</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">Callable</span></code>[[<code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>], <code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>] | <code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span>) – A function to compute the gain dynamically.</p></li>
+<li><p><strong>mask</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">Sequence</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code>] | <code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span>) – A sequence of integers to mask certain dimensions.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py property">
+<dt class="sig sig-object py" id="mjinx.components._base.Component.modified">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">modified</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><a class="headerlink" href="#mjinx.components._base.Component.modified" title="Link to this definition"></a></dt>
+<dd><p>Check if the component has been modified.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>True if the component has been modified, False otherwise.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="mjinx.components._base.Component.model">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">model</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Model</span></em><a class="headerlink" href="#mjinx.components._base.Component.model" title="Link to this definition"></a></dt>
+<dd><p>Get the MuJoCo model associated with the component.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The MuJoCo model.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="mjinx.components._base.Component.update_model">
+<span class="sig-name descname"><span class="pre">update_model</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mjinx.components._base.Component.update_model" title="Link to this definition"></a></dt>
+<dd><p>Update the MuJoCo model for the component.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>model</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">Model</span></code></span>) – The new MuJoCo model.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="mjinx.components._base.Component.gain">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">gain</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.jax.dev/en/latest/_autosummary/jax.Array.html#jax.Array" title="(in JAX)"><span class="pre">Array</span></a></em><a class="headerlink" href="#mjinx.components._base.Component.gain" title="Link to this definition"></a></dt>
+<dd><p>Get the gain for the component.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The gain array.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="mjinx.components._base.Component.update_gain">
+<span class="sig-name descname"><span class="pre">update_gain</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">gain</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mjinx.components._base.Component.update_gain" title="Link to this definition"></a></dt>
+<dd><p>Update the gain for the component.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>gain</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="typing.html#mjinx.typing.ArrayOrFloat" title="mjinx.typing.ArrayOrFloat"><code class="xref py py-data docutils literal notranslate"><span class="pre">mjinx.typing.ArrayOrFloat</span></code></a></span>) – The new gain value.</p>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>ValueError</strong> – If the gain has an invalid dimension.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="mjinx.components._base.Component.vector_gain">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">vector_gain</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.jax.dev/en/latest/_autosummary/jax.Array.html#jax.Array" title="(in JAX)"><span class="pre">Array</span></a></em><a class="headerlink" href="#mjinx.components._base.Component.vector_gain" title="Link to this definition"></a></dt>
+<dd><p>Get the vector gain for the component.</p>
+<dl class="simple">
+<dt>The vector gain is generated as follows:</dt><dd><ul class="simple">
+<li><p>gain is scalar -&gt; vector_gain = jnp.ones(self.dim) * gain</p></li>
+<li><p>gain is vector -&gt; vector_gain = gain</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The vector gain array.</p>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>ValueError</strong> – If the dimension is not set or the gain size is invalid.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="mjinx.components._base.Component.gain_fn">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">gain_fn</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Callable</span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">float</span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#mjinx.components._base.Component.gain_fn" title="Link to this definition"></a></dt>
+<dd><p>Get the gain function for the component.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The gain function.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="mjinx.components._base.Component.name">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">name</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><a class="headerlink" href="#mjinx.components._base.Component.name" title="Link to this definition"></a></dt>
+<dd><p>Get the name of the component.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The component name.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="mjinx.components._base.Component.dim">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">dim</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></em><a class="headerlink" href="#mjinx.components._base.Component.dim" title="Link to this definition"></a></dt>
+<dd><p>Get the dimension of the component.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The component dimension.</p>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>ValueError</strong> – If the dimension is not set.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="mjinx.components._base.Component.mask">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">mask</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.jax.dev/en/latest/_autosummary/jax.Array.html#jax.Array" title="(in JAX)"><span class="pre">Array</span></a></em><a class="headerlink" href="#mjinx.components._base.Component.mask" title="Link to this definition"></a></dt>
+<dd><p>Get the mask for the component.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The mask array.</p>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>ValueError</strong> – If the mask is not set and the dimension is not defined.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="mjinx.components._base.Component.mask_idxs">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">mask_idxs</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#mjinx.components._base.Component.mask_idxs" title="Link to this definition"></a></dt>
+<dd><p>Get the mask indices for the component.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>A tuple of mask indices.</p>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>ValueError</strong> – If the mask is not set and the dimension is not defined.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="mjinx.components._base.Component.jax_component">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">jax_component</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">AtomicComponentType</span></em><a class="headerlink" href="#mjinx.components._base.Component.jax_component" title="Link to this definition"></a></dt>
+<dd><p>Get the JAX implementation of the component.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The JAX component instance.</p>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>ValueError</strong> – If the model or dimension is not set.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="tasks">
+<h2>Tasks<a class="headerlink" href="#tasks" title="Link to this heading"></a></h2>
+<p>Tasks define objective functions that map from configuration space to task space, with the solver minimizing weighted errors between current and desired values <span id="id1">[<a class="reference internal" href="references.html#id2" title="Oussama Kanoun, Florent Lamiraux, and Pierre-Brice Wieber. Kinematic control of redundant manipulators: generalizing the task-priority framework to inequality task. IEEE Transactions on Robotics, 27(4):785–792, 2011.">Kanoun <em>et al.</em>, 2011</a>]</span>. Each task <span class="math notranslate nohighlight">\(f: \mathcal{Q} \rightarrow \mathbb{R}^m\)</span> produces an error <span class="math notranslate nohighlight">\(e(q) = f(q) - f_{desired}\)</span> that is minimized according to <span class="math notranslate nohighlight">\(\|e(q)\|^2_W\)</span>.</p>
+<p>MJINX provides task implementations for common robotics objectives:</p>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="tasks.html">Base Task</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tasks.html#center-of-mass-task">Center of Mass Task</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tasks.html#joint-task">Joint Task</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tasks.html#base-body-task">Base Body Task</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tasks.html#body-frame-task">Body Frame Task</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tasks.html#body-position-task">Body Position Task</a></li>
+</ul>
+</div>
+</section>
+<section id="barriers">
+<h2>Barriers<a class="headerlink" href="#barriers" title="Link to this heading"></a></h2>
+<p>Barriers implement inequality constraints through scalar functions <span class="math notranslate nohighlight">\(h(q) \geq 0\)</span> that create boundaries the solver must respect. Based on control barrier functions (CBFs) <span id="id2">[<a class="reference internal" href="references.html#id5" title="Aaron D Ames, Samuel Coogan, Magnus Egerstedt, Gennaro Notomista, Koushil Sreenath, and Paulo Tabuada. Control barrier functions: theory and applications. In 2019 18th European control conference (ECC), 3420–3431. Ieee, 2019.">Ames <em>et al.</em>, 2019</a>]</span>, these constraints are enforced through differential inequality: <span class="math notranslate nohighlight">\(\nabla h(q)^T v \geq -\alpha h(q)\)</span>, with <span class="math notranslate nohighlight">\(\alpha\)</span> controls constraint enforcement and <span class="math notranslate nohighlight">\(v\)</span> is the velocity vector.</p>
+<p>MJINX provides several barrier implementations:</p>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="barriers.html">Base Barrier</a></li>
+<li class="toctree-l1"><a class="reference internal" href="barriers.html#joint-barrier">Joint Barrier</a></li>
+<li class="toctree-l1"><a class="reference internal" href="barriers.html#base-body-barrier">Base Body Barrier</a></li>
+<li class="toctree-l1"><a class="reference internal" href="barriers.html#body-position-barrier">Body Position Barrier</a></li>
+<li class="toctree-l1"><a class="reference internal" href="barriers.html#self-collision-barrier">Self Collision Barrier</a></li>
+</ul>
+</div>
+</section>
+<section id="constraints">
+<h2>Constraints<a class="headerlink" href="#constraints" title="Link to this heading"></a></h2>
+<p>Constraints represent a new type of component with a strictly enforced equality condition <span class="math notranslate nohighlight">\(f(q) = 0\)</span>. Those constraints might be either treated strictly as differentiated exponentially stable equality: <span class="math notranslate nohighlight">\(\nabla h(q)^T v = -\alpha h(q)\)</span>, with <span class="math notranslate nohighlight">\(\alpha\)</span> controls constraint enforcement and <span class="math notranslate nohighlight">\(v\)</span> is the velocity vector, or as a soft constraint – task with high gain.</p>
+<p>Yet, only the following constraints are implemented:</p>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="constraints.html">Base Constraint</a></li>
+<li class="toctree-l1"><a class="reference internal" href="constraints.html#model-equality-constraint">Model Equality Constraint</a></li>
+</ul>
+</div>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="configuration.html" class="btn btn-neutral float-left" title="Configuration" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="tasks.html" class="btn btn-neutral float-right" title="Base Task" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2022 Ivan Domrachev, Simeon Nedelchev..</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

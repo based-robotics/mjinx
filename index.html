@@ -1,0 +1,212 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Table of Contents &mdash; mjinx 0.1.1 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="_static/custom.css?v=3cbe8de9" />
+
+  
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=a58bc63e"></script>
+      <script src="_static/doctools.js?v=9bcbadda"></script>
+      <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Installation" href="installation.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="#" class="icon icon-home">
+            mjinx
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="quick_start.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="problem.html">Problem</a></li>
+<li class="toctree-l1"><a class="reference internal" href="configuration.html">Configuration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="components.html">Components</a></li>
+<li class="toctree-l1"><a class="reference internal" href="solvers.html">Solvers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="visualization.html">Visualization</a></li>
+<li class="toctree-l1"><a class="reference internal" href="references.html">References</a></li>
+<li class="toctree-l1"><a class="reference internal" href="developer-notes.html">Developer Notes</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="#">mjinx</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="#" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Table of Contents</li>
+      <li class="wy-breadcrumbs-aside">
+              <!-- User defined GitHub URL -->
+              <a href="https://github.com/based-robotics/mjinx/tree/docs/github_pages/docs/index.rst" class="fa fa-github"> Edit on GitHub</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="mjinx">
+<h1>MJINX<a class="headerlink" href="#mjinx" title="Link to this heading"></a></h1>
+<div class="badge-container"><p><a class="reference external" href="https://colab.research.google.com/github/based-robotics/mjinx/blob/main/examples/notebooks/turoial.ipynb"><img alt="Open in Colab" src="https://colab.research.google.com/assets/colab-badge.svg" /></a> <a class="reference external" href="https://pypi.org/project/mjinx/"><img alt="PyPI version" src="https://img.shields.io/pypi/v/mjinx?color=blue" /></a> <a class="reference external" href="https://pypistats.org/packages/mjinx"><img alt="PyPI downloads" src="https://img.shields.io/pypi/dm/mjinx?color=blue" /></a></p>
+<p><strong>MJINX</strong> is a high-performance library for differentiable inverse kinematics, powered by <a class="reference external" href="https://jax.readthedocs.io/en/latest/index.html">JAX</a>
+and <a class="reference external" href="https://mujoco.readthedocs.io/en/stable/mjx.html">MuJoCo MJX</a>. The library was inspired by the Pinocchio-based tool <a class="reference external" href="https://github.com/stephane-caron/pink/tree/main">PINK</a> and Mujoco-based analogue <a class="reference external" href="https://github.com/kevinzakka/mink/tree/main">MINK</a>.</p>
+<div style="display: flex; justify-content: center; gap: 15px;">
+  <img src="https://github.com/based-robotics/mjinx/raw/main/img/local_ik_output.gif" style="width: 200px;" alt="KUKA arm example">
+  <img src="https://github.com/based-robotics/mjinx/raw/main/img/go2_stance.gif" style="width: 200px;" alt="GO2 robot example">
+  <img src="https://github.com/based-robotics/mjinx/raw/main/img/g1_heart.gif" style="width: 200px;" alt="Heart path example">
+  <img src="https://github.com/based-robotics/mjinx/raw/main/img/cassie_caravan.gif" style="width: 200px;" alt="Heart path example">
+</div><section id="key-features">
+<h2>Key Features<a class="headerlink" href="#key-features" title="Link to this heading"></a></h2>
+<ol class="arabic simple">
+<li><p><strong>Flexibility</strong>: Each control problem is assembled via <code class="docutils literal notranslate"><span class="pre">Components</span></code>, which enforce desired behavior or keep the system within a safety set.</p></li>
+<li><p><strong>Multiple solution approaches</strong>: JAX’s efficient sampling and autodifferentiation enable various solvers optimized for different scenarios.</p></li>
+<li><p><strong>Fully JAX-compatible</strong>: Both the optimization problem and solver support JAX transformations, including JIT compilation and automatic vectorization.</p></li>
+<li><p><strong>Convenience</strong>: The API is designed to make complex inverse kinematics problems easy to express and solve.</p></li>
+</ol>
+</section>
+<section id="citing-mjinx">
+<h2>Citing MJINX<a class="headerlink" href="#citing-mjinx" title="Link to this heading"></a></h2>
+<p>If you use MJINX in your research, please cite it as follows:</p>
+<div class="highlight-bibtex notranslate"><div class="highlight"><pre><span></span><span class="nc">@software</span><span class="p">{</span><span class="nl">mjinx25</span><span class="p">,</span>
+<span class="na">author</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="s">{Domrachev, Ivan and Nedelchev, Simeon}</span><span class="p">,</span>
+<span class="na">license</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="s">{MIT}</span><span class="p">,</span>
+<span class="na">month</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="nv">mar</span><span class="p">,</span>
+<span class="na">title</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="s">{{MJINX: Differentiable GPU-accelerated inverse kinematics in JAX}}</span><span class="p">,</span>
+<span class="na">url</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="s">{https://github.com/based-robotics/mjinx}</span><span class="p">,</span>
+<span class="na">version</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="s">{0.1.1}</span><span class="p">,</span>
+<span class="na">year</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="s">{2025}</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<div class="toctree-wrapper compound">
+<p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="installation.html#from-pypi">From PyPI</a></li>
+<li class="toctree-l2"><a class="reference internal" href="installation.html#installation-options">Installation Options</a></li>
+<li class="toctree-l2"><a class="reference internal" href="installation.html#from-source-developer-mode">From Source (Developer Mode)</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="quick_start.html">Quick Start</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="quick_start.html#complete-example">Complete Example</a></li>
+<li class="toctree-l2"><a class="reference internal" href="quick_start.html#building-the-problem">Building the Problem</a></li>
+<li class="toctree-l2"><a class="reference internal" href="quick_start.html#solving-the-problem">Solving the Problem</a></li>
+<li class="toctree-l2"><a class="reference internal" href="quick_start.html#jax-acceleration">JAX Acceleration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="quick_start.html#examples">Examples</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="problem.html">Problem</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="problem.html#mjinx.problem.JaxProblemData"><code class="docutils literal notranslate"><span class="pre">JaxProblemData</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="problem.html#mjinx.problem.Problem"><code class="docutils literal notranslate"><span class="pre">Problem</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="configuration.html">Configuration</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="configuration.html#model">Model</a></li>
+<li class="toctree-l2"><a class="reference internal" href="configuration.html#lie-algebra">Lie Algebra</a></li>
+<li class="toctree-l2"><a class="reference internal" href="configuration.html#collision">Collision</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="components.html">Components</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="components.html#base-component">Base Component</a></li>
+<li class="toctree-l2"><a class="reference internal" href="components.html#tasks">Tasks</a></li>
+<li class="toctree-l2"><a class="reference internal" href="components.html#barriers">Barriers</a></li>
+<li class="toctree-l2"><a class="reference internal" href="components.html#constraints">Constraints</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="solvers.html">Solvers</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="solvers.html#base-solver">Base Solver</a></li>
+<li class="toctree-l2"><a class="reference internal" href="solvers.html#local-ik-solver">Local IK Solver</a></li>
+<li class="toctree-l2"><a class="reference internal" href="solvers.html#global-ik-solver">Global IK Solver</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="visualization.html">Visualization</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="visualization.html#mjinx.visualize.MarkerData"><code class="docutils literal notranslate"><span class="pre">MarkerData</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="visualization.html#mjinx.visualize.BatchVisualizer"><code class="docutils literal notranslate"><span class="pre">BatchVisualizer</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="references.html">References</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="references.html#academic-references">Academic References</a></li>
+<li class="toctree-l2"><a class="reference internal" href="references.html#software-references">Software References</a></li>
+<li class="toctree-l2"><a class="reference internal" href="references.html#acknowledgements">Acknowledgements</a></li>
+<li class="toctree-l2"><a class="reference internal" href="references.html#citing-mjinx">Citing MJINX</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="developer-notes.html">Developer Notes</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="developer-notes.html#code-organization">Code Organization</a></li>
+<li class="toctree-l2"><a class="reference internal" href="developer-notes.html#development-guidelines">Development Guidelines</a></li>
+<li class="toctree-l2"><a class="reference internal" href="developer-notes.html#jax-considerations">JAX Considerations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="developer-notes.html#types">Types</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="installation.html" class="btn btn-neutral float-right" title="Installation" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2022 Ivan Domrachev, Simeon Nedelchev..</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

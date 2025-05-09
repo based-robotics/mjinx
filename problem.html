@@ -1,0 +1,344 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Problem &mdash; mjinx 0.1.1 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="_static/custom.css?v=3cbe8de9" />
+
+  
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=a58bc63e"></script>
+      <script src="_static/doctools.js?v=9bcbadda"></script>
+      <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Configuration" href="configuration.html" />
+    <link rel="prev" title="Quick Start" href="quick_start.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            mjinx
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="quick_start.html">Quick Start</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Problem</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#mjinx.problem.JaxProblemData"><code class="docutils literal notranslate"><span class="pre">JaxProblemData</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#mjinx.problem.Problem"><code class="docutils literal notranslate"><span class="pre">Problem</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#mjinx.problem.Problem.v_min"><code class="docutils literal notranslate"><span class="pre">Problem.v_min</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#mjinx.problem.Problem.update_v_min"><code class="docutils literal notranslate"><span class="pre">Problem.update_v_min()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#mjinx.problem.Problem.v_max"><code class="docutils literal notranslate"><span class="pre">Problem.v_max</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#mjinx.problem.Problem.update_v_max"><code class="docutils literal notranslate"><span class="pre">Problem.update_v_max()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#mjinx.problem.Problem.add_component"><code class="docutils literal notranslate"><span class="pre">Problem.add_component()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#mjinx.problem.Problem.remove_component"><code class="docutils literal notranslate"><span class="pre">Problem.remove_component()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#mjinx.problem.Problem.compile"><code class="docutils literal notranslate"><span class="pre">Problem.compile()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#mjinx.problem.Problem.component"><code class="docutils literal notranslate"><span class="pre">Problem.component()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#mjinx.problem.Problem.task"><code class="docutils literal notranslate"><span class="pre">Problem.task()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#mjinx.problem.Problem.barrier"><code class="docutils literal notranslate"><span class="pre">Problem.barrier()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#mjinx.problem.Problem.set_vmap_dimension"><code class="docutils literal notranslate"><span class="pre">Problem.set_vmap_dimension()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="configuration.html">Configuration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="components.html">Components</a></li>
+<li class="toctree-l1"><a class="reference internal" href="solvers.html">Solvers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="visualization.html">Visualization</a></li>
+<li class="toctree-l1"><a class="reference internal" href="references.html">References</a></li>
+<li class="toctree-l1"><a class="reference internal" href="developer-notes.html">Developer Notes</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">mjinx</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Problem</li>
+      <li class="wy-breadcrumbs-aside">
+              <!-- User defined GitHub URL -->
+              <a href="https://github.com/based-robotics/mjinx/tree/docs/github_pages/docs/problem.rst" class="fa fa-github"> Edit on GitHub</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="problem">
+<span id="id1"></span><h1>Problem<a class="headerlink" href="#problem" title="Link to this heading"></a></h1>
+<p>At the heart of MJINX lies the Problem module - a structured framework that elegantly handles inverse kinematics challenges. This module serves as the central hub where various components come together to form a cohesive mathematical formulation.</p>
+<p>When working with MJINX, a Problem instance orchestrates several key elements:</p>
+<ul class="simple">
+<li><p><strong>Tasks</strong>: Objective functions that define desired behaviors, such as reaching specific poses or following trajectories</p></li>
+<li><p><strong>Barriers</strong>: Smooth constraint functions that naturally keep the system within valid states</p></li>
+<li><p><strong>Velocity limits</strong>: Physical bounds on joint velocities to ensure feasible motion</p></li>
+</ul>
+<p>The module’s modular architecture shines in its flexibility - users can begin with simple scenarios like positioning a single end-effector, then naturally build up to complex whole-body motions with multiple objectives and constraints.</p>
+<p>Under the hood, the Problem class transforms these high-level specifications into optimized computations through its JaxProblemData representation. By leveraging JAX’s JIT compilation, it ensures that even sophisticated inverse kinematics problems run with maximum efficiency.</p>
+<dl class="py class" id="module-mjinx.problem">
+<dt class="sig sig-object py" id="mjinx.problem.JaxProblemData">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">JaxProblemData</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">v_min</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">v_max</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">components</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mjinx.problem.JaxProblemData" title="Link to this definition"></a></dt>
+<dd><p>A dataclass representing the compiled problem data for JAX optimization.</p>
+<p>This container holds all the necessary elements required for solving an inverse
+kinematics problem with JAX-based optimization techniques.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>model</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">Model</span></code></span>) – The MuJoCo model.</p></li>
+<li><p><strong>v_min</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.jax.dev/en/latest/_autosummary/jax.Array.html#jax.Array" title="(in JAX)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Array</span></code></a></span>) – Minimum velocity limits.</p></li>
+<li><p><strong>v_max</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.jax.dev/en/latest/_autosummary/jax.Array.html#jax.Array" title="(in JAX)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Array</span></code></a></span>) – Maximum velocity limits.</p></li>
+<li><p><strong>components</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>, <a class="reference internal" href="components.html#mjinx.components._base.JaxComponent" title="mjinx.components._base.JaxComponent"><code class="xref py py-class docutils literal notranslate"><span class="pre">JaxComponent</span></code></a>]</span>) – Dictionary of JAX components (tasks and barriers).</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="mjinx.problem.Problem">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">Problem</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">v_min</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">-1000.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">v_max</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1000.0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mjinx.problem.Problem" title="Link to this definition"></a></dt>
+<dd><p>A class representing an optimization problem for robotics applications.</p>
+<p>This class manages the components (tasks and barriers), velocity limits, and model
+for the optimization problem. It serves as the central container for defining
+the constraints and objectives that characterize the inverse kinematics problem.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>model</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">Model</span></code></span>) – The MuJoCo model.</p></li>
+<li><p><strong>v_min</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.2)"><code class="xref py py-class docutils literal notranslate"><span class="pre">ndarray</span></code></a> | <a class="reference external" href="https://docs.jax.dev/en/latest/_autosummary/jax.Array.html#jax.Array" title="(in JAX)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Array</span></code></a> | <code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></span>) – Minimum velocity limit (default: -1e3).</p></li>
+<li><p><strong>v_max</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.2)"><code class="xref py py-class docutils literal notranslate"><span class="pre">ndarray</span></code></a> | <a class="reference external" href="https://docs.jax.dev/en/latest/_autosummary/jax.Array.html#jax.Array" title="(in JAX)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Array</span></code></a> | <code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></span>) – Maximum velocity limit (default: 1e3).</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py property">
+<dt class="sig sig-object py" id="mjinx.problem.Problem.v_min">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">v_min</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.jax.dev/en/latest/_autosummary/jax.Array.html#jax.Array" title="(in JAX)"><span class="pre">Array</span></a></em><a class="headerlink" href="#mjinx.problem.Problem.v_min" title="Link to this definition"></a></dt>
+<dd><p>Get the minimum velocity limits.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The minimum velocity limits.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="mjinx.problem.Problem.update_v_min">
+<span class="sig-name descname"><span class="pre">update_v_min</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">v_min</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mjinx.problem.Problem.update_v_min" title="Link to this definition"></a></dt>
+<dd><p>Update the minimum velocity limits.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>v_min</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.2)"><code class="xref py py-class docutils literal notranslate"><span class="pre">ndarray</span></code></a> | <a class="reference external" href="https://docs.jax.dev/en/latest/_autosummary/jax.Array.html#jax.Array" title="(in JAX)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Array</span></code></a> | <code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></span>) – The new minimum velocity limits.</p>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>ValueError</strong> – If the shape of v_min is invalid.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="mjinx.problem.Problem.v_max">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">v_max</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.jax.dev/en/latest/_autosummary/jax.Array.html#jax.Array" title="(in JAX)"><span class="pre">Array</span></a></em><a class="headerlink" href="#mjinx.problem.Problem.v_max" title="Link to this definition"></a></dt>
+<dd><p>Get the maximum velocity limits.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The maximum velocity limits.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="mjinx.problem.Problem.update_v_max">
+<span class="sig-name descname"><span class="pre">update_v_max</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">v_max</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mjinx.problem.Problem.update_v_max" title="Link to this definition"></a></dt>
+<dd><p>Update the maximum velocity limits.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>v_max</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.2)"><code class="xref py py-class docutils literal notranslate"><span class="pre">ndarray</span></code></a> | <a class="reference external" href="https://docs.jax.dev/en/latest/_autosummary/jax.Array.html#jax.Array" title="(in JAX)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Array</span></code></a> | <code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></span>) – The new maximum velocity limits.</p>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>ValueError</strong> – If the shape of v_max is invalid.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="mjinx.problem.Problem.add_component">
+<span class="sig-name descname"><span class="pre">add_component</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">component</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mjinx.problem.Problem.add_component" title="Link to this definition"></a></dt>
+<dd><p>Add a component to the problem.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>component</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="components.html#mjinx.components._base.Component" title="mjinx.components._base.Component"><code class="xref py py-class docutils literal notranslate"><span class="pre">Component</span></code></a></span>) – The component to add.</p>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>ValueError</strong> – If a component with the same name already exists.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="mjinx.problem.Problem.remove_component">
+<span class="sig-name descname"><span class="pre">remove_component</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mjinx.problem.Problem.remove_component" title="Link to this definition"></a></dt>
+<dd><p>Remove a component from the problem.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>name</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span>) – The name of the component to remove.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="mjinx.problem.Problem.compile">
+<span class="sig-name descname"><span class="pre">compile</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#mjinx.problem.Problem.compile" title="Link to this definition"></a></dt>
+<dd><p>Compile the problem into a JaxProblemData object.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="#mjinx.problem.JaxProblemData" title="mjinx.problem.JaxProblemData"><code class="xref py py-class docutils literal notranslate"><span class="pre">JaxProblemData</span></code></a></span></p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A JaxProblemData object containing the compiled problem data.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="mjinx.problem.Problem.component">
+<span class="sig-name descname"><span class="pre">component</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mjinx.problem.Problem.component" title="Link to this definition"></a></dt>
+<dd><p>Get a component by name.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>name</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span>) – The name of the component.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="components.html#mjinx.components._base.Component" title="mjinx.components._base.Component"><code class="xref py py-class docutils literal notranslate"><span class="pre">Component</span></code></a></span></p>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The requested component.</p>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>ValueError</strong> – If the component is not found.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="mjinx.problem.Problem.task">
+<span class="sig-name descname"><span class="pre">task</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mjinx.problem.Problem.task" title="Link to this definition"></a></dt>
+<dd><p>Get a task component by name.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>name</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span>) – The name of the task component.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="tasks.html#mjinx.components.tasks._base.Task" title="mjinx.components.tasks._base.Task"><code class="xref py py-class docutils literal notranslate"><span class="pre">Task</span></code></a></span></p>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The requested task component.</p>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>ValueError</strong> – If the component is not found or is not a task.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="mjinx.problem.Problem.barrier">
+<span class="sig-name descname"><span class="pre">barrier</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mjinx.problem.Problem.barrier" title="Link to this definition"></a></dt>
+<dd><p>Get a barrier component by name.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>name</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span>) – The name of the barrier component.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="barriers.html#mjinx.components.barriers._base.Barrier" title="mjinx.components.barriers._base.Barrier"><code class="xref py py-class docutils literal notranslate"><span class="pre">Barrier</span></code></a></span></p>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The requested barrier component.</p>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>ValueError</strong> – If the component is not found or is not a barrier.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="mjinx.problem.Problem.set_vmap_dimension">
+<span class="sig-name descname"><span class="pre">set_vmap_dimension</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#mjinx.problem.Problem.set_vmap_dimension" title="Link to this definition"></a></dt>
+<dd><p>Set the vmap dimension for the problem.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">AbstractContextManager</span></code>[<a class="reference internal" href="#mjinx.problem.JaxProblemData" title="mjinx.problem.JaxProblemData"><code class="xref py py-class docutils literal notranslate"><span class="pre">JaxProblemData</span></code></a>]</span></p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A context manager for the JaxProblemData with vmap dimension set.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="quick_start.html" class="btn btn-neutral float-left" title="Quick Start" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="configuration.html" class="btn btn-neutral float-right" title="Configuration" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2022 Ivan Domrachev, Simeon Nedelchev..</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

@@ -1,0 +1,662 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Configuration &mdash; mjinx 0.1.1 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="_static/custom.css?v=3cbe8de9" />
+
+  
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=a58bc63e"></script>
+      <script src="_static/doctools.js?v=9bcbadda"></script>
+      <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Components" href="components.html" />
+    <link rel="prev" title="Problem" href="problem.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            mjinx
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="quick_start.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="problem.html">Problem</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Configuration</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#model">Model</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#mjinx.configuration._model.update"><code class="docutils literal notranslate"><span class="pre">update()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#mjinx.configuration._model.get_frame_jacobian_world_aligned"><code class="docutils literal notranslate"><span class="pre">get_frame_jacobian_world_aligned()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#mjinx.configuration._model.get_frame_jacobian_local"><code class="docutils literal notranslate"><span class="pre">get_frame_jacobian_local()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#mjinx.configuration._model.get_transform_frame_to_world"><code class="docutils literal notranslate"><span class="pre">get_transform_frame_to_world()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#mjinx.configuration._model.get_transform"><code class="docutils literal notranslate"><span class="pre">get_transform()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#mjinx.configuration._model.integrate"><code class="docutils literal notranslate"><span class="pre">integrate()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#mjinx.configuration._model.get_configuration_limit"><code class="docutils literal notranslate"><span class="pre">get_configuration_limit()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#mjinx.configuration._model.geom_point_jacobian"><code class="docutils literal notranslate"><span class="pre">geom_point_jacobian()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#lie-algebra">Lie Algebra</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#mjinx.configuration._lie.get_joint_zero"><code class="docutils literal notranslate"><span class="pre">get_joint_zero()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#mjinx.configuration._lie.joint_difference"><code class="docutils literal notranslate"><span class="pre">joint_difference()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#mjinx.configuration._lie.skew_symmetric"><code class="docutils literal notranslate"><span class="pre">skew_symmetric()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#mjinx.configuration._lie.attitude_jacobian"><code class="docutils literal notranslate"><span class="pre">attitude_jacobian()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#mjinx.configuration._lie.jac_dq2v"><code class="docutils literal notranslate"><span class="pre">jac_dq2v()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#collision">Collision</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#mjinx.configuration._collision.sorted_pair"><code class="docutils literal notranslate"><span class="pre">sorted_pair()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#mjinx.configuration._collision.geom_groups"><code class="docutils literal notranslate"><span class="pre">geom_groups()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#mjinx.configuration._collision.compute_collision_pairs"><code class="docutils literal notranslate"><span class="pre">compute_collision_pairs()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#mjinx.configuration._collision.get_distance"><code class="docutils literal notranslate"><span class="pre">get_distance()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#mjinx.configuration._collision.geom_point_jacobian"><code class="docutils literal notranslate"><span class="pre">geom_point_jacobian()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="components.html">Components</a></li>
+<li class="toctree-l1"><a class="reference internal" href="solvers.html">Solvers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="visualization.html">Visualization</a></li>
+<li class="toctree-l1"><a class="reference internal" href="references.html">References</a></li>
+<li class="toctree-l1"><a class="reference internal" href="developer-notes.html">Developer Notes</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">mjinx</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Configuration</li>
+      <li class="wy-breadcrumbs-aside">
+              <!-- User defined GitHub URL -->
+              <a href="https://github.com/based-robotics/mjinx/tree/docs/github_pages/docs/configuration.rst" class="fa fa-github"> Edit on GitHub</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="configuration">
+<h1>Configuration<a class="headerlink" href="#configuration" title="Link to this heading"></a></h1>
+<p>The configuration module serves as the mathematical foundation of MJINX, providing essential utilities for robot kinematics, transformations, and state management. These core functions enable precise control and manipulation of robotic systems throughout the library.</p>
+<p>The module is structured into three complementary categories, each addressing a critical aspect of robot configuration:</p>
+<ol class="arabic simple">
+<li><p><strong>Model</strong> - Functions for manipulating the MuJoCo model and managing robot state</p></li>
+<li><p><strong>Lie Algebra</strong> - Specialized tools for handling rotations and transformations with mathematical rigor</p></li>
+<li><p><strong>Collision</strong> - Algorithms for detecting and responding to potential collisions</p></li>
+</ol>
+<section id="model">
+<h2>Model<a class="headerlink" href="#model" title="Link to this heading"></a></h2>
+<p>The model operations provide fundamental capabilities for state integration, Jacobian computation, and frame transformations. These functions form the bridge between abstract mathematical representations and the physical robot model.</p>
+<dl class="py function" id="module-mjinx.configuration._model">
+<dt class="sig sig-object py" id="mjinx.configuration._model.update">
+<span class="sig-name descname"><span class="pre">update</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">q</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mjinx.configuration._model.update" title="Link to this definition"></a></dt>
+<dd><p>Update the MuJoCo data with new joint positions.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>model</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">Model</span></code></span>) – The MuJoCo model.</p></li>
+<li><p><strong>q</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.jax.dev/en/latest/_autosummary/jax.Array.html#jax.Array" title="(in JAX)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Array</span></code></a></span>) – The new joint positions.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">Data</span></code></span></p>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Updated MuJoCo data.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="mjinx.configuration._model.get_frame_jacobian_world_aligned">
+<span class="sig-name descname"><span class="pre">get_frame_jacobian_world_aligned</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">obj_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">obj_type=&lt;mjtObj.mjOBJ_BODY:</span> <span class="pre">1&gt;</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mjinx.configuration._model.get_frame_jacobian_world_aligned" title="Link to this definition"></a></dt>
+<dd><p>Compute the Jacobian of an object’s frame with respect to joint velocities.</p>
+<p>This function calculates the geometric Jacobian that maps joint velocities to
+the linear and angular velocities of a specified object (body, geom, or site)
+in world-aligned coordinates:</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}J = \begin{bmatrix} J_v \\ J_\omega \end{bmatrix}\end{split}\]</div>
+<dl class="simple">
+<dt>where:</dt><dd><ul class="simple">
+<li><p><span class="math notranslate nohighlight">\(J_v\)</span> is the 3×nv position Jacobian</p></li>
+<li><p><span class="math notranslate nohighlight">\(J_\omega\)</span> is the 3×nv orientation Jacobian</p></li>
+</ul>
+</dd>
+</dl>
+<p>The position Jacobian for revolute joints includes terms for both direct motion
+and motion due to rotation:</p>
+<div class="math notranslate nohighlight">
+\[J_v = J_{direct} + J_{\omega} \times (p - p_{com})\]</div>
+<dl class="simple">
+<dt>where:</dt><dd><ul class="simple">
+<li><p><span class="math notranslate nohighlight">\(p\)</span> is the position of the object</p></li>
+<li><p><span class="math notranslate nohighlight">\(p_{com}\)</span> is the center of mass of the subtree</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>model</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">Model</span></code></span>) – The MuJoCo model.</p></li>
+<li><p><strong>data</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">Data</span></code></span>) – The MuJoCo data.</p></li>
+<li><p><strong>obj_id</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></span>) – The ID of the object.</p></li>
+<li><p><strong>obj_type</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">mjtObj</span></code></span>) – The type of the object (mjOBJ_BODY, mjOBJ_GEOM, or mjOBJ_SITE).</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.jax.dev/en/latest/_autosummary/jax.Array.html#jax.Array" title="(in JAX)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Array</span></code></a></span></p>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The geometric Jacobian matrix (6×nv).</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="mjinx.configuration._model.get_frame_jacobian_local">
+<span class="sig-name descname"><span class="pre">get_frame_jacobian_local</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">obj_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">obj_type=&lt;mjtObj.mjOBJ_BODY:</span> <span class="pre">1&gt;</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mjinx.configuration._model.get_frame_jacobian_local" title="Link to this definition"></a></dt>
+<dd><p>Compute the Jacobian of an object’s frame with respect to joint velocities in local coordinates.</p>
+<p>Similar to get_frame_jacobian_world_aligned, but expresses the Jacobian in the local
+coordinate frame of the object. This is often useful for operational space control
+and computing task-space errors.</p>
+<p>For the local frame Jacobian:</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}J_{local} = \begin{bmatrix} R^T J_v \\ R^T J_\omega \end{bmatrix}\end{split}\]</div>
+<dl class="simple">
+<dt>where:</dt><dd><ul class="simple">
+<li><p><span class="math notranslate nohighlight">\(R\)</span> is the rotation matrix of the object</p></li>
+<li><p><span class="math notranslate nohighlight">\(J_v\)</span> and <span class="math notranslate nohighlight">\(J_\omega\)</span> are the world-aligned position and orientation Jacobians</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>model</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">Model</span></code></span>) – The MuJoCo model.</p></li>
+<li><p><strong>data</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">Data</span></code></span>) – The MuJoCo data.</p></li>
+<li><p><strong>obj_id</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></span>) – The ID of the object.</p></li>
+<li><p><strong>obj_type</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">mjtObj</span></code></span>) – The type of the object (mjOBJ_BODY, mjOBJ_GEOM, or mjOBJ_SITE).</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.jax.dev/en/latest/_autosummary/jax.Array.html#jax.Array" title="(in JAX)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Array</span></code></a></span></p>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The geometric Jacobian matrix in local coordinates (6×nv).</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="mjinx.configuration._model.get_transform_frame_to_world">
+<span class="sig-name descname"><span class="pre">get_transform_frame_to_world</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">frame_id</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mjinx.configuration._model.get_transform_frame_to_world" title="Link to this definition"></a></dt>
+<dd><p>Get the transformation from frame to world coordinates.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>model</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">Model</span></code></span>) – The MuJoCo model.</p></li>
+<li><p><strong>data</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">Data</span></code></span>) – The MuJoCo data.</p></li>
+<li><p><strong>frame_id</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></span>) – The ID of the frame.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://brentyi.github.io/jaxlie/api/jaxlie/_se3/#jaxlie._se3.SE3" title="(in jaxlie)"><code class="xref py py-class docutils literal notranslate"><span class="pre">SE3</span></code></a></span></p>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The SE3 transformation.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="mjinx.configuration._model.get_transform">
+<span class="sig-name descname"><span class="pre">get_transform</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">source_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dest_id</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mjinx.configuration._model.get_transform" title="Link to this definition"></a></dt>
+<dd><p>Get the transformation between two frames.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>model</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">Model</span></code></span>) – The MuJoCo model.</p></li>
+<li><p><strong>data</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">Data</span></code></span>) – The MuJoCo data.</p></li>
+<li><p><strong>source_id</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></span>) – The ID of the source frame.</p></li>
+<li><p><strong>dest_id</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></span>) – The ID of the destination frame.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://brentyi.github.io/jaxlie/api/jaxlie/_se3/#jaxlie._se3.SE3" title="(in jaxlie)"><code class="xref py py-class docutils literal notranslate"><span class="pre">SE3</span></code></a></span></p>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The SE3 transformation from source to destination.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="mjinx.configuration._model.integrate">
+<span class="sig-name descname"><span class="pre">integrate</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">q0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">velocity</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dt</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mjinx.configuration._model.integrate" title="Link to this definition"></a></dt>
+<dd><p>Integrate the joint positions given initial position, velocity, and time step.</p>
+<p>For standard joints, integration is linear:</p>
+<div class="math notranslate nohighlight">
+\[q_1 = q_0 + v \cdot dt\]</div>
+<p>For quaternion-based joints, integration uses the exponential map:</p>
+<div class="math notranslate nohighlight">
+\[q_1 = q_0 \otimes \exp(\frac{v \cdot dt}{2})\]</div>
+<dl class="simple">
+<dt>where:</dt><dd><ul class="simple">
+<li><p><span class="math notranslate nohighlight">\(\otimes\)</span> is quaternion multiplication</p></li>
+<li><p><span class="math notranslate nohighlight">\(\exp\)</span> is the exponential map from the Lie algebra to the Lie group</p></li>
+</ul>
+</dd>
+</dl>
+<p>This function handles the proper integration for different joint types in the model,
+ensuring that rotational joints maintain proper constraints (e.g., unit quaternions).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>model</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">Model</span></code></span>) – The MuJoCo model.</p></li>
+<li><p><strong>q0</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.jax.dev/en/latest/_autosummary/jax.Array.html#jax.Array" title="(in JAX)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Array</span></code></a></span>) – The initial joint positions.</p></li>
+<li><p><strong>velocity</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.jax.dev/en/latest/_autosummary/jax.Array.html#jax.Array" title="(in JAX)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Array</span></code></a></span>) – The joint velocities.</p></li>
+<li><p><strong>dt</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.jax.dev/en/latest/_autosummary/jax.Array.html#jax.Array" title="(in JAX)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Array</span></code></a> | <code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></span>) – The time step.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.jax.dev/en/latest/_autosummary/jax.Array.html#jax.Array" title="(in JAX)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Array</span></code></a></span></p>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The integrated joint positions.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="mjinx.configuration._model.get_configuration_limit">
+<span class="sig-name descname"><span class="pre">get_configuration_limit</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">limit</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mjinx.configuration._model.get_configuration_limit" title="Link to this definition"></a></dt>
+<dd><p>Get the configuration limits for the model.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>model</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">Model</span></code></span>) – The MuJoCo model.</p></li>
+<li><p><strong>limit</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.jax.dev/en/latest/_autosummary/jax.Array.html#jax.Array" title="(in JAX)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Array</span></code></a> | <code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></span>) – The limit value(s).</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code>[<a class="reference external" href="https://docs.jax.dev/en/latest/_autosummary/jax.Array.html#jax.Array" title="(in JAX)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Array</span></code></a>, <a class="reference external" href="https://docs.jax.dev/en/latest/_autosummary/jax.Array.html#jax.Array" title="(in JAX)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Array</span></code></a>]</span></p>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>A tuple of arrays representing the lower and upper bounds.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="mjinx.configuration._model.geom_point_jacobian">
+<span class="sig-name descname"><span class="pre">geom_point_jacobian</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">point</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">body_id</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mjinx.configuration._model.geom_point_jacobian" title="Link to this definition"></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.jax.dev/en/latest/_autosummary/jax.Array.html#jax.Array" title="(in JAX)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Array</span></code></a></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="lie-algebra">
+<h2>Lie Algebra<a class="headerlink" href="#lie-algebra" title="Link to this heading"></a></h2>
+<p>The Lie algebra operations implement sophisticated mathematical tools for handling rotations, quaternions, and transformations in 3D space. Based on principles from differential geometry, these functions ensure proper handling of the SE(3) and SO(3) Lie groups.</p>
+<dl class="py function" id="module-mjinx.configuration._lie">
+<dt class="sig sig-object py" id="mjinx.configuration._lie.get_joint_zero">
+<span class="sig-name descname"><span class="pre">get_joint_zero</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mjinx.configuration._lie.get_joint_zero" title="Link to this definition"></a></dt>
+<dd><p>Get the zero configuration for all joints in the model.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>model</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">Model</span></code></span>) – The MuJoCo model.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.jax.dev/en/latest/_autosummary/jax.Array.html#jax.Array" title="(in JAX)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Array</span></code></a></span></p>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>An array representing the zero configuration for all joints.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="mjinx.configuration._lie.joint_difference">
+<span class="sig-name descname"><span class="pre">joint_difference</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">q1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">q2</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mjinx.configuration._lie.joint_difference" title="Link to this definition"></a></dt>
+<dd><p>Compute the difference between two joint configurations.</p>
+<p>This function calculates the configuration space difference between two joint states.
+For standard joints (hinge, slide), this is a simple subtraction.
+For quaternion-based joints (free, ball), this uses the proper Lie group operations:</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}\Delta q = 
+\begin{cases}
+    q_1 - q_2 &amp; \text{for standard joints} \\
+    \log(q_1 \cdot q_2^{-1}) &amp; \text{for quaternion joints}
+\end{cases}\end{split}\]</div>
+<dl class="simple">
+<dt>where:</dt><dd><ul class="simple">
+<li><p><span class="math notranslate nohighlight">\(q_1, q_2\)</span> are the two joint configurations</p></li>
+<li><p><span class="math notranslate nohighlight">\(\log\)</span> is the logarithmic map from SO(3) or SE(3) to their tangent spaces</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>model</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">Model</span></code></span>) – The MuJoCo model.</p></li>
+<li><p><strong>q1</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.jax.dev/en/latest/_autosummary/jax.Array.html#jax.Array" title="(in JAX)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Array</span></code></a></span>) – The first joint configuration.</p></li>
+<li><p><strong>q2</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.jax.dev/en/latest/_autosummary/jax.Array.html#jax.Array" title="(in JAX)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Array</span></code></a></span>) – The second joint configuration.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.jax.dev/en/latest/_autosummary/jax.Array.html#jax.Array" title="(in JAX)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Array</span></code></a></span></p>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The difference between the two configurations.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="mjinx.configuration._lie.skew_symmetric">
+<span class="sig-name descname"><span class="pre">skew_symmetric</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">v</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mjinx.configuration._lie.skew_symmetric" title="Link to this definition"></a></dt>
+<dd><p>Create a skew-symmetric matrix from a 3D vector.</p>
+<p>This function takes a 3D vector and returns its corresponding 3x3 skew-symmetric matrix.
+The skew-symmetric matrix is used in various robotics and physics calculations,
+particularly for cross products and rotations.</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}[v]_{\times} = 
+\begin{bmatrix}
+    0 &amp; -v_z &amp; v_y \\
+    v_z &amp; 0 &amp; -v_x \\
+    -v_y &amp; v_x &amp; 0
+\end{bmatrix}\end{split}\]</div>
+<p>This matrix has the property that for any vector w, [v]_× w = v × w (cross product).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>v</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.jax.dev/en/latest/_autosummary/jax.Array.html#jax.Array" title="(in JAX)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Array</span></code></a></span>) – A 3D vector (3x1 array).</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.jax.dev/en/latest/_autosummary/jax.Array.html#jax.Array" title="(in JAX)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Array</span></code></a></span></p>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>A 3x3 skew-symmetric matrix.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="mjinx.configuration._lie.attitude_jacobian">
+<span class="sig-name descname"><span class="pre">attitude_jacobian</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">q</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mjinx.configuration._lie.attitude_jacobian" title="Link to this definition"></a></dt>
+<dd><p>Compute the attitude Jacobian for a quaternion.</p>
+<p>This function calculates the 4x3 attitude Jacobian matrix for a given unit quaternion.
+The attitude Jacobian relates angular velocity ω to quaternion rate of change q̇:</p>
+<div class="math notranslate nohighlight">
+\[\dot{q} = \frac{1}{2} E(q) \omega\]</div>
+<p>where E(q) is the attitude Jacobian:</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}E(q) = 
+\begin{bmatrix}
+    -q_x &amp; -q_y &amp; -q_z \\
+    q_w &amp; -q_z &amp; q_y \\
+    q_z &amp; q_w &amp; -q_x \\
+    -q_y &amp; q_x &amp; q_w
+\end{bmatrix}\end{split}\]</div>
+<p>With <span class="math notranslate nohighlight">\(q = [q_w, q_x, q_y, q_z]\)</span> being the quaternion.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>q</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.jax.dev/en/latest/_autosummary/jax.Array.html#jax.Array" title="(in JAX)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Array</span></code></a></span>) – A unit quaternion represented as a 4D array [w, x, y, z].</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.jax.dev/en/latest/_autosummary/jax.Array.html#jax.Array" title="(in JAX)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Array</span></code></a></span></p>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>A 4x3 attitude Jacobian matrix.</p>
+</dd>
+<dt class="field-even">Ref<span class="colon">:</span></dt>
+<dd class="field-even"><p>Based on <span id="id1">[<a class="reference internal" href="references.html#id4" title="Brian E Jackson, Kevin Tracy, and Zachary Manchester. Planning with attitude. IEEE Robotics and Automation Letters, 6(3):5658–5664, 2021.">Jackson <em>et al.</em>, 2021</a>]</span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="mjinx.configuration._lie.jac_dq2v">
+<span class="sig-name descname"><span class="pre">jac_dq2v</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">q</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mjinx.configuration._lie.jac_dq2v" title="Link to this definition"></a></dt>
+<dd><p>Compute the Jacobian matrix for converting from generalized positions to velocities.</p>
+<p>This function calculates the Jacobian matrix J that maps changes in generalized
+positions (q) to generalized velocities (v):</p>
+<div class="math notranslate nohighlight">
+\[\delta v = J \cdot \delta q\]</div>
+<p>For standard revolute and prismatic joints, this mapping is simply the identity.
+For quaternion-based joints (ball, free), the mapping involves the attitude Jacobian:</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}J = 
+\begin{bmatrix}
+    I &amp; 0 \\
+    0 &amp; E(q)
+\end{bmatrix}\end{split}\]</div>
+<p>where E(q) is the attitude Jacobian for the quaternion component.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>model</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">Model</span></code></span>) – A MuJoCo model object (mjx.Model).</p></li>
+<li><p><strong>q</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.jax.dev/en/latest/_autosummary/jax.Array.html#jax.Array" title="(in JAX)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Array</span></code></a></span>) – The current generalized positions of the model.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A Jacobian matrix of shape (nq, nv), where nq is the number of position
+variables and nv is the number of velocity variables.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="collision">
+<h2>Collision<a class="headerlink" href="#collision" title="Link to this heading"></a></h2>
+<p>The collision operations provide sophisticated algorithms for detecting potential collisions, computing distances between objects, and analyzing contact points. These functions are crucial for implementing safety constraints and realistic physical interactions.</p>
+<dl class="py function" id="module-mjinx.configuration._collision">
+<dt class="sig sig-object py" id="mjinx.configuration._collision.sorted_pair">
+<span class="sig-name descname"><span class="pre">sorted_pair</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mjinx.configuration._collision.sorted_pair" title="Link to this definition"></a></dt>
+<dd><p>Return a sorted pair of integers.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>x</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></span>) – The first integer.</p></li>
+<li><p><strong>y</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></span>) – The second integer.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code>]</span></p>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>A tuple of the two integers, sorted in ascending order.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="mjinx.configuration._collision.geom_groups">
+<span class="sig-name descname"><span class="pre">geom_groups</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">collision_pairs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mjinx.configuration._collision.geom_groups" title="Link to this definition"></a></dt>
+<dd><p>Group geometry pairs by their collision function characteristics.</p>
+<p>Groups collision pairs based on geometry types, mesh properties, and collision
+dimensions. For mesh geometries, convex functions are executed separately for
+each distinct mesh in the model since convex functions require static mesh sizes.</p>
+<p>This function is greatly inspired by mujoco.mjx._src.collision_driver module.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>model</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">Model</span></code></span>) – The MuJoCo model containing geometry information.</p></li>
+<li><p><strong>collision_pairs</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code>]]</span>) – List of collision pairs to be grouped.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">FunctionKey</span></code>, <a class="reference internal" href="typing.html#mjinx.typing.SimplifiedContact" title="mjinx.typing.SimplifiedContact"><code class="xref py py-class docutils literal notranslate"><span class="pre">SimplifiedContact</span></code></a>]</span></p>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Dictionary mapping function keys to simplified contact information.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="mjinx.configuration._collision.compute_collision_pairs">
+<span class="sig-name descname"><span class="pre">compute_collision_pairs</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">m</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">d</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">collision_pairs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mjinx.configuration._collision.compute_collision_pairs" title="Link to this definition"></a></dt>
+<dd><p>Process and compute collisions between specified geometry pairs.</p>
+<p>For each collision pair, this function computes:
+1. The minimum distance between geometries
+2. The contact point location
+3. The contact normal direction</p>
+<p>The distance computation depends on the geometry types, but generally follows:</p>
+<div class="math notranslate nohighlight">
+\[d(G_1, G_2) = \min_{p_1 \in G_1, p_2 \in G_2} \|p_1 - p_2\| - (r_1 + r_2)\]</div>
+<dl class="simple">
+<dt>where:</dt><dd><ul class="simple">
+<li><p><span class="math notranslate nohighlight">\(G_1, G_2\)</span> are the geometries</p></li>
+<li><p><span class="math notranslate nohighlight">\(r_1, r_2\)</span> are their respective radii/margins</p></li>
+<li><p><span class="math notranslate nohighlight">\(p_1, p_2\)</span> are points on the geometries</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>m</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">Model</span></code></span>) – The MuJoCo model containing simulation parameters.</p></li>
+<li><p><strong>d</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">Data</span></code></span>) – The MuJoCo data containing current state information.</p></li>
+<li><p><strong>collision_pairs</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code>]]</span>) – List of geometry pairs to check for collisions.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="typing.html#mjinx.typing.SimplifiedContact" title="mjinx.typing.SimplifiedContact"><code class="xref py py-class docutils literal notranslate"><span class="pre">SimplifiedContact</span></code></a></span></p>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Simplified contact information containing collision results.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="mjinx.configuration._collision.get_distance">
+<span class="sig-name descname"><span class="pre">get_distance</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">collision_pairs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mjinx.configuration._collision.get_distance" title="Link to this definition"></a></dt>
+<dd><p>Compute the distances for the given collision pairs.</p>
+<p>This function is greatly inspired by mujoco.mjx._src.collision_driver module.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>model</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">Model</span></code></span>) – The MuJoCo model.</p></li>
+<li><p><strong>data</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">Data</span></code></span>) – The MuJoCo data.</p></li>
+<li><p><strong>collision_pairs</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code>]]</span>) – A list of collision pairs to check.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code>[<a class="reference external" href="https://docs.jax.dev/en/latest/_autosummary/jax.Array.html#jax.Array" title="(in JAX)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Array</span></code></a>, <a class="reference external" href="https://docs.jax.dev/en/latest/_autosummary/jax.Array.html#jax.Array" title="(in JAX)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Array</span></code></a>, <a class="reference external" href="https://docs.jax.dev/en/latest/_autosummary/jax.Array.html#jax.Array" title="(in JAX)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Array</span></code></a>]</span></p>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>An array of distances for each collision pair.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="mjinx.configuration._collision.geom_point_jacobian">
+<span class="sig-name descname"><span class="pre">geom_point_jacobian</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">point</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">body_id</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mjinx.configuration._collision.geom_point_jacobian" title="Link to this definition"></a></dt>
+<dd><p>Compute the Jacobian of a point on a body with respect to joint velocities.</p>
+<p>This function calculates how a specific point on a body moves in world coordinates
+when joint velocities are applied. For a point p on body b, the Jacobian is:</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}J_p = \begin{bmatrix} J_v \\ J_\omega \end{bmatrix}\end{split}\]</div>
+<dl class="simple">
+<dt>where:</dt><dd><ul class="simple">
+<li><p><span class="math notranslate nohighlight">\(J_v\)</span> relates joint velocities to the linear velocity of the point</p></li>
+<li><p><span class="math notranslate nohighlight">\(J_\omega\)</span> relates joint velocities to the angular velocity at the point</p></li>
+</ul>
+</dd>
+</dl>
+<p>This Jacobian is essential for many robotics applications, including operational space
+control, collision avoidance, and contact modeling.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>model</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">Model</span></code></span>) – The MuJoCo model.</p></li>
+<li><p><strong>data</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">Data</span></code></span>) – The MuJoCo data.</p></li>
+<li><p><strong>point</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.jax.dev/en/latest/_autosummary/jax.Array.html#jax.Array" title="(in JAX)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Array</span></code></a></span>) – The 3D coordinates of the point in world frame.</p></li>
+<li><p><strong>body_id</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.jax.dev/en/latest/_autosummary/jax.Array.html#jax.Array" title="(in JAX)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Array</span></code></a></span>) – The ID of the body to which the point is attached.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.jax.dev/en/latest/_autosummary/jax.Array.html#jax.Array" title="(in JAX)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Array</span></code></a></span></p>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The point Jacobian matrix (6×nv).</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="problem.html" class="btn btn-neutral float-left" title="Problem" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="components.html" class="btn btn-neutral float-right" title="Components" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2022 Ivan Domrachev, Simeon Nedelchev..</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

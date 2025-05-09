@@ -1,0 +1,877 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Base Task &mdash; mjinx 0.1.1 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="_static/custom.css?v=3cbe8de9" />
+
+  
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=a58bc63e"></script>
+      <script src="_static/doctools.js?v=9bcbadda"></script>
+      <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Base Barrier" href="barriers.html" />
+    <link rel="prev" title="Components" href="components.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            mjinx
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="quick_start.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="problem.html">Problem</a></li>
+<li class="toctree-l1"><a class="reference internal" href="configuration.html">Configuration</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="components.html">Components</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="components.html#base-component">Base Component</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="components.html#tasks">Tasks</a><ul class="current">
+<li class="toctree-l3 current"><a class="current reference internal" href="#">Base Task</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#mjinx.components.tasks._base.JaxTask"><code class="docutils literal notranslate"><span class="pre">JaxTask</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#mjinx.components.tasks._base.Task"><code class="docutils literal notranslate"><span class="pre">Task</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#center-of-mass-task">Center of Mass Task</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#mjinx.components.tasks._com_task.JaxComTask"><code class="docutils literal notranslate"><span class="pre">JaxComTask</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#mjinx.components.tasks._com_task.ComTask"><code class="docutils literal notranslate"><span class="pre">ComTask</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#joint-task">Joint Task</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#mjinx.components.tasks._joint_task.JaxJointTask"><code class="docutils literal notranslate"><span class="pre">JaxJointTask</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#mjinx.components.tasks._joint_task.JointTask"><code class="docutils literal notranslate"><span class="pre">JointTask</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#base-body-task">Base Body Task</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#mjinx.components.tasks._obj_task.JaxObjTask"><code class="docutils literal notranslate"><span class="pre">JaxObjTask</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#mjinx.components.tasks._obj_task.ObjTask"><code class="docutils literal notranslate"><span class="pre">ObjTask</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#body-frame-task">Body Frame Task</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#mjinx.components.tasks._obj_frame_task.JaxFrameTask"><code class="docutils literal notranslate"><span class="pre">JaxFrameTask</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#mjinx.components.tasks._obj_frame_task.FrameTask"><code class="docutils literal notranslate"><span class="pre">FrameTask</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#body-position-task">Body Position Task</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#mjinx.components.tasks._obj_position_task.JaxPositionTask"><code class="docutils literal notranslate"><span class="pre">JaxPositionTask</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#mjinx.components.tasks._obj_position_task.PositionTask"><code class="docutils literal notranslate"><span class="pre">PositionTask</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="components.html#barriers">Barriers</a></li>
+<li class="toctree-l2"><a class="reference internal" href="components.html#constraints">Constraints</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="solvers.html">Solvers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="visualization.html">Visualization</a></li>
+<li class="toctree-l1"><a class="reference internal" href="references.html">References</a></li>
+<li class="toctree-l1"><a class="reference internal" href="developer-notes.html">Developer Notes</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">mjinx</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="components.html">Components</a></li>
+      <li class="breadcrumb-item active">Base Task</li>
+      <li class="wy-breadcrumbs-aside">
+              <!-- User defined GitHub URL -->
+              <a href="https://github.com/based-robotics/mjinx/tree/docs/github_pages/docs/tasks.rst" class="fa fa-github"> Edit on GitHub</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <p id="tasks">Tasks define the objective functions in an inverse kinematics problem. Each task represents a mapping from the configuration space to a task space, with the solver minimizing the weighted error between the current and desired task values. This approach follows the task-priority framework established in robotics literature <span id="id1">[<a class="reference internal" href="references.html#id2" title="Oussama Kanoun, Florent Lamiraux, and Pierre-Brice Wieber. Kinematic control of redundant manipulators: generalizing the task-priority framework to inequality task. IEEE Transactions on Robotics, 27(4):785–792, 2011.">Kanoun <em>et al.</em>, 2011</a>]</span>, where multiple objectives are managed through appropriate weighting and prioritization.</p>
+<p>Mathematically, a task is defined as a function <span class="math notranslate nohighlight">\(f: \mathcal{Q} \rightarrow \mathbb{R}^m\)</span> that maps from the configuration space <span class="math notranslate nohighlight">\(\mathcal{Q}\)</span> to a task space. The error is computed as <span class="math notranslate nohighlight">\(e(q) = f(q) - f_{desired}\)</span>, and the solver minimizes a weighted norm of this error: <span class="math notranslate nohighlight">\(\|e(q)\|^2_W\)</span>, where <span class="math notranslate nohighlight">\(W\)</span> is a positive-definite weight matrix.</p>
+<p>All tasks inherit from the base Task class and follow a consistent mathematical formulation, enabling systematic composition of complex behaviors through the combination of elementary tasks.</p>
+<section id="base-task">
+<h1>Base Task<a class="headerlink" href="#base-task" title="Link to this heading"></a></h1>
+<p>The foundational class that all tasks extend. It defines the core interface and mathematical properties for task objectives.</p>
+<dl class="py class" id="module-mjinx.components.tasks._base">
+<dt class="sig sig-object py" id="mjinx.components.tasks._base.JaxTask">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">JaxTask</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dim</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vector_gain</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gain_fn</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mask_idxs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">matrix_cost</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lm_damping</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mjinx.components.tasks._base.JaxTask" title="Link to this definition"></a></dt>
+<dd><p>A JAX-based implementation of a task for inverse kinematics.</p>
+<p>This class serves as a base for all tasks in the inverse kinematics problem.</p>
+<p>Tasks are components that represent goals or objectives for the robot’s configuration.
+Mathematically, a task defines a function:</p>
+<div class="math notranslate nohighlight">
+\[e(q, t) = f(q, t) - f_{desired}(t)\]</div>
+<dl class="simple">
+<dt>where:</dt><dd><ul class="simple">
+<li><p><span class="math notranslate nohighlight">\(e(q, t)\)</span> is the error between current and desired states</p></li>
+<li><p><span class="math notranslate nohighlight">\(f(q, t)\)</span> is the current value of the task function</p></li>
+<li><p><span class="math notranslate nohighlight">\(f_{desired}(t)\)</span> is the desired value (target) of the task function</p></li>
+</ul>
+</dd>
+</dl>
+<p>The goal of optimization is typically to minimize this error or drive it to zero.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>matrix_cost</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.jax.dev/en/latest/_autosummary/jax.Array.html#jax.Array" title="(in JAX)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Array</span></code></a></span>) – The cost matrix associated with the task.</p></li>
+<li><p><strong>lm_damping</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></span>) – The Levenberg-Marquardt damping factor.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="mjinx.components.tasks._base.JaxTask.compute_error">
+<span class="sig-name descname"><span class="pre">compute_error</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mjinx.components.tasks._base.JaxTask.compute_error" title="Link to this definition"></a></dt>
+<dd><p>Compute the error for the task.</p>
+<p>This method is equivalent to calling the task object directly and calculates
+the error <span class="math notranslate nohighlight">\(e(q, t)\)</span> between the current state and the desired state.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>data</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">Data</span></code></span>) – The MuJoCo simulation data.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.jax.dev/en/latest/_autosummary/jax.Array.html#jax.Array" title="(in JAX)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Array</span></code></a></span></p>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The error vector for the task.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="mjinx.components.tasks._base.Task">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">Task</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cost</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gain</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gain_fn</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lm_damping</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mask</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mjinx.components.tasks._base.Task" title="Link to this definition"></a></dt>
+<dd><p>A high-level representation of a task for inverse kinematics.</p>
+<p>This class provides an interface for creating and manipulating tasks
+in the inverse kinematics problem. The optimization cost associated with a task
+can be formulated as:</p>
+<div class="math notranslate nohighlight">
+\[C(q, t) = e(q, t)^T W e(q, t)\]</div>
+<dl class="simple">
+<dt>where:</dt><dd><ul class="simple">
+<li><p><span class="math notranslate nohighlight">\(e(q, t)\)</span> is the task error vector</p></li>
+<li><p><span class="math notranslate nohighlight">\(W\)</span> is the cost weight matrix defined by the <cite>matrix_cost</cite> property</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>name</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span>) – The name of the task.</p></li>
+<li><p><strong>cost</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.2)"><code class="xref py py-class docutils literal notranslate"><span class="pre">ndarray</span></code></a> | <a class="reference external" href="https://docs.jax.dev/en/latest/_autosummary/jax.Array.html#jax.Array" title="(in JAX)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Array</span></code></a> | <code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></span>) – The cost associated with the task.</p></li>
+<li><p><strong>gain</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.2)"><code class="xref py py-class docutils literal notranslate"><span class="pre">ndarray</span></code></a> | <a class="reference external" href="https://docs.jax.dev/en/latest/_autosummary/jax.Array.html#jax.Array" title="(in JAX)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Array</span></code></a> | <code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></span>) – The gain for the task.</p></li>
+<li><p><strong>gain_fn</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">Callable</span></code>[[<code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>], <code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>] | <code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span>) – A function to compute the gain dynamically.</p></li>
+<li><p><strong>lm_damping</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></span>) – The Levenberg-Marquardt damping factor.</p></li>
+<li><p><strong>mask</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">Sequence</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code>] | <code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span>) – A sequence of integers to mask certain dimensions of the task.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py property">
+<dt class="sig sig-object py" id="mjinx.components.tasks._base.Task.cost">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">cost</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.jax.dev/en/latest/_autosummary/jax.Array.html#jax.Array" title="(in JAX)"><span class="pre">Array</span></a></em><a class="headerlink" href="#mjinx.components.tasks._base.Task.cost" title="Link to this definition"></a></dt>
+<dd><p>Get the cost associated with the task.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The cost as a numpy array.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="mjinx.components.tasks._base.Task.update_cost">
+<span class="sig-name descname"><span class="pre">update_cost</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cost</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mjinx.components.tasks._base.Task.update_cost" title="Link to this definition"></a></dt>
+<dd><p>Update the cost for the task.</p>
+<p>This method allows setting the cost using either a scalar, vector, or matrix.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>cost</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.2)"><code class="xref py py-class docutils literal notranslate"><span class="pre">ndarray</span></code></a> | <a class="reference external" href="https://docs.jax.dev/en/latest/_autosummary/jax.Array.html#jax.Array" title="(in JAX)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Array</span></code></a> | <code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></span>) – The new cost value.</p>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>ValueError</strong> – If the cost has an invalid dimension.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="mjinx.components.tasks._base.Task.matrix_cost">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">matrix_cost</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.jax.dev/en/latest/_autosummary/jax.Array.html#jax.Array" title="(in JAX)"><span class="pre">Array</span></a></em><a class="headerlink" href="#mjinx.components.tasks._base.Task.matrix_cost" title="Link to this definition"></a></dt>
+<dd><p>Get the cost matrix associated with the task.</p>
+<dl class="simple">
+<dt>This method converts cost to matrix form as follows:</dt><dd><ul class="simple">
+<li><p>cost is scalar -&gt; matrix_cost = jnp.eye(self.dim) * cost</p></li>
+<li><p>cost is vector -&gt; matrix_cost = jnp.diag(cost)</p></li>
+<li><p>cost is matrix -&gt; matrix_cost = cost</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The cost matrix as a numpy array.</p>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>ValueError</strong> – If the dimension is not set or the cost size is invalid.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="center-of-mass-task">
+<h1>Center of Mass Task<a class="headerlink" href="#center-of-mass-task" title="Link to this heading"></a></h1>
+<p>Controls the position of the robot’s center of mass, critical for maintaining balance in legged systems and manipulators.</p>
+<p id="module-mjinx.components.tasks._com_task">Center of mass task implementation.</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="mjinx.components.tasks._com_task.JaxComTask">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">JaxComTask</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dim</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vector_gain</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gain_fn</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mask_idxs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">matrix_cost</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lm_damping</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">target_com</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mjinx.components.tasks._com_task.JaxComTask" title="Link to this definition"></a></dt>
+<dd><p>A JAX-based implementation of a center of mass (CoM) task for inverse kinematics.</p>
+<p>This class represents a task that aims to achieve a specific target center of mass
+for the robot model.</p>
+<p>The task function maps joint positions to the robot’s center of mass position:</p>
+<div class="math notranslate nohighlight">
+\[f(q) = \frac{\sum_i m_i p_i(q)}{\sum_i m_i}\]</div>
+<dl class="simple">
+<dt>where:</dt><dd><ul class="simple">
+<li><p><span class="math notranslate nohighlight">\(m_i\)</span> is the mass of body i</p></li>
+<li><p><span class="math notranslate nohighlight">\(p_i(q)\)</span> is the position of body i’s center of mass</p></li>
+</ul>
+</dd>
+</dl>
+<p>The error is computed as the difference between the current and target CoM positions:</p>
+<div class="math notranslate nohighlight">
+\[e(q) = p_c(q) - p_{c_{target}}\]</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>target_com</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.jax.dev/en/latest/_autosummary/jax.Array.html#jax.Array" title="(in JAX)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Array</span></code></a></span>) – The target center of mass position to be achieved.</p>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="mjinx.components.tasks._com_task.JaxComTask.compute_jacobian">
+<em class="property"><span class="pre">final</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">compute_jacobian</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mjinx.components.tasks._com_task.JaxComTask.compute_jacobian" title="Link to this definition"></a></dt>
+<dd><p>Compute the Jacobian of the component with respect to the joint positions.
+The jacobian is a matrix <span class="math notranslate nohighlight">\(J \in R^{dim \times nv}\)</span> that is defined as:</p>
+<div class="math notranslate nohighlight">
+\[J(q, t) = \frac{\partial f}{\partial q}\]</div>
+<p>The main property that is desirable for us is that given this matrix, we obtain
+component derivative as a linear matrix w.r.t. velocities:</p>
+<div class="math notranslate nohighlight">
+\[\dot{f}(q, t) = \frac{\partial f}{\partial q} v = J(q, t)\]</div>
+<p>The jacobian is calculated via automatic differentiation, if it is not overwritten.
+If <span class="math notranslate nohighlight">\(nq \\neq nv\)</span>, a special mapping is computed to transform <span class="math notranslate nohighlight">\(J_{dq}\)</span> into <span class="math notranslate nohighlight">\(J_v\)</span>.
+For details, see <code class="xref py py-meth docutils literal notranslate"><span class="pre">mjinx.configuration.jac_dq2v()</span></code>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>data</strong> – The MuJoCo simulation data.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The computed Jacobian matrix.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="mjinx.components.tasks._com_task.ComTask">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">ComTask</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cost</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gain</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gain_fn</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lm_damping</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mask</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mjinx.components.tasks._com_task.ComTask" title="Link to this definition"></a></dt>
+<dd><p>A high-level representation of a center of mass (CoM) task for inverse kinematics.</p>
+<p>This class provides an interface for creating and manipulating center of mass tasks,
+which aim to achieve a specific target center of mass for the robot model.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>name</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span>) – The name of the task.</p></li>
+<li><p><strong>cost</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.2)"><code class="xref py py-class docutils literal notranslate"><span class="pre">ndarray</span></code></a> | <a class="reference external" href="https://docs.jax.dev/en/latest/_autosummary/jax.Array.html#jax.Array" title="(in JAX)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Array</span></code></a> | <code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></span>) – The cost associated with the task.</p></li>
+<li><p><strong>gain</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.2)"><code class="xref py py-class docutils literal notranslate"><span class="pre">ndarray</span></code></a> | <a class="reference external" href="https://docs.jax.dev/en/latest/_autosummary/jax.Array.html#jax.Array" title="(in JAX)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Array</span></code></a> | <code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></span>) – The gain for the task.</p></li>
+<li><p><strong>gain_fn</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">Callable</span></code>[[<code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>], <code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>] | <code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span>) – A function to compute the gain dynamically.</p></li>
+<li><p><strong>lm_damping</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></span>) – The Levenberg-Marquardt damping factor.</p></li>
+<li><p><strong>mask</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">Sequence</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code>] | <code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span>) – A sequence of integers to mask certain dimensions of the task.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="mjinx.components.tasks._com_task.ComTask.JaxComponentType">
+<span class="sig-name descname"><span class="pre">JaxComponentType</span></span><a class="headerlink" href="#mjinx.components.tasks._com_task.ComTask.JaxComponentType" title="Link to this definition"></a></dt>
+<dd><p>alias of <a class="reference internal" href="#mjinx.components.tasks._com_task.JaxComTask" title="mjinx.components.tasks._com_task.JaxComTask"><code class="xref py py-class docutils literal notranslate"><span class="pre">JaxComTask</span></code></a></p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="mjinx.components.tasks._com_task.ComTask.target_com">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">target_com</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.jax.dev/en/latest/_autosummary/jax.Array.html#jax.Array" title="(in JAX)"><span class="pre">Array</span></a></em><a class="headerlink" href="#mjinx.components.tasks._com_task.ComTask.target_com" title="Link to this definition"></a></dt>
+<dd><p>Get the current target center of mass for the task.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The current target center of mass as a numpy array.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="mjinx.components.tasks._com_task.ComTask.update_target_com">
+<span class="sig-name descname"><span class="pre">update_target_com</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">target_com</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mjinx.components.tasks._com_task.ComTask.update_target_com" title="Link to this definition"></a></dt>
+<dd><p>Update the target center of mass for the task.</p>
+<p>This method allows setting the target center of mass using a sequence of values.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>target_com</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">Sequence</span></code></span>) – The new target center of mass as a sequence of values.</p>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>ValueError</strong> – If the provided sequence doesn’t have the correct length.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="joint-task">
+<h1>Joint Task<a class="headerlink" href="#joint-task" title="Link to this heading"></a></h1>
+<p>Directly controls joint positions, useful for regularization, posture optimization, and redundancy resolution.</p>
+<p id="module-mjinx.components.tasks._joint_task">Center of mass task implementation.</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="mjinx.components.tasks._joint_task.JaxJointTask">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">JaxJointTask</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dim</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vector_gain</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gain_fn</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mask_idxs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">matrix_cost</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lm_damping</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">target_q</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">qmask_idxs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mjinx.components.tasks._joint_task.JaxJointTask" title="Link to this definition"></a></dt>
+<dd><p>A JAX-based implementation of a joint task for inverse kinematics.</p>
+<p>This class represents a task that aims to achieve specific target joint positions
+for the robot model.</p>
+<p>The task function is the identity map on the joint space:</p>
+<div class="math notranslate nohighlight">
+\[f(q) = q\]</div>
+<p>The error is computed as the difference between the current and target joint positions:</p>
+<div class="math notranslate nohighlight">
+\[e(q) = q - q_{target}\]</div>
+<p>For robots with quaternion joints or a floating base, a more sophisticated
+difference function is used to properly handle the joint topology.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>target_q</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.jax.dev/en/latest/_autosummary/jax.Array.html#jax.Array" title="(in JAX)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Array</span></code></a></span>) – The full target joint positions vector for all joints in the system.</p>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="mjinx.components.tasks._joint_task.JaxJointTask.compute_jacobian">
+<span class="sig-name descname"><span class="pre">compute_jacobian</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mjinx.components.tasks._joint_task.JaxJointTask.compute_jacobian" title="Link to this definition"></a></dt>
+<dd><p>Compute the Jacobian of the joint task function.</p>
+<p>Since the joint task function is the identity map (or a selection of it),
+the Jacobian is simply an identity matrix or a selection matrix, depending
+on the mask and whether the system has a floating base:</p>
+<div class="math notranslate nohighlight">
+\[J = I \quad \text{or} \quad J = [0 \; I]\]</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>data</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">Data</span></code></span>) – The MuJoCo simulation data.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.jax.dev/en/latest/_autosummary/jax.Array.html#jax.Array" title="(in JAX)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Array</span></code></a></span></p>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The Jacobian matrix of the barrier function.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="mjinx.components.tasks._joint_task.JointTask">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">JointTask</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cost</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gain</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gain_fn</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lm_damping</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mask</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mjinx.components.tasks._joint_task.JointTask" title="Link to this definition"></a></dt>
+<dd><p>A high-level representation of a joint task for inverse kinematics.</p>
+<p>This class provides an interface for creating and manipulating joint tasks,
+which aim to achieve specific target joint positions for the robot model.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>name</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span>) – The name of the task.</p></li>
+<li><p><strong>cost</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.2)"><code class="xref py py-class docutils literal notranslate"><span class="pre">ndarray</span></code></a> | <a class="reference external" href="https://docs.jax.dev/en/latest/_autosummary/jax.Array.html#jax.Array" title="(in JAX)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Array</span></code></a> | <code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></span>) – The cost associated with the task.</p></li>
+<li><p><strong>gain</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.2)"><code class="xref py py-class docutils literal notranslate"><span class="pre">ndarray</span></code></a> | <a class="reference external" href="https://docs.jax.dev/en/latest/_autosummary/jax.Array.html#jax.Array" title="(in JAX)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Array</span></code></a> | <code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></span>) – The gain for the task.</p></li>
+<li><p><strong>gain_fn</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">Callable</span></code>[[<code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>], <code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>] | <code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span>) – A function to compute the gain dynamically.</p></li>
+<li><p><strong>lm_damping</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></span>) – The Levenberg-Marquardt damping factor.</p></li>
+<li><p><strong>mask</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">Sequence</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code>] | <code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span>) – A sequence of integers to mask certain dimensions of the task.</p></li>
+<li><p><strong>floating_base</strong> – A boolean indicating whether the robot has a floating base.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="mjinx.components.tasks._joint_task.JointTask.JaxComponentType">
+<span class="sig-name descname"><span class="pre">JaxComponentType</span></span><a class="headerlink" href="#mjinx.components.tasks._joint_task.JointTask.JaxComponentType" title="Link to this definition"></a></dt>
+<dd><p>alias of <a class="reference internal" href="#mjinx.components.tasks._joint_task.JaxJointTask" title="mjinx.components.tasks._joint_task.JaxJointTask"><code class="xref py py-class docutils literal notranslate"><span class="pre">JaxJointTask</span></code></a></p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="mjinx.components.tasks._joint_task.JointTask.update_model">
+<span class="sig-name descname"><span class="pre">update_model</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mjinx.components.tasks._joint_task.JointTask.update_model" title="Link to this definition"></a></dt>
+<dd><p>Update the MuJoCo model and set the joint dimensions for the task.</p>
+<p>This method is called when the model is updated or when the task
+is first added to the problem. It adjusts the dimensions based on
+whether the robot has a floating base and validates the mask.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>model</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">Model</span></code></span>) – The new MuJoCo model.</p>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>ValueError</strong> – If the provided mask is invalid for the model or if the target_q is incompatible.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="mjinx.components.tasks._joint_task.JointTask.target_q">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">target_q</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.jax.dev/en/latest/_autosummary/jax.Array.html#jax.Array" title="(in JAX)"><span class="pre">Array</span></a></em><a class="headerlink" href="#mjinx.components.tasks._joint_task.JointTask.target_q" title="Link to this definition"></a></dt>
+<dd><p>Get the current target joint positions for the task.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The current target joint positions as a numpy array.</p>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>ValueError</strong> – If the target value was not provided and the model is missing.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="mjinx.components.tasks._joint_task.JointTask.update_target_q">
+<span class="sig-name descname"><span class="pre">update_target_q</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">target_q</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mjinx.components.tasks._joint_task.JointTask.update_target_q" title="Link to this definition"></a></dt>
+<dd><p>Update the target joint positions for the task.</p>
+<p>This method allows setting the target joint positions using a sequence of values.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>target_q</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">Sequence</span></code></span>) – The new target joint positions as a sequence of values.</p>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>ValueError</strong> – If the provided sequence doesn’t have the correct length.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="mjinx.components.tasks._joint_task.JointTask.qmask_idxs">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">qmask_idxs</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.jax.dev/en/latest/_autosummary/jax.Array.html#jax.Array" title="(in JAX)"><span class="pre">Array</span></a></em><a class="headerlink" href="#mjinx.components.tasks._joint_task.JointTask.qmask_idxs" title="Link to this definition"></a></dt>
+<dd><p>Get the indices of the masked joint positions.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The indices of the masked joint positions.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="base-body-task">
+<h1>Base Body Task<a class="headerlink" href="#base-body-task" title="Link to this heading"></a></h1>
+<p>The foundation for tasks that target specific bodies, geometries, or sites in the robot model. This abstract class provides common functionality for all object-specific tasks.</p>
+<p id="module-mjinx.components.tasks._obj_task">Frame task implementation.</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="mjinx.components.tasks._obj_task.JaxObjTask">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">JaxObjTask</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dim</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vector_gain</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gain_fn</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mask_idxs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">matrix_cost</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lm_damping</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">obj_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">obj_type</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mjinx.components.tasks._obj_task.JaxObjTask" title="Link to this definition"></a></dt>
+<dd><p>A JAX-based implementation of an object-specific task for inverse kinematics.</p>
+<p>This class serves as a base for tasks that are applied to specific objects
+(bodies, geometries, or sites) in the robot model. The task function
+relates to the object’s state in the world frame.</p>
+<p>Depending on the derived class, the task function can target various aspects of
+the object’s state, such as position, orientation, or the complete pose.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>obj_id</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></span>) – The ID of the object (body, geometry, or site) to which the task is applied.</p></li>
+<li><p><strong>obj_type</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">mjtObj</span></code></span>) – The type of the object (mjOBJ_BODY, mjOBJ_GEOM, or mjOBJ_SITE).</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="mjinx.components.tasks._obj_task.JaxObjTask.get_pos">
+<span class="sig-name descname"><span class="pre">get_pos</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mjinx.components.tasks._obj_task.JaxObjTask.get_pos" title="Link to this definition"></a></dt>
+<dd><p>Get the position of the object in the world frame.</p>
+<p>This method returns the position based on the object type (body, geom, or site).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>data</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">Data</span></code></span>) – The MuJoCo simulation data.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.jax.dev/en/latest/_autosummary/jax.Array.html#jax.Array" title="(in JAX)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Array</span></code></a></span></p>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>A 3D vector representing the object’s position in the world frame.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="mjinx.components.tasks._obj_task.JaxObjTask.get_rotation">
+<span class="sig-name descname"><span class="pre">get_rotation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mjinx.components.tasks._obj_task.JaxObjTask.get_rotation" title="Link to this definition"></a></dt>
+<dd><p>Get the rotation of the object in the world frame.</p>
+<p>This method returns the rotation based on the object type (body, geom, or site).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>data</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">Data</span></code></span>) – The MuJoCo simulation data.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://brentyi.github.io/jaxlie/api/jaxlie/_so3/#jaxlie._so3.SO3" title="(in jaxlie)"><code class="xref py py-class docutils literal notranslate"><span class="pre">SO3</span></code></a></span></p>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>An SO3 object representing the object’s rotation in the world frame.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="mjinx.components.tasks._obj_task.JaxObjTask.get_frame">
+<span class="sig-name descname"><span class="pre">get_frame</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mjinx.components.tasks._obj_task.JaxObjTask.get_frame" title="Link to this definition"></a></dt>
+<dd><p>Get the full pose (position and rotation) of the object in the world frame.</p>
+<p>This method combines the position and rotation to return a complete pose.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>data</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">Data</span></code></span>) – The MuJoCo simulation data.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://brentyi.github.io/jaxlie/api/jaxlie/_se3/#jaxlie._se3.SE3" title="(in jaxlie)"><code class="xref py py-class docutils literal notranslate"><span class="pre">SE3</span></code></a></span></p>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>An SE3 object representing the object’s pose in the world frame.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="mjinx.components.tasks._obj_task.ObjTask">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">ObjTask</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cost</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gain</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">obj_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">obj_type=&lt;mjtObj.mjOBJ_BODY:</span> <span class="pre">1&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gain_fn=None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lm_damping=0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mask=None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mjinx.components.tasks._obj_task.ObjTask" title="Link to this definition"></a></dt>
+<dd><p>A high-level representation of an object task for inverse kinematics.</p>
+<p>This class provides an interface for creating and manipulating tasks
+that are applied to specific objects (bodies, geometries, or sites) in the robot model.</p>
+<p>Object tasks generally define a function <span class="math notranslate nohighlight">\(f(q, t)\)</span> that maps joint positions <span class="math notranslate nohighlight">\(q\)</span>
+to some property of the specified object (such as position, orientation, or pose).
+The error is then calculated as the difference between the current and desired states:</p>
+<div class="math notranslate nohighlight">
+\[e(q, t) = f(q, t) - f_{desired}(t)\]</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>name</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span>) – The name of the task.</p></li>
+<li><p><strong>cost</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.2)"><code class="xref py py-class docutils literal notranslate"><span class="pre">ndarray</span></code></a> | <a class="reference external" href="https://docs.jax.dev/en/latest/_autosummary/jax.Array.html#jax.Array" title="(in JAX)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Array</span></code></a> | <code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></span>) – The cost associated with the task.</p></li>
+<li><p><strong>gain</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.2)"><code class="xref py py-class docutils literal notranslate"><span class="pre">ndarray</span></code></a> | <a class="reference external" href="https://docs.jax.dev/en/latest/_autosummary/jax.Array.html#jax.Array" title="(in JAX)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Array</span></code></a> | <code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></span>) – The gain for the task.</p></li>
+<li><p><strong>obj_name</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span>) – The name of the object (body, geometry, or site) to which the task is applied.</p></li>
+<li><p><strong>obj_type</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">mjtObj</span></code></span>) – The type of the object (mjOBJ_BODY, mjOBJ_GEOM, or mjOBJ_SITE).</p></li>
+<li><p><strong>gain_fn</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">Callable</span></code>[[<code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>], <code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>] | <code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span>) – A function to compute the gain dynamically.</p></li>
+<li><p><strong>lm_damping</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></span>) – The Levenberg-Marquardt damping factor.</p></li>
+<li><p><strong>mask</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">Sequence</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code>] | <code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span>) – A sequence of integers to mask certain dimensions of the task.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="mjinx.components.tasks._obj_task.ObjTask.JaxComponentType">
+<span class="sig-name descname"><span class="pre">JaxComponentType</span></span><a class="headerlink" href="#mjinx.components.tasks._obj_task.ObjTask.JaxComponentType" title="Link to this definition"></a></dt>
+<dd><p>alias of <a class="reference internal" href="#mjinx.components.tasks._obj_task.JaxObjTask" title="mjinx.components.tasks._obj_task.JaxObjTask"><code class="xref py py-class docutils literal notranslate"><span class="pre">JaxObjTask</span></code></a></p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="mjinx.components.tasks._obj_task.ObjTask.obj_name">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">obj_name</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><a class="headerlink" href="#mjinx.components.tasks._obj_task.ObjTask.obj_name" title="Link to this definition"></a></dt>
+<dd><p>Get the name of the object to which the task is applied.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The name of the object.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="mjinx.components.tasks._obj_task.ObjTask.obj_id">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">obj_id</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></em><a class="headerlink" href="#mjinx.components.tasks._obj_task.ObjTask.obj_id" title="Link to this definition"></a></dt>
+<dd><p>Get the ID of the object to which the task is applied.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The ID of the object.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="mjinx.components.tasks._obj_task.ObjTask.obj_type">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">obj_type</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">mjtObj</span></em><a class="headerlink" href="#mjinx.components.tasks._obj_task.ObjTask.obj_type" title="Link to this definition"></a></dt>
+<dd><p>Get the type of the object associated with the task.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The MuJoCo object type (mjOBJ_BODY, mjOBJ_GEOM, or mjOBJ_SITE).</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="mjinx.components.tasks._obj_task.ObjTask.update_model">
+<span class="sig-name descname"><span class="pre">update_model</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mjinx.components.tasks._obj_task.ObjTask.update_model" title="Link to this definition"></a></dt>
+<dd><p>Update the MuJoCo model and set the object ID for the task.</p>
+<p>This method is called when the model is updated or when the task
+is first added to the problem.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>model</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">Model</span></code></span>) – The new MuJoCo model.</p>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>ValueError</strong> – If the object with the specified name is not found in the model.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="body-frame-task">
+<h1>Body Frame Task<a class="headerlink" href="#body-frame-task" title="Link to this heading"></a></h1>
+<p>Controls the complete pose (position and orientation) of a body, geometry, or site using SE(3) representations.</p>
+<p id="module-mjinx.components.tasks._obj_frame_task">Frame task implementation.</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="mjinx.components.tasks._obj_frame_task.JaxFrameTask">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">JaxFrameTask</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dim</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vector_gain</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gain_fn</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mask_idxs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">matrix_cost</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lm_damping</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">obj_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">obj_type</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">target_frame</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mjinx.components.tasks._obj_frame_task.JaxFrameTask" title="Link to this definition"></a></dt>
+<dd><p>A JAX-based implementation of a frame task for inverse kinematics.</p>
+<p>This class represents a task that aims to achieve a specific target frame
+for a given object in the robot model.</p>
+<p>The task function maps joint positions to the object’s frame (pose) in the world frame:</p>
+<div class="math notranslate nohighlight">
+\[f(q) = T(q) \in SE(3)\]</div>
+<p>where <span class="math notranslate nohighlight">\(T(q)\)</span> is the transformation matrix representing the object’s pose.</p>
+<p>The error is computed using the logarithmic map in SE(3), which represents the
+relative transformation between current and target frames as a twist vector:</p>
+<div class="math notranslate nohighlight">
+\[e(q) = \log(T(q)^{-1} T_{target})\]</div>
+<p>This formulation provides a natural way to interpolate between frames and
+control both position and orientation simultaneously.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>target_frame</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://brentyi.github.io/jaxlie/api/jaxlie/_se3/#jaxlie._se3.SE3" title="(in jaxlie)"><code class="xref py py-class docutils literal notranslate"><span class="pre">SE3</span></code></a></span>) – The target frame to be achieved.</p>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="mjinx.components.tasks._obj_frame_task.JaxFrameTask.compute_jacobian">
+<em class="property"><span class="pre">final</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">compute_jacobian</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mjinx.components.tasks._obj_frame_task.JaxFrameTask.compute_jacobian" title="Link to this definition"></a></dt>
+<dd><p>Compute the Jacobian of the frame task.</p>
+<p>The Jacobian relates changes in joint positions to changes in the frame task error.
+It is computed as:</p>
+<div class="math notranslate nohighlight">
+\[J = -J_{\log} \cdot J_{frame}^T\]</div>
+<dl class="simple">
+<dt>where:</dt><dd><ul class="simple">
+<li><p><span class="math notranslate nohighlight">\(J_{\log}\)</span> is the Jacobian of the logarithmic map at the relative transformation</p></li>
+<li><p><span class="math notranslate nohighlight">\(J_{frame}\)</span> is the geometric Jacobian of the object’s frame</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>data</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">Data</span></code></span>) – The MuJoCo simulation data.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.jax.dev/en/latest/_autosummary/jax.Array.html#jax.Array" title="(in JAX)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Array</span></code></a></span></p>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The Jacobian matrix of the frame task.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="mjinx.components.tasks._obj_frame_task.FrameTask">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">FrameTask</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cost</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gain</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">obj_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">obj_type=&lt;mjtObj.mjOBJ_BODY:</span> <span class="pre">1&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gain_fn=None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lm_damping=0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mask=None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mjinx.components.tasks._obj_frame_task.FrameTask" title="Link to this definition"></a></dt>
+<dd><p>A high-level representation of a frame task for inverse kinematics.</p>
+<p>This class provides an interface for creating and manipulating frame tasks,
+which aim to achieve a specific target frame for a object (body, geom, or site) in the robot model.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>name</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span>) – The name of the task.</p></li>
+<li><p><strong>cost</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.2)"><code class="xref py py-class docutils literal notranslate"><span class="pre">ndarray</span></code></a> | <a class="reference external" href="https://docs.jax.dev/en/latest/_autosummary/jax.Array.html#jax.Array" title="(in JAX)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Array</span></code></a> | <code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></span>) – The cost associated with the task.</p></li>
+<li><p><strong>gain</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.2)"><code class="xref py py-class docutils literal notranslate"><span class="pre">ndarray</span></code></a> | <a class="reference external" href="https://docs.jax.dev/en/latest/_autosummary/jax.Array.html#jax.Array" title="(in JAX)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Array</span></code></a> | <code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></span>) – The gain for the task.</p></li>
+<li><p><strong>obj_name</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span>) – The name of the object to which the task is applied.</p></li>
+<li><p><strong>gain_fn</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">Callable</span></code>[[<code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>], <code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>] | <code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span>) – A function to compute the gain dynamically.</p></li>
+<li><p><strong>lm_damping</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></span>) – The Levenberg-Marquardt damping factor.</p></li>
+<li><p><strong>mask</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">Sequence</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code>] | <code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span>) – A sequence of integers to mask certain dimensions of the task.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="mjinx.components.tasks._obj_frame_task.FrameTask.JaxComponentType">
+<span class="sig-name descname"><span class="pre">JaxComponentType</span></span><a class="headerlink" href="#mjinx.components.tasks._obj_frame_task.FrameTask.JaxComponentType" title="Link to this definition"></a></dt>
+<dd><p>alias of <a class="reference internal" href="#mjinx.components.tasks._obj_frame_task.JaxFrameTask" title="mjinx.components.tasks._obj_frame_task.JaxFrameTask"><code class="xref py py-class docutils literal notranslate"><span class="pre">JaxFrameTask</span></code></a></p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="mjinx.components.tasks._obj_frame_task.FrameTask.target_frame">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">target_frame</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://brentyi.github.io/jaxlie/api/jaxlie/_se3/#jaxlie._se3.SE3" title="(in jaxlie)"><span class="pre">SE3</span></a></em><a class="headerlink" href="#mjinx.components.tasks._obj_frame_task.FrameTask.target_frame" title="Link to this definition"></a></dt>
+<dd><p>Get the current target frame for the task.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The current target frame as an SE3 object.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="mjinx.components.tasks._obj_frame_task.FrameTask.update_target_frame">
+<span class="sig-name descname"><span class="pre">update_target_frame</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">target_frame</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mjinx.components.tasks._obj_frame_task.FrameTask.update_target_frame" title="Link to this definition"></a></dt>
+<dd><p>Update the target frame for the task.</p>
+<p>This method allows setting the target frame using either an SE3 object
+or a sequence of values representing the frame.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>target_frame</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://brentyi.github.io/jaxlie/api/jaxlie/_se3/#jaxlie._se3.SE3" title="(in jaxlie)"><code class="xref py py-class docutils literal notranslate"><span class="pre">SE3</span></code></a> | <code class="xref py py-class docutils literal notranslate"><span class="pre">Sequence</span></code> | <a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.2)"><code class="xref py py-class docutils literal notranslate"><span class="pre">ndarray</span></code></a> | <a class="reference external" href="https://docs.jax.dev/en/latest/_autosummary/jax.Array.html#jax.Array" title="(in JAX)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Array</span></code></a></span>) – The new target frame, either as an SE3 object or a sequence of values.</p>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>ValueError</strong> – If the provided sequence doesn’t have the correct length.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="body-position-task">
+<h1>Body Position Task<a class="headerlink" href="#body-position-task" title="Link to this heading"></a></h1>
+<p>Controls just the position of a body, geometry, or site, ignoring orientation. Useful when only positional constraints matter.</p>
+<p id="module-mjinx.components.tasks._obj_position_task">Frame task implementation.</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="mjinx.components.tasks._obj_position_task.JaxPositionTask">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">JaxPositionTask</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dim</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vector_gain</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gain_fn</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mask_idxs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">matrix_cost</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lm_damping</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">obj_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">obj_type</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">target_pos</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mjinx.components.tasks._obj_position_task.JaxPositionTask" title="Link to this definition"></a></dt>
+<dd><p>A JAX-based implementation of a position task for inverse kinematics.</p>
+<p>This class represents a task that aims to achieve a specific target position
+for an object (body, geometry, or site) in the robot model.</p>
+<p>The task function maps joint positions to the object’s position in the world frame:</p>
+<div class="math notranslate nohighlight">
+\[f(q) = p(q)\]</div>
+<p>where <span class="math notranslate nohighlight">\(p(q)\)</span> is the position of the object in world coordinates.</p>
+<p>The error is computed as the difference between the current and target positions:</p>
+<div class="math notranslate nohighlight">
+\[e(q) = p(q) - p_{target}\]</div>
+<p>The Jacobian of this task is the object’s position Jacobian, which relates changes in
+joint positions to changes in the object’s position.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>target_pos</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.jax.dev/en/latest/_autosummary/jax.Array.html#jax.Array" title="(in JAX)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Array</span></code></a></span>) – The target position to be achieved.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="mjinx.components.tasks._obj_position_task.PositionTask">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">PositionTask</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cost</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gain</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">obj_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">obj_type=&lt;mjtObj.mjOBJ_BODY:</span> <span class="pre">1&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gain_fn=None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lm_damping=0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mask=None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mjinx.components.tasks._obj_position_task.PositionTask" title="Link to this definition"></a></dt>
+<dd><p>A high-level representation of a position task for inverse kinematics.</p>
+<p>This class provides an interface for creating and manipulating position tasks,
+which aim to achieve a specific target position for an object in the robot model.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>name</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span>) – The name of the task.</p></li>
+<li><p><strong>cost</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.2)"><code class="xref py py-class docutils literal notranslate"><span class="pre">ndarray</span></code></a> | <a class="reference external" href="https://docs.jax.dev/en/latest/_autosummary/jax.Array.html#jax.Array" title="(in JAX)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Array</span></code></a> | <code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></span>) – The cost associated with the task.</p></li>
+<li><p><strong>gain</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.2)"><code class="xref py py-class docutils literal notranslate"><span class="pre">ndarray</span></code></a> | <a class="reference external" href="https://docs.jax.dev/en/latest/_autosummary/jax.Array.html#jax.Array" title="(in JAX)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Array</span></code></a> | <code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></span>) – The gain for the task.</p></li>
+<li><p><strong>obj_name</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span>) – The name of the object to which the task is applied.</p></li>
+<li><p><strong>gain_fn</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">Callable</span></code>[[<code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>], <code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>] | <code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span>) – A function to compute the gain dynamically.</p></li>
+<li><p><strong>lm_damping</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></span>) – The Levenberg-Marquardt damping factor.</p></li>
+<li><p><strong>mask</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">Sequence</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code>] | <code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span>) – A sequence of integers to mask certain dimensions of the task.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="mjinx.components.tasks._obj_position_task.PositionTask.JaxComponentType">
+<span class="sig-name descname"><span class="pre">JaxComponentType</span></span><a class="headerlink" href="#mjinx.components.tasks._obj_position_task.PositionTask.JaxComponentType" title="Link to this definition"></a></dt>
+<dd><p>alias of <a class="reference internal" href="#mjinx.components.tasks._obj_position_task.JaxPositionTask" title="mjinx.components.tasks._obj_position_task.JaxPositionTask"><code class="xref py py-class docutils literal notranslate"><span class="pre">JaxPositionTask</span></code></a></p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="mjinx.components.tasks._obj_position_task.PositionTask.target_pos">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">target_pos</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.jax.dev/en/latest/_autosummary/jax.Array.html#jax.Array" title="(in JAX)"><span class="pre">Array</span></a></em><a class="headerlink" href="#mjinx.components.tasks._obj_position_task.PositionTask.target_pos" title="Link to this definition"></a></dt>
+<dd><p>Get the current target position for the task.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The current target position as a numpy array.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="mjinx.components.tasks._obj_position_task.PositionTask.update_target_pos">
+<span class="sig-name descname"><span class="pre">update_target_pos</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">target_pos</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mjinx.components.tasks._obj_position_task.PositionTask.update_target_pos" title="Link to this definition"></a></dt>
+<dd><p>Update the target position for the task.</p>
+<p>This method allows setting the target position using a sequence of values.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>target_pos</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">Sequence</span></code></span>) – The new target position as a sequence of values.</p>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>ValueError</strong> – If the provided sequence doesn’t have the correct length.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="components.html" class="btn btn-neutral float-left" title="Components" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="barriers.html" class="btn btn-neutral float-right" title="Base Barrier" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2022 Ivan Domrachev, Simeon Nedelchev..</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

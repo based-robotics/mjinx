@@ -1,0 +1,189 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Developer Notes &mdash; mjinx 0.1.1 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="_static/custom.css?v=3cbe8de9" />
+
+  
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=a58bc63e"></script>
+      <script src="_static/doctools.js?v=9bcbadda"></script>
+      <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Type System" href="typing.html" />
+    <link rel="prev" title="References" href="references.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            mjinx
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="quick_start.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="problem.html">Problem</a></li>
+<li class="toctree-l1"><a class="reference internal" href="configuration.html">Configuration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="components.html">Components</a></li>
+<li class="toctree-l1"><a class="reference internal" href="solvers.html">Solvers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="visualization.html">Visualization</a></li>
+<li class="toctree-l1"><a class="reference internal" href="references.html">References</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Developer Notes</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#code-organization">Code Organization</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#development-guidelines">Development Guidelines</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#jax-considerations">JAX Considerations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#types">Types</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="typing.html">Type System</a></li>
+<li class="toctree-l3"><a class="reference internal" href="typing.html#type-aliases">Type Aliases</a></li>
+<li class="toctree-l3"><a class="reference internal" href="typing.html#enumerations">Enumerations</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">mjinx</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Developer Notes</li>
+      <li class="wy-breadcrumbs-aside">
+              <!-- User defined GitHub URL -->
+              <a href="https://github.com/based-robotics/mjinx/tree/docs/github_pages/docs/developer-notes.rst" class="fa fa-github"> Edit on GitHub</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="developer-notes">
+<h1>Developer Notes<a class="headerlink" href="#developer-notes" title="Link to this heading"></a></h1>
+<p>This section contains information for developers who want to contribute to MJINX or understand its internals better.</p>
+<section id="code-organization">
+<h2>Code Organization<a class="headerlink" href="#code-organization" title="Link to this heading"></a></h2>
+<p>MJINX follows a modular architecture:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">mjinx/components/</span></code> - Task and barrier implementations</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">mjinx/configuration/</span></code> - Kinematics and transformation utilities</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">mjinx/solvers/</span></code> - Inverse kinematics solvers</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">mjinx/visualize.py</span></code> - Visualization tools</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">mjinx/problem.py</span></code> - Problem construction and management</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">mjinx/typing.py</span></code> - Type definitions</p></li>
+</ul>
+</section>
+<section id="development-guidelines">
+<h2>Development Guidelines<a class="headerlink" href="#development-guidelines" title="Link to this heading"></a></h2>
+<p>When contributing to MJINX, please follow these guidelines:</p>
+<ol class="arabic simple">
+<li><p><strong>Type annotations</strong>: Use type annotations throughout the code.</p></li>
+<li><p><strong>Documentation</strong>: Write clear docstrings with reStructuredText format.</p></li>
+<li><p><strong>Testing</strong>: Add tests for new features using pytest.</p></li>
+<li><p><strong>JAX compatibility</strong>: Ensure new code works with JAX transformations.</p></li>
+<li><p><strong>Performance</strong>: Consider computation efficiency, especially for operations in inner loops.</p></li>
+</ol>
+</section>
+<section id="jax-considerations">
+<h2>JAX Considerations<a class="headerlink" href="#jax-considerations" title="Link to this heading"></a></h2>
+<p>MJINX leverages JAX for automatic differentiation and acceleration. When working with JAX:</p>
+<ul class="simple">
+<li><p>Use JAX’s functional programming style</p></li>
+<li><p>Avoid in-place mutations</p></li>
+<li><p>Remember that JAX arrays are immutable</p></li>
+<li><p>Use <code class="docutils literal notranslate"><span class="pre">jit</span></code>, <code class="docutils literal notranslate"><span class="pre">vmap</span></code>, and <code class="docutils literal notranslate"><span class="pre">grad</span></code> to leverage JAX’s transformations</p></li>
+<li><p>Test code with both CPU and GPU devices</p></li>
+</ul>
+<p>For more information, refer to the <a class="reference external" href="https://jax.readthedocs.io/">JAX documentation</a>.</p>
+</section>
+<section id="types">
+<h2>Types<a class="headerlink" href="#types" title="Link to this heading"></a></h2>
+<p>MJINX uses a comprehensive type system to ensure code correctness and improve developer experience. Understanding the type system is essential for contributing to the codebase and extending its functionality.</p>
+<p>The type system provides clear interfaces between components, helps catch errors at development time, and makes the code more maintainable. All new contributions should adhere to the established typing conventions.</p>
+<p>For detailed information about MJINX’s type system, including type aliases and enumerations, see the <a class="reference internal" href="typing.html"><span class="doc">Type System</span></a> documentation.</p>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="typing.html">Type System</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="typing.html#mjinx.typing.ArrayLike"><code class="docutils literal notranslate"><span class="pre">ArrayLike</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="typing.html#mjinx.typing.ArrayOrFloat"><code class="docutils literal notranslate"><span class="pre">ArrayOrFloat</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="typing.html#mjinx.typing.ClassKFunctions"><code class="docutils literal notranslate"><span class="pre">ClassKFunctions</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="typing.html#mjinx.typing.CollisionBody"><code class="docutils literal notranslate"><span class="pre">CollisionBody</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="typing.html#mjinx.typing.CollisionPair"><code class="docutils literal notranslate"><span class="pre">CollisionPair</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="typing.html#mjinx.typing.PositionLimitType"><code class="docutils literal notranslate"><span class="pre">PositionLimitType</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="typing.html#mjinx.typing.SimplifiedContact"><code class="docutils literal notranslate"><span class="pre">SimplifiedContact</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="typing.html#mjinx.typing.ndarray"><code class="docutils literal notranslate"><span class="pre">ndarray</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="typing.html#type-aliases">Type Aliases</a></li>
+<li class="toctree-l1"><a class="reference internal" href="typing.html#enumerations">Enumerations</a></li>
+</ul>
+</div>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="references.html" class="btn btn-neutral float-left" title="References" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="typing.html" class="btn btn-neutral float-right" title="Type System" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2022 Ivan Domrachev, Simeon Nedelchev..</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
