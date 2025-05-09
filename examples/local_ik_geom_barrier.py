@@ -16,6 +16,8 @@ import numpy as np
 from mujoco import viewer
 from robot_descriptions.iiwa14_mj_description import MJCF_PATH
 
+import mediapy
+
 from mjinx.components.barriers import GeomBarrier, JointBarrier, PositionBarrier, SelfCollisionBarrier
 from mjinx.components.tasks import FrameTask
 from mjinx.configuration import integrate
@@ -24,7 +26,7 @@ from mjinx.solvers import LocalIKSolver
 
 print("=== Initializing ===")
 
-
+SAVE = True
 # === Mujoco ===
 print("Loading MuJoCo model...")
 mj_model = mj.MjModel.from_xml_path(MJCF_PATH)
@@ -77,21 +79,21 @@ geom_barrier = GeomBarrier(
     safe_displacement_gain=0.1,
     d_min=0.05,
     # Sphere
-    geom_type=mj.mjtGeom.mjGEOM_SPHERE,
-    geom_frame=np.array([0.3, 0.2, 0.2, 1, 0, 0, 0]),
-    geom_size=[0.05],
+    # geom_type=mj.mjtGeom.mjGEOM_SPHERE,
+    # geom_frame=np.array([0.3, 0.2, 0.2, 1, 0, 0, 0]),
+    # geom_size=[0.05],
     # Capsule
     # geom_type=mj.mjtGeom.mjGEOM_CAPSULE,
     # geom_frame=np.array([0.3, 0.2, 0.2, 1, 0, 0, 0]),
     # geom_size=np.array([0.05, 0.15]),
     # Cylinder
     # geom_type=mj.mjtGeom.mjGEOM_CYLINDER,
-    # geom_frame=np.array([0.3, 0.2, 0.2, 1, 0, 0, 0]),
+    # geom_frame=np.array([0.3, 0.2, 0.2, -0.9238795, 0.3826834, 0, 0]),
     # geom_size=np.array([0.05, 0.15]),
     # Ellipsoid
-    # geom_type=mj.mjtGeom.mjGEOM_ELLIPSOID,
-    # geom_frame=np.array([0.3, 0.2, 0.2, 1, 0, 0, 0]),
-    # geom_size=np.array([0.05, 0.15, 0.1]),
+    geom_type=mj.mjtGeom.mjGEOM_ELLIPSOID,
+    geom_frame=np.array([0.3, 0.2, 0.2, 1, 0, 0, 0]),
+    geom_size=np.array([0.05, 0.15, 0.1]),
     # Box
     # geom_type=mj.mjtGeom.mjGEOM_BOX,
     # geom_frame=np.array([0.3, 0.2, 0.23, 1, 0, 0, 0]),
@@ -147,6 +149,7 @@ ts = np.arange(0, 20, dt)
 solve_times = []
 integrate_times = []
 n_steps = 0
+frames = []  # List to store video frames
 
 try:
     for t in ts:
@@ -176,6 +179,8 @@ try:
         # --- MuJoCo visualization ---
         mj_data.qpos = q
         mj.mj_forward(mj_model, mj_data)
+
+        # Update viewer geoms
         mj.mjv_initGeom(
             mj_viewer.user_scn.geoms[0],
             mj.mjtGeom.mjGEOM_SPHERE,
@@ -193,17 +198,61 @@ try:
             np.array([1.0, 0.0, 0.0, 0.4]),
         )
 
-        # Run the forward dynamics to reflec
+        # Run the forward dynamics to reflect
         # the updated state in the data
         mj.mj_forward(mj_model, mj_data)
         mj_viewer.sync()
+
+        # Render the scene and store the frame for video
+        if SAVE:
+            # --- Configure the scene light before updating ---
+            # Enable and configure the first light source
+            # renderer.scene.lights[0].active = 1
+            renderer.scene.lights[0].pos[:] = [0, 0, 1.5]  # Position
+            renderer.scene.lights[0].dir[:] = [0, 0, -1]  # Direction
+            renderer.scene.lights[0].diffuse[:] = [0.8, 0.8, 0.8]  # Diffuse color
+            renderer.scene.lights[0].specular[:] = [0.1, 0.1, 0.1]  # Specular color
+            renderer.scene.lights[0].directional = 1  # Make it directional
+            renderer.scene.lights[0].castshadow = 0  # Disable shadows if needed
+            # --- End light configuration ---
+
+            renderer.update_scene(mj_data, camera=mj_viewer.cam)
+            # Update the marker geoms in the renderer's scene as well
+            mj.mjv_initGeom(
+                renderer.scene.geoms[0],
+                mj.mjtGeom.mjGEOM_SPHERE,
+                0.05 * np.ones(3),
+                np.array(frame_task.target_frame.wxyz_xyz[-3:], dtype=np.float64),
+                np.eye(3).flatten(),
+                np.array([0.565, 0.933, 0.565, 0.4]),
+            )
+            mj.mjv_initGeom(
+                renderer.scene.geoms[1],
+                geom_barrier.geom_type,
+                geom_barrier.geom_size,
+                geom_barrier.geom_frame.translation(),
+                geom_barrier.geom_frame.rotation().as_matrix().flatten(),
+                np.array([1.0, 0.0, 0.0, 0.4]),
+            )
+            pixels = renderer.render()
+            frames.append(pixels)
+
         n_steps += 1
 except KeyboardInterrupt:
     print("\nSimulation interrupted by user")
 except Exception as e:
     print(f"\nError occurred: {e}")
 finally:
+    mj_viewer.close()  # Close the viewer first
     renderer.close()
+
+    # Save the video if mediapy is available and frames were recorded
+    if SAVE and frames:
+        print(f"\nSaving video ({len(frames)} frames)...")
+        output_path = "local_ik_geom_barrier_visualization5.mp4"
+        fps = 1 / dt
+        mediapy.write_video(output_path, frames, fps=fps)
+        print(f"Video saved to {output_path}")
 
     # Print performance report
     print("\n=== Performance Report ===")
