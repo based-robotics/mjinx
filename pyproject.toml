@@ -14,7 +14,7 @@ dependencies = [
   "mujoco",
   "mujoco_mjx",
   "jaxopt",
-  "jax[cuda]>=0.4",
+  "jax>=0.5",
   "jaxlie>=1.4",
   "jax_dataclasses>=1.6.0",
   "optax>=0.2",

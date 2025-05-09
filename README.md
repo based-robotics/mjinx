@@ -40,6 +40,8 @@ Different installation versions:
 4. To build docs, install `mjinx[docs]`
 5. To install the repository with all dependencies, install `mjinx[all]`
 
+Note that by default installation of `mjinx` installs `jax` without cuda support. If you need it, please install `jax>=0.5.0` with CUDA support manually.
+
 ## Usage
 Here is the example of `mjinx` usage:
 
