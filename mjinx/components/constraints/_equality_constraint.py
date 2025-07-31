@@ -8,6 +8,7 @@ import mujoco.mjx as mjx
 
 from mjinx.components.constraints._base import Constraint, JaxConstraint
 import mjinx.typing
+import jax
 
 
 @jdc.pytree_dataclass
@@ -35,7 +36,7 @@ class JaxModelEqualityConstraint(JaxConstraint):
         :param data: The MuJoCo simulation data.
         :return: A jax.numpy.ndarray containing the equality constraint values.
         """
-        return data.efc_pos[data.efc_type == mj.mjtConstraint.mjCNSTR_EQUALITY][self.mask_idxs,]
+        return data.efc_pos[:self.dim][self.mask_idxs,]
 
     def compute_jacobian(self, data: mjx.Data) -> jnp.ndarray:
         """
@@ -47,7 +48,7 @@ class JaxModelEqualityConstraint(JaxConstraint):
         :param data: The MuJoCo simulation data.
         :return: A jax.numpy.ndarray representing the Jacobian matrix of the equality constraints.
         """
-        return data.efc_J[data.efc_type == mj.mjtConstraint.mjCNSTR_EQUALITY, :][self.mask_idxs, :]
+        return data.efc_J[:self.dim, :][self.mask_idxs, :]
 
 
 AtomicModelEqualityConstraintType = TypeVar("AtomicModelEqualityConstraintType", bound=JaxModelEqualityConstraint)
