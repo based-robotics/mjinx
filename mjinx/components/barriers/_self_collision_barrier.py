@@ -284,6 +284,11 @@ class SelfCollisionBarrier(Barrier[JaxSelfCollisionBarrier]):
         )
         if self.n_closest_pairs == -1:
             self.n_closest_pairs = len(self.collision_pairs)
+        if self.n_closest_pairs > len(self.collision_pairs):
+            raise ValueError(
+                f"n_closest_pairs ({self.n_closest_pairs}) cannot be greater than the number of collision pairs "
+                f"({len(self.collision_pairs)})"
+            )
         self._dim = self.n_closest_pairs
 
     @property
