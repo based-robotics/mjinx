@@ -1,3 +1,7 @@
+from __future__ import annotations
+
+from typing import Any
+
 import jax
 import jax.numpy as jnp
 import mujoco as mj
@@ -5,19 +9,36 @@ from jaxlie import SE3, SO3
 from mujoco import mjx
 
 
-def update(model: mjx.Model, q: jnp.ndarray) -> mjx.Data:
+def update(problem_data: Any, q: jnp.ndarray) -> mjx.Data:
     """
     Update the MuJoCo data with new joint positions.
 
-    :param model: The MuJoCo model.
+    Requires :class:`~mjinx.problem.JaxProblemData` from ``Problem.compile()``; reuses
+    pre-allocated buffers in ``mjx_data`` (no ``make_data`` per call).
+
+    :param problem_data: Compiled problem data.
     :param q: The new joint positions.
     :return: Updated MuJoCo data.
+    :raises TypeError: If ``problem_data`` is not ``JaxProblemData``-like (no ``mjx_data`` / ``model``).
     """
-    data = mjx.make_data(model)
-    data = data.replace(qpos=q)
-    data = mjx.kinematics(model, data)
-    data = mjx.com_pos(model, data)
-    data = mjx.make_constraint(model, data)
+    mjx_data = getattr(problem_data, "mjx_data", None)
+    if mjx_data is None:
+        raise TypeError(
+            "configuration.update expects JaxProblemData from Problem.compile(); "
+            "passing an mjx.Model is not supported."
+        )
+    model = problem_data.model
+    data = mjx_data.replace(qpos=q)
+    # JAX: kinematics → subtree CoM / cdof → constraint rows (efc_*).
+    # Warp: top-level mjx.com_pos / mjx.make_constraint / mjx.collision are JAX-only;
+    # mjx.forward dispatches to the Warp kernel and fills the same buffers in one pass.
+    impl = getattr(problem_data, "impl", "jax")
+    if impl == "warp":
+        data = mjx.forward(model, data)
+    else:
+        data = mjx.kinematics(model, data)
+        data = mjx.com_pos(model, data)
+        data = mjx.make_constraint(model, data)
 
     return data
 
@@ -192,7 +213,7 @@ def integrate(model: mjx.Model, q0: jnp.ndarray, velocity: jnp.ndarray, dt: jnp.
 
     .. math::
 
-        q_1 = q_0 + v \cdot dt
+        q_1 = q_0 + v \\cdot dt
 
     For quaternion-based joints, integration uses the exponential map:
 

@@ -6,6 +6,7 @@ import mujoco.mjx as mjx
 import numpy as np
 
 from mjinx.configuration import compute_collision_pairs, update
+from mjinx.problem import Problem
 from mjinx.typing import CollisionPair
 
 
@@ -48,7 +49,8 @@ class TestCollisionPairs(unittest.TestCase):
             size2=" ".join(map(str, size2 if isinstance(size2, list | tuple) else [size2])),
         )
         mjx_model = mjx.put_model(mujoco.MjModel.from_xml_string(xml))
-        mjx_data = update(mjx_model, jnp.zeros(1))
+        pd = Problem(mjx_model).compile()
+        mjx_data = update(pd, jnp.zeros(mjx_model.nq))
         return mjx_model, mjx_data
 
     def setUp(self):
@@ -112,7 +114,8 @@ class TestCollisionPairs(unittest.TestCase):
         </mujoco>
         """
         model = mjx.put_model(mujoco.MjModel.from_xml_string(xml_additional))
-        data = update(model, jnp.zeros(1))
+        pd = Problem(model).compile()
+        data = update(pd, jnp.zeros(model.nq))
 
         collision_pairs = [(0, 1), (0, 2)]
         contact = compute_collision_pairs(model, data, collision_pairs)

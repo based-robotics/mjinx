@@ -102,7 +102,7 @@ class Solver(Generic[SolverDataType, SolverSolutionType], abc.ABC):
         """
         if q.shape != (self.model.nq,):
             raise ValueError(f"wrong dimension of the state: expected ({self.model.nq}, ), got {q.shape}")
-        model_data = configuration.update(self.model, q)
+        model_data = configuration.update(problem_data, q)
         return self.solve_from_data(solver_data, problem_data, model_data)
 
     @abc.abstractmethod

@@ -1,17 +1,20 @@
 # problem.py
 
 from contextlib import AbstractContextManager
-from typing import cast
+from dataclasses import replace
+from typing import Any, cast
 
 import jax
 import jax.numpy as jnp
 import jax_dataclasses as jdc
+from jax_dataclasses import Static
 import mujoco.mjx as mjx
 
 from mjinx.components._base import Component, JaxComponent
 from mjinx.components.barriers._base import Barrier
 from mjinx.components.tasks._base import Task
 from mjinx.typing import ArrayOrFloat
+from mjinx.utils import allocate_mjx_data, create_mjx_model_and_data
 
 
 @jdc.pytree_dataclass
@@ -25,12 +28,20 @@ class JaxProblemData:
     :param v_min: Minimum velocity limits.
     :param v_max: Maximum velocity limits.
     :param components: Dictionary of JAX components (tasks and barriers).
+    :param mjx_data: Pre-allocated simulation state; ``configuration.update`` reuses it (no per-step ``make_data``).
     """
 
-    model: mjx.Model
+    model: Static[mjx.Model]
     v_min: jnp.ndarray
     v_max: jnp.ndarray
     components: dict[str, JaxComponent]
+    # Pre-allocated MJX data (buffers); updated each step via replace(qpos=...) + forward
+    mjx_data: Static[mjx.Data]
+    # Backend/meta (static pytree fields — not JAX arrays; safe under jax.jit)
+    impl: Static[str] = "jax"
+    mj_model: Static[Any | None] = None
+    nconmax: Static[int] = 512
+    njmax: Static[int] = 1024
 
 
 class Problem:
@@ -50,6 +61,44 @@ class Problem:
         self.__components: dict[str, Component] = {}
         self.update_v_min(v_min)
         self.update_v_max(v_max)
+        # Backend/meta defaults
+        self.__impl: str = "jax"
+        self.__mj_model: Any | None = None
+        self.__nconmax: int = 512
+        self.__njmax: int = 1024
+        # Allocated once; reused by every compile() so callers can recompile tasks without reallocating.
+        self.__mjx_data_template: mjx.Data | None = None
+        # Cached JAX mjx.Model for autodiff when runtime ``__model`` is Warp (stable identity for ``jax.jit``).
+        self.__jax_diff_model: mjx.Model | None = None
+
+    @classmethod
+    def from_mj_model(
+        cls,
+        mj_model: Any,
+        *,
+        impl: str = "jax",
+        nconmax: int = 512,
+        njmax: int = 1024,
+        graph_mode=None,
+        v_min: ArrayOrFloat = -1e3,
+        v_max: ArrayOrFloat = 1e3,
+    ) -> "Problem":
+        """
+        Convenience constructor to build a Problem from a mujoco.MjModel,
+        selecting the MJX backend and (for Warp) static buffer sizes.
+        """
+        mjx_model, mjx_data = create_mjx_model_and_data(
+            mj_model, impl=impl, nconmax=nconmax, njmax=njmax, graph_mode=graph_mode
+        )
+        inst = cls(mjx_model, v_min=v_min, v_max=v_max)
+        inst.__impl = impl
+        inst.__mj_model = mj_model
+        inst.__nconmax = nconmax
+        inst.__njmax = njmax
+        inst.__mjx_data_template = mjx_data
+        if impl == "warp":
+            inst.__jax_diff_model = mjx.put_model(mj_model)
+        return inst
 
     @property
     def v_min(self) -> jnp.ndarray:
@@ -153,7 +202,30 @@ class Problem:
         components = {
             name: cast(JaxComponent, component.jax_component) for name, component in self.__components.items()
         }
-        return JaxProblemData(self.__model, self.v_min, self.v_max, components)  # type: ignore[call-arg]
+        if self.__impl == "warp" and self.__mj_model is not None:
+            if self.__jax_diff_model is None:
+                self.__jax_diff_model = mjx.put_model(self.__mj_model)
+            components = {name: replace(c, diff_model=self.__jax_diff_model) for name, c in components.items()}
+        if self.__mjx_data_template is None:
+            self.__mjx_data_template = allocate_mjx_data(
+                self.__model,
+                self.__mj_model,
+                self.__impl,
+                self.__nconmax,
+                self.__njmax,
+            )
+        mjx_data = self.__mjx_data_template
+        return JaxProblemData(
+            self.__model,
+            self.v_min,
+            self.v_max,
+            components,
+            mjx_data,
+            impl=self.__impl,
+            mj_model=self.__mj_model,
+            nconmax=self.__nconmax,
+            njmax=self.__njmax,
+        )  # type: ignore[call-arg]
 
     def component(self, name: str) -> Component:
         """

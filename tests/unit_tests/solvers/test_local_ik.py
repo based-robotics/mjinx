@@ -118,7 +118,7 @@ class TestLocalIK(unittest.TestCase):
         np.testing.assert_almost_equal(new_solution.v_opt, new_solver_data.v_prev)
 
         new_solution_from_data, _ = solver.solve_from_data(
-            solver_data, self.problem_data, configuration.update(self.model, np.ones(self.model.nq))
+            solver_data, self.problem_data, configuration.update(self.problem_data, np.ones(self.model.nq))
         )
         np.testing.assert_almost_equal(new_solution.v_opt, new_solution_from_data.v_opt, decimal=3)
 
@@ -150,6 +150,7 @@ class TestLocalIK(unittest.TestCase):
             v_min=jnp.zeros(self.model.nv),
             v_max=jnp.ones(self.model.nv),
             components={},
+            mjx_data=mjx.make_data(self.model),
         )
         model_data = mjx.make_data(self.model)
         H_total, c_total, A_mat, b_vec, G_mat, h_vec = solver._LocalIKSolver__compute_qp_matrices(
@@ -195,6 +196,7 @@ class TestLocalIK(unittest.TestCase):
             v_min=jnp.zeros(self.model.nv),
             v_max=jnp.ones(self.model.nv),
             components=components,
+            mjx_data=mjx.make_data(self.model),
         )
         model_data = mjx.make_data(self.model)
         solver = LocalIKSolver(
@@ -274,8 +276,9 @@ class TestLocalIK(unittest.TestCase):
             v_min=jnp.zeros(self.model.nv),
             v_max=jnp.ones(self.model.nv),
             components={},
+            mjx_data=mjx.make_data(self.model),
         )
-        model_data = mjx.make_data(self.model)
+        model_data = configuration.update(dummy_problem_data, jnp.ones(self.model.nq))
         solution, solver_data = solver.solve_from_data(solver.init(), dummy_problem_data, model_data)
         self.assertTrue(jnp.allclose(solution.v_opt, jnp.ones(self.model.nv)))
         self.assertTrue(jnp.allclose(solver_data.v_prev, jnp.ones(self.model.nv)))

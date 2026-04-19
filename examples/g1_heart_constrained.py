@@ -129,7 +129,7 @@ q0 = mj_model.keyframe("stand").qpos
 q = jnp.tile(q0, (N_batch, 1))
 
 # TODO: implement update_from_model_data
-mjx_data = update(mjx_model, jnp.array(q0))
+mjx_data = update(problem_data, jnp.array(q0))
 
 com_pos = mjx_data.subtree_com[mjx_model.body_rootid[0]]
 com_task.target_com = com_pos[:2]

@@ -2,12 +2,14 @@ from __future__ import annotations
 
 import abc
 from collections.abc import Callable, Sequence
+from dataclasses import field
 from typing import Any, Generic, TypeVar
 
 import jax
 import jax.numpy as jnp
 import jax_dataclasses as jdc
 import mujoco.mjx as mjx
+from jax_dataclasses import Static
 
 from mjinx.configuration import jac_dq2v
 from mjinx.typing import ArrayOrFloat
@@ -27,10 +29,12 @@ class JaxComponent(abc.ABC):
     """
 
     dim: jdc.Static[int]
-    model: mjx.Model
+    model: Static[mjx.Model]
     vector_gain: jnp.ndarray
     gain_fn: jdc.Static[Callable[[float], float]]
     mask_idxs: jdc.Static[tuple[int, ...]]
+    #: JAX ``mjx.Model`` used only for autodiff (``make_data`` / ``kinematics``) when ``model`` is Warp.
+    diff_model: jdc.Static[mjx.Model | None] = field(default=None, kw_only=True)
 
     @abc.abstractmethod
     def __call__(self, data: mjx.Data) -> jnp.ndarray:  # pragma: no cover
@@ -79,8 +83,9 @@ class JaxComponent(abc.ABC):
         :param data: The MuJoCo simulation data.
         :return: The computed Jacobian matrix.
         """
+        m = self.diff_model if self.diff_model is not None else self.model
         jac = jax.jacrev(
-            lambda q, model=self.model: self.__call__(
+            lambda q, model=m: self.__call__(
                 mjx.kinematics(model, mjx.make_data(model).replace(qpos=q)),
             ),
             argnums=0,
@@ -332,7 +337,13 @@ class Component(Generic[AtomicComponentType]):
         :return: An instance of the atomic component.
         """
         component_attributes = self.JaxComponentType.__dataclass_fields__.keys()  # type: ignore
-        return self.JaxComponentType(**{attr: self.__getattribute__(attr) for attr in component_attributes})
+        kwargs = {}
+        for attr in component_attributes:
+            if attr == "diff_model":
+                kwargs[attr] = getattr(self, "diff_model", None)
+            else:
+                kwargs[attr] = self.__getattribute__(attr)
+        return self.JaxComponentType(**kwargs)
 
     @property
     def jax_component(self) -> AtomicComponentType:

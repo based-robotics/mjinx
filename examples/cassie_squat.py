@@ -68,6 +68,9 @@ problem.add_component(joints_barrier)
 problem.add_component(left_foot_task)
 problem.add_component(right_foot_task)
 problem.add_component(model_equality_constraint)
+
+problem_data = problem.compile()
+
 # Initializing solver and its initial state
 solver = LocalIKSolver(mjx_model, maxiter=10)
 
@@ -76,7 +79,7 @@ N_batch = 100
 q0 = mj_model.keyframe("home").qpos
 q = jnp.tile(q0, (N_batch, 1))
 
-mjx_data = update(mjx_model, jnp.array(q0))
+mjx_data = update(problem_data, jnp.array(q0))
 
 com0 = np.array(mjx_data.subtree_com[mjx_model.body_rootid[0]])
 com_task.target_com = com0
@@ -95,8 +98,6 @@ right_foot_pos = mjx_data.xpos[right_foot_id]
 right_foot_quat = mjx_data.xquat[right_foot_id]
 right_foot_task.target_frame = jnp.concatenate([right_foot_pos, right_foot_quat])
 
-# Compiling the problem upon any parameters update
-problem_data = problem.compile()
 # --- Batching ---
 print("Setting up batched computations...")
 solver_data = jax.vmap(solver.init, in_axes=0)(v_init=jnp.zeros((N_batch, mjx_model.nv)))

@@ -7,6 +7,7 @@ import optax
 
 from mjinx.components.barriers import JointBarrier
 from mjinx.components.tasks import ComTask
+from mjinx import configuration
 from mjinx.problem import Problem
 from mjinx.solvers import GlobalIKSolver
 
@@ -85,7 +86,7 @@ class TestGlobalIK(unittest.TestCase):
         new_solution_from_data, _ = solver.solve_from_data(
             solver_data,
             self.problem_data,
-            mjx.make_data(self.model).replace(qpos=np.ones(self.model.nq)),
+            configuration.update(self.problem_data, np.ones(self.model.nq)),
         )
 
         np.testing.assert_almost_equal(new_solution.v_opt, new_solution_from_data.v_opt, decimal=3)

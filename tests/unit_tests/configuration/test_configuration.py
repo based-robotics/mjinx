@@ -7,6 +7,7 @@ import jaxlie
 from jaxlie import SE3, SO3
 from mujoco import mjx
 
+from mjinx.problem import Problem
 from mjinx.configuration import (
     attitude_jacobian,
     get_configuration_limit,
@@ -55,14 +56,15 @@ class TestConfiguration(unittest.TestCase):
         )
         self.nq = self.model.nq
         self.q = jnp.array([0, 0, 0, 0, 1, 0], dtype=jnp.float32)  # Example joint position
+        self.problem_data = Problem(self.model).compile()
 
     def test_update(self):
-        data = update(self.model, self.q)
+        data = update(self.problem_data, self.q)
         self.assertIsInstance(data, mjx.Data)
         self.assertTrue(jnp.allclose(data.qpos, self.q))
 
     def test_get_frame_jacobian_world_aligned(self):
-        self.data = update(self.model, self.q)
+        self.data = update(self.problem_data, self.q)
         # Test for body
         jacobian_body = get_frame_jacobian_world_aligned(self.model, self.data, 1, mj.mjtObj.mjOBJ_BODY)
         self.assertEqual(jacobian_body.shape, (self.model.nv, 6))
@@ -82,7 +84,7 @@ class TestConfiguration(unittest.TestCase):
 
     def test_get_frame_jacobian_local(self):
         # TODO: write tests with particular numbers
-        self.data = update(self.model, self.q)
+        self.data = update(self.problem_data, self.q)
         # Test for body
         jacobian_body = get_frame_jacobian_local(self.model, self.data, 1, mj.mjtObj.mjOBJ_BODY)
         self.assertEqual(jacobian_body.shape, (self.model.nv, 6))
@@ -105,12 +107,12 @@ class TestConfiguration(unittest.TestCase):
         self.assertFalse(jnp.allclose(jacobian_body, jacobian_world))
 
     def test_get_transform_frame_to_world(self):
-        data = update(self.model, self.q)
+        data = update(self.problem_data, self.q)
         transform = get_transform_frame_to_world(self.model, data, 1)
         self.assertIsInstance(transform, SE3)
 
     def test_get_transform(self):
-        data = update(self.model, self.q)
+        data = update(self.problem_data, self.q)
         transform = get_transform(self.model, data, 0, 1)
         self.assertIsInstance(transform, SE3)
 
@@ -289,7 +291,7 @@ class TestConfiguration(unittest.TestCase):
         self.assertAlmostEqual(distances[5], 0.7, delta=1e-3)  # floor to capsule
 
     def test_get_distance_with_hfield(self) -> None:
-        hfield_model = mj.MjModel.from_xml_string(
+        hfield_mj = mj.MjModel.from_xml_string(
             """
        <mujoco>
            <asset>
@@ -305,13 +307,14 @@ class TestConfiguration(unittest.TestCase):
        </mujoco>
        """
         )
-        hfield_data = mjx.make_data(hfield_model)
-        hfield_data = mjx.kinematics(hfield_model, hfield_data)
+        hfield_mjx = mjx.put_model(hfield_mj)
+        hfield_data = mjx.make_data(hfield_mj)
+        hfield_data = mjx.kinematics(hfield_mjx, hfield_data)
 
         collision_pairs: list[CollisionPair] = [(0, 1)]  # hfield and sphere
 
         with self.assertRaises(NotImplementedError):
-            get_distance(hfield_model, hfield_data, collision_pairs)
+            get_distance(hfield_mjx, hfield_data, collision_pairs)
 
     def test_skew_symmetric(self):
         v = jnp.array([1.0, 2.0, 3.0])

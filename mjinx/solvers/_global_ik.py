@@ -144,7 +144,7 @@ class GlobalIKSolver(Solver[GlobalIKData, GlobalIKSolution]):
         :param problem_data: The problem-specific data.
         :return: The computed loss value.
         """
-        model_data = configuration.update(problem_data.model, q)
+        model_data = configuration.update(problem_data, q)
         loss = 0
 
         for component in problem_data.components.values():

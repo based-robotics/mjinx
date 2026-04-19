@@ -104,7 +104,7 @@ q0 = np.array(
 q = jnp.tile(q0, (N_batch, 1))
 
 # TODO: implement update_from_model_data
-mjx_data = update(mjx_model, jnp.array(q0))
+mjx_data = update(problem_data, jnp.array(q0))
 
 for foot in ["FL", "FR", "RL", "RR"]:
     foot_pos = mjx_data.geom_xpos[mjx.name2id(mjx_model, mj.mjtObj.mjOBJ_GEOM, foot)]

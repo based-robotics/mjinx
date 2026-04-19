@@ -64,8 +64,15 @@ vis.add_markers(
 print("Setting up optimization problem...")
 # --- Constructing the problem ---
 # Creating problem formulation
-problem = Problem(mjx_model, v_min=-5, v_max=5)
-
+# problem = Problem(mjx_model, v_min=-5, v_max=5, impl="warp", nconmax=512, njmax=1024)
+problem = Problem.from_mj_model(
+    mj_model,
+    impl="warp",
+    nconmax=512,
+    njmax=1024,
+    v_min=-5,
+    v_max=5,
+)
 # Creating components of interest and adding them to the problem
 joints_barrier = JointBarrier("jnt_range", gain=1.0)
 
@@ -146,7 +153,7 @@ q0 = mj_model.keyframe("stand").qpos
 q = jnp.tile(q0, (N_batch, 1))
 
 # TODO: implement update_from_model_data
-mjx_data = update(mjx_model, jnp.array(q0))
+mjx_data = update(problem_data, jnp.array(q0))
 
 com_pos = mjx_data.subtree_com[mjx_model.body_rootid[0]]
 com_task.target_com = com_pos[:2]

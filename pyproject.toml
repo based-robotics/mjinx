@@ -29,9 +29,9 @@ docs = [
   "sphinx-rtd-theme>1",
   "sphinxcontrib-bibtex",
 ]
-visual = ["dm_control", "mediapy"]
+warp = ["mujoco-mjx[warp]"]
 examples = ["mjinx[visual]", "robot_descriptions>=1.12"]
-all = ["mjinx[dev, visual, docs]"]
+all = ["mjinx[dev, visual, docs, warp]"]
 
 [build-system]
 requires = ["setuptools>=43.0.0", "wheel"]

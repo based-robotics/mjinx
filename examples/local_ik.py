@@ -6,15 +6,14 @@ for a Kuka iiwa robot. It shows how to set up the problem, add tasks and barrier
 and visualize the results using MuJoCo's viewer.
 """
 
+from time import perf_counter
+
 import jax
 import jax.numpy as jnp
 import mujoco as mj
-import mujoco.mjx as mjx
 import numpy as np
 from mujoco import viewer
 from robot_descriptions.iiwa14_mj_description import MJCF_PATH
-from time import perf_counter
-from collections import defaultdict
 
 from mjinx.components.barriers import JointBarrier, PositionBarrier, SelfCollisionBarrier
 from mjinx.components.tasks import FrameTask
@@ -30,7 +29,12 @@ print("Loading MuJoCo model...")
 mj_model = mj.MjModel.from_xml_path(MJCF_PATH)
 mj_data = mj.MjData(mj_model)
 
-mjx_model = mjx.put_model(mj_model)
+# Configure MJX backend in code (no env vars)
+# Options: MJX_IMPL = "jax" (default) or "warp"
+MJX_IMPL = "warp"
+MJX_NCONMAX = 512  # used only for warp
+MJX_NJMAX = 1024   # used only for warp
+print(f"Using MJX backend: '{MJX_IMPL}'")
 
 q_min = mj_model.jnt_range[:, 0].copy()
 q_max = mj_model.jnt_range[:, 1].copy()
@@ -64,7 +68,15 @@ mj.mjv_initGeom(
 print("Setting up optimization problem...")
 # --- Constructing the problem ---
 # Creating problem formulation
-problem = Problem(mjx_model, v_min=-100, v_max=100)
+# Build Problem from original mj_model so backend info (including Warp) is carried
+problem = Problem.from_mj_model(
+    mj_model,
+    impl=MJX_IMPL,
+    nconmax=MJX_NCONMAX,
+    njmax=MJX_NJMAX,
+    v_min=-100,
+    v_max=100,
+)
 
 # Creating components of interest and adding them to the problem
 frame_task = FrameTask("ee_task", cost=1, gain=20, obj_name="link7")
@@ -91,6 +103,7 @@ problem.add_component(self_collision_barrier)
 
 # Compiling the problem upon any parameters update
 problem_data = problem.compile()
+mjx_model = problem_data.model
 
 # Initializing solver and its initial state
 print("Initializing solver...")
@@ -199,6 +212,6 @@ finally:
         print(f"integrate      : {avg_integrate * 1000:8.3f} ± {std_integrate * 1000:8.3f} ms")
 
     if solve_times and integrate_times:
-        avg_total = sum(t1 + t2 for t1, t2 in zip(solve_times, integrate_times)) / len(solve_times)
+        avg_total = sum(t1 + t2 for t1, t2 in zip(solve_times, integrate_times, strict=True)) / len(solve_times)
         print(f"\nAverage computation time per step: {avg_total * 1000:.3f} ms")
         print(f"Effective computation rate: {1 / avg_total:.1f} Hz")
