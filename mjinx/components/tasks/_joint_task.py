@@ -177,7 +177,7 @@ class JointTask(Task[JaxJointTask]):
         return self._target_q
 
     @target_q.setter
-    def target_q(self, value: Sequence):
+    def target_q(self, value: jnp.ndarray | Sequence):
         """
         Set the target joint positions for the task.
 
@@ -185,7 +185,7 @@ class JointTask(Task[JaxJointTask]):
         """
         self.update_target_q(value)
 
-    def update_target_q(self, target_q: Sequence):
+    def update_target_q(self, target_q: jnp.ndarray | Sequence):
         """
         Update the target joint positions for the task.
 
