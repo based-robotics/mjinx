@@ -305,8 +305,9 @@ class TestConfiguration(unittest.TestCase):
        </mujoco>
        """
         )
-        hfield_data = mjx.make_data(hfield_model)
-        hfield_data = mjx.kinematics(hfield_model, hfield_data)
+        hfield_model_mjx = mjx.put_model(hfield_model)
+        hfield_data = mjx.make_data(hfield_model_mjx)
+        hfield_data = mjx.kinematics(hfield_model_mjx, hfield_data)
 
         collision_pairs: list[CollisionPair] = [(0, 1)]  # hfield and sphere
 

@@ -11,6 +11,7 @@ from typing import NamedTuple, TypeAlias
 import jax
 import jax.numpy as jnp
 import numpy as np
+import numpy.typing
 from mujoco.mjx._src.dataclasses import PyTreeNode
 
 ndarray: TypeAlias = np.ndarray | jnp.ndarray

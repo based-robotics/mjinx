@@ -137,7 +137,7 @@ class ComTask(Task[JaxComTask]):
         return self._target_com
 
     @target_com.setter
-    def target_com(self, value: Sequence):
+    def target_com(self, value: jnp.ndarray | Sequence):
         """
         Set the target center of mass for the task.
 
@@ -145,7 +145,7 @@ class ComTask(Task[JaxComTask]):
         """
         self.update_target_com(value)
 
-    def update_target_com(self, target_com: Sequence):
+    def update_target_com(self, target_com: jnp.ndarray | Sequence):
         """
         Update the target center of mass for the task.
 
